@@ -62,3 +62,6 @@ docs/_build
 .bootstrap
 .appveyor.token
 *.bak
+
+# Private tests
+tests/private
