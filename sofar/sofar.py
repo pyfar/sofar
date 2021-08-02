@@ -2,6 +2,9 @@ import os
 import glob
 import json
 import requests
+from functools import reduce
+import operator
+import numpy as np
 from bs4 import BeautifulSoup
 
 
@@ -46,13 +49,14 @@ def update_conventions():
             os.path.dirname(__file__), "conventions", convention)
         filename_json = filename_csv[:-3] + "json"
 
-        # download SOFA convention to package diretory
+        # download SOFA convention definitions to package diretory
         data = requests.get(url_raw + "/" + convention)
         with open(filename_csv, "wb") as file:
             file.write(data.content)
 
-        # convert SOFA conventions from csv to json
-        convention_dict = _convention_csv2dict(filename_csv)
+        # convert SOFA conventions definition from csv to json
+        convention_dict = _definition_csv2dict(filename_csv)
+
         with open(filename_json, 'w') as file:
             json.dump(convention_dict, file)
 
@@ -104,27 +108,63 @@ def list_conventions(print_conventions=True, return_paths=False):
 
 
 def get_convention(name, mandatory=True):
+    """Get definition of SOFA convention from json file.
 
-    raw = _get_convention_definition(name)
-    _get_api(raw)
-    return raw
-    # TODO: convert raw json to convention as returned by Matlab API
+    Parameters
+    ----------
+    name : str
+        The name of the convention. See :py:func:`~sofar.list_conventions`.
 
-
-def _convention_csv2dict(file: str):
+    Returns
+    -------
+    definition : dict
+        The definition of the SOFA convention as dictionary. The definition is
+        read from the corresponding json file. See
+        :py:func:`~sofar.list_conventions`.
     """
-    Read SOFA convention from csv file.
+
+    # check input
+    if not isinstance(name, str):
+        raise TypeError(
+            f"Convention must be a string but is of type {type(name)}")
+
+    # load convention definition from json file
+    paths = list_conventions(False, True)
+    path = [path for path in paths if name in path]
+
+    if not len(path):
+        raise ValueError(
+            (f"Convention '{name}' not found. See "
+             "sofar.list_conventions() for available conventions."))
+    if len(path) > 1:
+        raise ValueError(
+            (f"Found multiple matches for convention '{name}'. See "
+             "sofar.list_conventions() for available conventions."))
+
+    with open(path[0], "r") as file:
+        definition = json.load(file)
+
+    # convert convention definition to SOFA file in dict format
+    convention = _definition2convention(definition)
+
+    return convention
+
+
+def _definition_csv2dict(file: str):
+    """
+    Read SOFA convention definition from csv file. The csv files are taken
+    from the official Matlab/Octave SOFA API.
 
     Parameters
     ----------
     file : str
-        filename of the SOFA convention
+        filename of the SOFA convention definition
 
     Returns
     -------
     convention : dict
-        SOFA convention as dictionary. Each key has a list of four entries that
-        are according to `convention['comment']`.
+        SOFA convention definition as dictionary. Each key has a list of four
+        entries that are according to `convention['comment']`.
 
     """
 
@@ -203,45 +243,75 @@ def _convention_csv2dict(file: str):
     return convention
 
 
-def _get_convention_definition(name):
-    """Get definition of SOFA convention from json file.
+def _definition2convention(definition):
 
-    Parameters
-    ----------
-    name : str
-        The name of the convention. See :py:func:`~sofar.list_conventions`.
+    # initialize convention
+    convention = {}
 
-    Returns
-    -------
-    definition : dict
-        The definition of the SOFA convention as dictionary. The definition is
-        read from the corresponding json file. See
-        :py:func:`~sofar.list_conventions`.
-    """
+    # populate the convention
+    for key in definition.keys():
 
-    # check input
-    if not isinstance(name, str):
-        raise TypeError(
-            f"Convention must be a string but is of type {type(name)}")
+        # comment field is not part of the definition
+        if key == "comment":
+            continue
 
-    # load convention from json file
-    paths = list_conventions(False, True)
-    path = [path for path in paths if name in path]
+        # replacing to be comparable to the Matlab/Octave API)
+        keys = key.replace(":", "_")
+        # split key for accessing nested dictionary
+        keys = keys.split(".") if "." in keys else [keys]
 
-    if not len(path):
-        raise ValueError(
-            (f"Convention '{name}' not found. See "
-             "sofar.list_conventions() for available conventions."))
-    if len(path) > 1:
-        raise ValueError(
-            (f"Found multiple matches for convention '{name}'. See "
-             "sofar.list_conventions() for available conventions."))
+        # set default value
+        value = definition[key][0]
+        value = "" if value is None else value
+        _set_in_nested_dict(convention, keys, value)
 
-    with open(path[0], "r") as file:
-        raw = json.load(file)
+        # update API
+        dimensions = definition[key][2]
+        if dimensions is not None:
+            # add dimensions to API
+            dimensions = dimensions.split(", ") if "," in dimensions \
+                else [dimensions]
+            _set_in_nested_dict(
+                convention, ["API", "Dimensions"] + keys, dimensions)
 
-    return raw
+            # add size of dimension
+            for dimension in dimensions:
+                for id, dim in enumerate(dimension):
+                    if dim.islower():
+                        _set_in_nested_dict(
+                            convention,
+                            ["API", dim.upper()],
+                            _atleast_4d(value).shape[id])
+
+    # add fixed sizes
+    convention["API"]["C"] = 3
+    convention["API"]["I"] = 1
+
+    # move entries Data and API to the end
+    convention["Data"] = convention.pop("Data")
+    convention["API"] = convention.pop("API")
+
+    # TODO:
+    # add GLOBAL_DateCreated/APIVersion/APIName'
+    # remove non mandatory fields if requested
+    # modularize get_convention
+
+    return convention
 
 
-def _get_api(convention_definition):
-    api = {}
+def _get_from_nested_dict(dictionary, keys):
+    "Get value from nested dictionary based on a list of keys."
+    return reduce(operator.getitem, keys, dictionary)
+
+
+def _set_in_nested_dict(dictionary, keys, value):
+    "Set value in nested dictionary based on a list of keys."
+    _get_from_nested_dict(dictionary, keys[:-1])[keys[-1]] = value
+
+
+def _atleast_4d(value):
+    """return value as numpy array with four dimensions"""
+    value = np.atleast_3d(value)
+    if value.ndim == 3:
+        value = np.atleast_3d(value)[..., np.newaxis]
+    return value
