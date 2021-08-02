@@ -28,10 +28,35 @@ def test_get_convention():
     with raises(ValueError, match="Convention 'invalid' not found"):
         sf.get_convention("invalid")
 
-    # test output
+    # test conversion
     paths = sf.list_conventions(print_conventions=False, return_paths=True)
     for path in paths:
         name = os.path.basename(path).split(sep="_")[0]
         print(f"Testing: {name}")
         convention = sf.get_convention(name)
         assert isinstance(convention, dict)
+
+    # test returning only mandatory fields
+    convention_all = sf.get_convention("SimpleFreeFieldHRIR")
+    convention_man = sf.get_convention("SimpleFreeFieldHRIR", True)
+    assert len(convention_all) > len(convention_man)
+
+
+def test_set_value():
+    # dummy convention
+    convention = sf.get_convention("SimpleFreeFieldHRIR")
+
+    # set with key as string
+    sf.set_value(convention, "ListenerPosition", [0, 0, 1])
+    assert convention["ListenerPosition"] == [0, 0, 1]
+
+    # set with key as list
+    sf.set_value(convention, ["Data", "IR"], [0, 0, 1])
+    assert convention["Data"]["IR"] == [0, 0, 1]
+
+    # set with invalid key (key does not exist)
+    with raises(ValueError, match="The attribute"):
+        sf.set_value(convention, ["Data.IR"], [0, 0, 1])
+    # set with invalid key (key is nested dictionary)
+    with raises(ValueError, match="The attribute"):
+        sf.set_value(convention, "Data", [0, 0, 1])

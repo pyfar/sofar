@@ -124,10 +124,8 @@ def get_convention(name, mandatory=False):
 
     Returns
     -------
-    definition : dict
-        The definition of the SOFA convention as dictionary. The definition is
-        read from the corresponding json file. See
-        :py:func:`~sofar.list_conventions`.
+    convention : dict
+        The SOFA convention with the default values as dictionary.
     """
 
     # get definition
@@ -137,6 +135,39 @@ def get_convention(name, mandatory=False):
     convention = _definition2convention(definition, mandatory)
 
     return convention
+
+
+def set_value(convention, key, value):
+    """
+    Set specific value of a SOFA convention.
+
+    Parameters
+    ----------
+    convention : dict
+        A SOFA convention obtained from :py:func:`~sofar.get_convention`.
+    key : str, list of strings
+        The name of the attribute to which the value is assigned, i.e.,
+        ``'ListenerPosition'``, or ``['Data', 'IR']``.
+    value : number, string, list, array
+        The value to be assigned.
+
+    Retruns
+    -------
+    The value is updated in `convention` without the need of returning it. This
+    is because Python dictionaries are mutable objects.
+    """
+
+    if not isinstance(key, list):
+        key = [key]
+
+    # check if the key is valid
+    current_value = _get_from_nested_dict(convention, key)
+    if isinstance(current_value, dict):
+        raise ValueError(
+            f"The attribute {key} is not contained in the convention")
+
+    # set the value
+    _set_in_nested_dict(convention, key, value)
 
 
 def _definition_csv2dict(file: str):
@@ -329,7 +360,13 @@ def _definition2convention(definition, mandatory):
 
 def _get_from_nested_dict(dictionary, keys):
     "Get value from nested dictionary based on a list of keys."
-    return reduce(operator.getitem, keys, dictionary)
+    try:
+        value = reduce(operator.getitem, keys, dictionary)
+    except KeyError:
+        raise ValueError(
+            f"The attribute {keys} is not contained in the convention")
+
+    return value
 
 
 def _set_in_nested_dict(dictionary, keys, value):
