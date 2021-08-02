@@ -52,7 +52,7 @@ def update_conventions():
             file.write(data.content)
 
         # convert SOFA conventions from csv to json
-        convention_dict = _convention_csv2json(filename_csv)
+        convention_dict = _convention_csv2dict(filename_csv)
         with open(filename_json, 'w') as file:
             json.dump(convention_dict, file)
 
@@ -106,11 +106,12 @@ def list_conventions(print_conventions=True, return_paths=False):
 def get_convention(name, mandatory=True):
 
     raw = _get_convention_definition(name)
+    _get_api(raw)
     return raw
     # TODO: convert raw json to convention as returned by Matlab API
 
 
-def _convention_csv2json(file: str):
+def _convention_csv2dict(file: str):
     """
     Read SOFA convention from csv file.
 
@@ -242,4 +243,5 @@ def _get_convention_definition(name):
     return raw
 
 
-# def _get_api(convention_definition)
+def _get_api(convention_definition):
+    api = {}
