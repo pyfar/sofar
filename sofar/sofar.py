@@ -1,4 +1,5 @@
 import os
+import glob
 import json
 import requests
 from bs4 import BeautifulSoup
@@ -17,9 +18,9 @@ def update_conventions():
     2.
         Convert csv files to json files for easier handling
 
-    The csv and json files are stored at sofar/conventions. To get a list of
-    all currently available SOFA conventions call
-    :py:func:`~sofar.get_conventions`.
+    The csv and json files are stored at sofar/conventions. Sofar works only on
+    the json files. To get a list of all currently available SOFA conventions
+    and their paths see :py:func:`~sofar.list_conventions`.
     """
 
     # url for parsing and downloading the convention files
@@ -56,6 +57,46 @@ def update_conventions():
             json.dump(convention_dict, file)
 
     print("... done.")
+
+
+def list_conventions(return_paths=False):
+    """
+    List available SOFA conventions and print them to the console.
+
+    Parameters
+    ----------
+    return_paths : bool, optional
+        Return a list containing the full paths of the files that store the
+        conventions. The default is ``False``.
+
+    Returns
+    -------
+    paths : list
+        The full paths of the SOFA convention files. A SOFA convention defines
+        the kind of data and the data format that is stored in a SOFA file.
+        The paths are only returned if `return_paths` is ``True`` (see
+        Parameters).
+
+    Notes
+    -----
+    For updating the local convention files see
+    :py:func:`~sofar.update_conventions`.
+    """
+    # directory containing the SOFA conventions
+    directory = os.path.join(os.path.dirname(__file__), "conventions")
+
+    # SOFA convention files
+    paths = [file for file in glob.glob(os.path.join(directory, "*.json"))]
+
+    print("Available SOFA conventions:")
+    for path in paths:
+        fileparts = os.path.basename(path).split(sep="_")
+        convention = fileparts[0]
+        version = fileparts[1][:-5]
+        print(f"{convention} (Version {version})")
+
+    if return_paths:
+        return paths
 
 
 def _read_convention_from_csv_file(file: str):
