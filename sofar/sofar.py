@@ -4,8 +4,11 @@ import json
 import requests
 from functools import reduce
 import operator
+from datetime import datetime
+import platform
 import numpy as np
 from bs4 import BeautifulSoup
+import sofar as sf
 
 
 def update_conventions():
@@ -107,13 +110,17 @@ def list_conventions(print_conventions=True, return_paths=False):
         return paths
 
 
-def get_convention(name, mandatory=True):
+def get_convention(name, mandatory=False):
     """Get definition of SOFA convention from json file.
 
     Parameters
     ----------
     name : str
         The name of the convention. See :py:func:`~sofar.list_conventions`.
+    mandatory : bool, optional
+        If ``True``, only the mandatory fields of the convention will be
+        returned. The default is ``False``, which returns mandatory and
+        optional fields.
 
     Returns
     -------
@@ -123,29 +130,11 @@ def get_convention(name, mandatory=True):
         :py:func:`~sofar.list_conventions`.
     """
 
-    # check input
-    if not isinstance(name, str):
-        raise TypeError(
-            f"Convention must be a string but is of type {type(name)}")
-
-    # load convention definition from json file
-    paths = list_conventions(False, True)
-    path = [path for path in paths if name in path]
-
-    if not len(path):
-        raise ValueError(
-            (f"Convention '{name}' not found. See "
-             "sofar.list_conventions() for available conventions."))
-    if len(path) > 1:
-        raise ValueError(
-            (f"Found multiple matches for convention '{name}'. See "
-             "sofar.list_conventions() for available conventions."))
-
-    with open(path[0], "r") as file:
-        definition = json.load(file)
+    # get definition
+    definition = _get_definition(name)
 
     # convert convention definition to SOFA file in dict format
-    convention = _definition2convention(definition)
+    convention = _definition2convention(definition, mandatory)
 
     return convention
 
@@ -243,16 +232,53 @@ def _definition_csv2dict(file: str):
     return convention
 
 
-def _definition2convention(definition):
+def _get_definition(name):
+    # check input
+    if not isinstance(name, str):
+        raise TypeError(
+            f"Convention must be a string but is of type {type(name)}")
+
+    # load convention definition from json file
+    paths = list_conventions(False, True)
+    path = [path for path in paths
+            if os.path.basename(path).startswith(name + "_")]
+
+    if not len(path):
+        raise ValueError(
+            (f"Convention '{name}' not found. See "
+             "sofar.list_conventions() for available conventions."))
+
+    with open(path[0], "r") as file:
+        definition = json.load(file)
+
+    return definition
+
+
+def _definition2convention(definition, mandatory):
 
     # initialize convention
     convention = {}
+    convention["API"] = {}
+    convention["API"]["Dimensions"] = {}
+    convention["API"]["Dimensions"]["Data"] = {}
+    convention["Data"] = {}
 
     # populate the convention
     for key in definition.keys():
 
         # comment field is not part of the definition
         if key == "comment":
+            continue
+
+        # skip optional fields if requested
+        if definition[key][1] is None:
+            is_mandatory = False
+        elif "m" not in definition[key][1]:
+            is_mandatory = False
+        else:
+            is_mandatory = True
+
+        if not is_mandatory and mandatory:
             continue
 
         # replacing to be comparable to the Matlab/Octave API)
@@ -274,14 +300,12 @@ def _definition2convention(definition):
             _set_in_nested_dict(
                 convention, ["API", "Dimensions"] + keys, dimensions)
 
-            # add size of dimension
-            for dimension in dimensions:
-                for id, dim in enumerate(dimension):
-                    if dim.islower():
-                        _set_in_nested_dict(
-                            convention,
-                            ["API", dim.upper()],
-                            _atleast_4d(value).shape[id])
+            # add size of dimension and the field determing the size
+            for id, dim in enumerate(dimensions[0]):
+                if dim.islower():
+                    convention["API"][dim.upper()] = \
+                        _atleast_4d(value).shape[id]
+                    convention["API"][dim] = keys
 
     # add fixed sizes
     convention["API"]["C"] = 3
@@ -291,10 +315,14 @@ def _definition2convention(definition):
     convention["Data"] = convention.pop("Data")
     convention["API"] = convention.pop("API")
 
-    # TODO:
-    # add GLOBAL_DateCreated/APIVersion/APIName'
-    # remove non mandatory fields if requested
-    # modularize get_convention
+    # write API and date specific read only fields
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    convention["GLOBAL_DateCreated"] = now
+    convention["GLOBAL_DateModified"] = now
+    convention["GLOBAL_APIName"] = "sofar SOFA API for Python (pyfar.org)"
+    convention["GLOBAL_APIVersion"] = sf.__version__
+    convention["GLOBAL_ApplicationName"] = "Python"
+    convention["GLOBAL_ApplicationVersion"] = platform.python_version()
 
     return convention
 
@@ -310,7 +338,10 @@ def _set_in_nested_dict(dictionary, keys, value):
 
 
 def _atleast_4d(value):
-    """return value as numpy array with four dimensions"""
+    """
+    Return value as numpy array with ndims=4, which is the maximum number of
+    dimensions an array stored in a SOFA file can have.
+    """
     value = np.atleast_3d(value)
     if value.ndim == 3:
         value = np.atleast_3d(value)[..., np.newaxis]

@@ -27,9 +27,11 @@ def test_get_convention():
     # test assertion for invalid conventions
     with raises(ValueError, match="Convention 'invalid' not found"):
         sf.get_convention("invalid")
-    with raises(ValueError, match="Found multiple matches"):
-        sf.get_convention("Free")
 
     # test output
-    convention = sf.get_convention("SimpleFreeFieldHRIR")
-    assert isinstance(convention, dict)
+    paths = sf.list_conventions(print_conventions=False, return_paths=True)
+    for path in paths:
+        name = os.path.basename(path).split(sep="_")[0]
+        print(f"Testing: {name}")
+        convention = sf.get_convention(name)
+        assert isinstance(convention, dict)
