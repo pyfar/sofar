@@ -7,9 +7,10 @@ __email__ = 'info@pyfar.org'
 __version__ = '0.1.0'
 
 
-from .sofar import update_conventions, list_conventions
+from .sofar import update_conventions, list_conventions, get_convention
 
 
 __all__ = [
     'update_conventions',
-    'list_conventions']
+    'list_conventions',
+    'get_convention']

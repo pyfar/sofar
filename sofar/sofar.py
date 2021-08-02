@@ -59,12 +59,15 @@ def update_conventions():
     print("... done.")
 
 
-def list_conventions(return_paths=False):
+def list_conventions(print_conventions=True, return_paths=False):
     """
-    List available SOFA conventions and print them to the console.
+    List available SOFA conventions.
 
     Parameters
     ----------
+    print_conventions : bool, optional
+        Print the names and versions of the currently supported conventions to
+        the console. The default is ``True``.
     return_paths : bool, optional
         Return a list containing the full paths of the files that store the
         conventions. The default is ``False``.
@@ -88,15 +91,43 @@ def list_conventions(return_paths=False):
     # SOFA convention files
     paths = [file for file in glob.glob(os.path.join(directory, "*.json"))]
 
-    print("Available SOFA conventions:")
-    for path in paths:
-        fileparts = os.path.basename(path).split(sep="_")
-        convention = fileparts[0]
-        version = fileparts[1][:-5]
-        print(f"{convention} (Version {version})")
+    if print_conventions:
+        print("Available SOFA conventions:")
+        for path in paths:
+            fileparts = os.path.basename(path).split(sep="_")
+            convention = fileparts[0]
+            version = fileparts[1][:-5]
+            print(f"{convention} (Version {version})")
 
     if return_paths:
         return paths
+
+
+def get_convention(name, mandatory=True):
+
+    # check input
+    if not isinstance(name, str):
+        raise TypeError(
+            f"Convention must be a string but is of type {type(name)}")
+
+    # load convention from json file
+    paths = list_conventions(False, True)
+    path = [path for path in paths if name in path]
+
+    if not len(path):
+        raise ValueError(
+            (f"Convention '{name}' not found. See "
+             "sofar.list_conventions() for available conventions."))
+    if len(path) > 1:
+        raise ValueError(
+            (f"Found multiple matches for convention '{name}'. See "
+             "sofar.list_conventions() for available conventions."))
+
+    with open(path[0], "r") as file:
+        raw = json.load(file)
+
+    return raw
+    # TODO: convert raw json to convention as returned by Matlab API
 
 
 def _read_convention_from_csv_file(file: str):
