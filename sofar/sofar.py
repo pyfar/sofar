@@ -105,27 +105,7 @@ def list_conventions(print_conventions=True, return_paths=False):
 
 def get_convention(name, mandatory=True):
 
-    # check input
-    if not isinstance(name, str):
-        raise TypeError(
-            f"Convention must be a string but is of type {type(name)}")
-
-    # load convention from json file
-    paths = list_conventions(False, True)
-    path = [path for path in paths if name in path]
-
-    if not len(path):
-        raise ValueError(
-            (f"Convention '{name}' not found. See "
-             "sofar.list_conventions() for available conventions."))
-    if len(path) > 1:
-        raise ValueError(
-            (f"Found multiple matches for convention '{name}'. See "
-             "sofar.list_conventions() for available conventions."))
-
-    with open(path[0], "r") as file:
-        raw = json.load(file)
-
+    raw = _get_convention_definition(name)
     return raw
     # TODO: convert raw json to convention as returned by Matlab API
 
@@ -220,3 +200,43 @@ def _read_convention_from_csv_file(file: str):
                               f"{file}: \n{line}\n"))
 
     return convention
+
+
+def _get_convention_definition(name):
+    """Get definition of SOFA convention from json file.
+
+    Parameters
+    ----------
+    name : str
+        The name of the convention. See :py:func:`~sofar.list_conventions`.
+
+    Returns
+    -------
+    definition : dict
+        The definition of the SOFA convention as dictionary. The definition is
+        read from the corresponding json file. See
+        :py:func:`~sofar.list_conventions`.
+    """
+
+    # check input
+    if not isinstance(name, str):
+        raise TypeError(
+            f"Convention must be a string but is of type {type(name)}")
+
+    # load convention from json file
+    paths = list_conventions(False, True)
+    path = [path for path in paths if name in path]
+
+    if not len(path):
+        raise ValueError(
+            (f"Convention '{name}' not found. See "
+             "sofar.list_conventions() for available conventions."))
+    if len(path) > 1:
+        raise ValueError(
+            (f"Found multiple matches for convention '{name}'. See "
+             "sofar.list_conventions() for available conventions."))
+
+    with open(path[0], "r") as file:
+        raw = json.load(file)
+
+    return raw
