@@ -2,8 +2,6 @@ import os
 import glob
 import json
 import requests
-from functools import reduce
-import operator
 from datetime import datetime
 import platform
 from packaging import version
@@ -160,19 +158,14 @@ def set_value(sofa, key, value):
     is because Python dictionaries are mutable objects.
     """
 
-    if not isinstance(key, list):
-        key = [key]
-
-    # check if the key is valid
-    # (this raises an error if the key does not exist)
-    current_value = _get_from_nested_dict(sofa, key)
-    # (this raises an error if the key does not belong to a value)
-    if isinstance(current_value, dict):
-        raise ValueError(
-            f"The attribute {key} is not contained in the convention")
+    # check the key
+    if key not in sofa.keys():
+        raise ValueError(f"'{key}' is an invalid key")
+    if key == "API" or "r" in sofa["API"]["Convention"][key]["flags"]:
+        raise ValueError(f"'{key}' is read only")
 
     # set the value
-    _set_in_nested_dict(sofa, key, value)
+    sofa[key] = value
 
 
 def write_sofa(filename: str, sofa: dict):
@@ -359,98 +352,86 @@ def _convention2sofa(convention, mandatory):
 
     # initialize SOFA file
     sofa = {}
-    sofa["Data"] = {}
 
     # populate the SOFA file
     for key in convention.keys():
-
-        # comment field is not part of the convention
-        if key == "comment":
-            continue
 
         # skip optional fields if requested
         if not _is_mandatory(convention, key) and mandatory:
             continue
 
         # get default value and key as list of key(s)
-        value, keys = _get_default_and_keylist(convention, key)
-        _set_in_nested_dict(sofa, keys, value)
-
-    # move entries Data and API to the end
-    sofa["Data"] = sofa.pop("Data")
+        sofa[key] = convention[key]["default"]
 
     # write API and date specific read only fields
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    sofa["GLOBAL:DateCreated"] = now
-    sofa["GLOBAL:DateModified"] = now
-    sofa["GLOBAL:APIName"] = "sofar SOFA API for Python (pyfar.org)"
-    sofa["GLOBAL:APIVersion"] = sf.__version__
-    sofa["GLOBAL:ApplicationName"] = "Python"
-    sofa["GLOBAL:ApplicationVersion"] = platform.python_version()
+    defaults = (["GLOBAL:DateCreated", now],
+                ["GLOBAL:DateModified", now],
+                ["GLOBAL:APIName", "sofar SOFA API for Python (pyfar.org)"],
+                ["GLOBAL:APIVersion", sf.__version__],
+                ["GLOBAL:ApplicationName", "Python"],
+                ["GLOBAL:ApplicationVersion", platform.python_version()])
+    for default in defaults:
+        if default[0] in sofa:
+            sofa[default[0]] = default[1]
 
     # add the API
-    sofa = _add_api(convention, sofa, mandatory)
+    sofa = _add_api(sofa, convention)
 
     return sofa
 
 
-def _add_api(convention, sofa, mandatory):
+def _add_api(sofa, convention=None):
     """
-    Add API to an empty SOFA file
+    Add API to SOFA file. If The SOFA files contains an API it is overwritten.
+
+    The API is basically the convention file, which holds meta data that is
+    required for writing the SOFA file to disk.
 
     Parameters
     ----------
-    convention : dict
-        The SOFA convention
     sofa : dict
-        The empty SOFA file without API
-    mandatory : bool
-        Flag to indicate if only mandatory fields are included in the SOFA file
+        The SOFA file without API
+    convention : dict, optional
+        The SOFA convention as a dict. If no dict is provided, the convention
+        is read from the SOFA file and loaded accordingly.
 
     Returns
     -------
     sofa : dict
-        The SOFA file with default values
+        The SOFA file with API
     """
 
+    # load the convention if required
+    if convention is None:
+        convention = _load_convention(sofa["GLOBAL:SOFAConventions"])
+
     # initialize SOFA API
+    keys = [key for key in sofa.keys()]
     sofa["API"] = {}
-    sofa["API"]["Dimensions"] = {}
-    sofa["API"]["Dimensions"]["Data"] = {}
+    sofa["API"]["Convention"] = {}
 
-    # populate the SOFA file
-    for key in convention.keys():
+    # populate the SOFA API
+    for key in keys:
 
-        # comment field is not part of the convention
-        if key == "comment":
-            continue
-
-        # skip optional fields if requested
-        if not _is_mandatory(convention, key) and mandatory:
-            continue
-
-        # get default value and key as list of key(s)
-        value, keys = _get_default_and_keylist(convention, key)
+        # get default value
+        default = convention[key]["default"]
 
         # update API
-        dimensions = convention[key][2]
-        if dimensions is not None:
-            # add dimensions to API
-            dimensions = dimensions.split(", ") if "," in dimensions \
-                else [dimensions]
-            _set_in_nested_dict(
-                sofa, ["API", "Dimensions"] + keys, dimensions)
+        sofa["API"]["Convention"][key] = convention[key]
 
-            # add size of dimension and the field determing the size
-            for id, dim in enumerate(dimensions[0]):
-                if dim.islower():
-                    sofa["API"][dim.upper()] = \
-                        _atleast_4d(value).shape[id]
-                    sofa["API"][dim] = keys
+        # add size of dimension and the field determing the size
+        dimensions = convention[key]["dimensions"]
+        if dimensions is not None:
+            for id, dim in enumerate(dimensions.split(",")[0]):
+                if dim in "remn":
+                    sofa["API"][dim.upper()] = {
+                        "master": key,
+                        "size": np.array(default, ndmin=4).shape[id]}
 
     # add fixed sizes
-    sofa["API"]["C"] = 3
-    sofa["API"]["I"] = 1
+    sofa["API"]["C"] = {"master": None, "size": 3}
+    sofa["API"]["I"] = {"master": None, "size": 1}
 
     return sofa
 
@@ -471,9 +452,9 @@ def _is_mandatory(convention, key):
     is_mandatory : bool
     """
     # skip optional fields if requested
-    if convention[key][1] is None:
+    if convention[key]["flags"] is None:
         is_mandatory = False
-    elif "m" not in convention[key][1]:
+    elif "m" not in convention[key]["flags"]:
         is_mandatory = False
     else:
         is_mandatory = True
@@ -481,49 +462,5 @@ def _is_mandatory(convention, key):
     return is_mandatory
 
 
-def _get_default_and_keylist(convention: dict, key: str):
-    """
-    1. Return default value from convention based on key.
-    2. Convert key to list of (nested) keys.
-    """
-    # replacing to be comparable to the Matlab/Octave API)
-    keys = key.replace(":", ":")
-    # split key for accessing nested dictionary
-    keys = keys.split(".") if "." in keys else [keys]
-
-    # get the default value
-    value = convention[key][0]
-    value = "" if value is None else value
-
-    return value, keys
-
-
 def _update_dimensions(sofa):
     pass
-
-
-def _get_from_nested_dict(dictionary, keys):
-    "Get value from nested dictionary based on a list of keys."
-    try:
-        value = reduce(operator.getitem, keys, dictionary)
-    except KeyError:
-        raise ValueError(
-            f"The attribute {keys} is not contained in the convention")
-
-    return value
-
-
-def _set_in_nested_dict(dictionary, keys, value):
-    "Set value in nested dictionary based on a list of keys."
-    _get_from_nested_dict(dictionary, keys[:-1])[keys[-1]] = value
-
-
-def _atleast_4d(value):
-    """
-    Return value as numpy array with ndims=4, which is the maximum number of
-    dimensions an array stored in a SOFA file can have.
-    """
-    value = np.atleast_3d(value)
-    if value.ndim == 3:
-        value = np.atleast_3d(value)[..., np.newaxis]
-    return value

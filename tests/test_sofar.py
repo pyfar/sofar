@@ -46,17 +46,15 @@ def test_set_value():
     # dummy convention
     convention = sf.create_sofa("SimpleFreeFieldHRIR")
 
-    # set with key as string
+    # set value by key
     sf.set_value(convention, "ListenerPosition", [0, 0, 1])
     assert convention["ListenerPosition"] == [0, 0, 1]
 
-    # set with key as list
-    sf.set_value(convention, ["Data", "IR"], [0, 0, 1])
-    assert convention["Data"]["IR"] == [0, 0, 1]
-
-    # set with invalid key (key does not exist)
-    with raises(ValueError, match="The attribute"):
-        sf.set_value(convention, ["Data.IR"], [0, 0, 1])
-    # set with invalid key (key is nested dictionary)
-    with raises(ValueError, match="The attribute"):
-        sf.set_value(convention, "Data", [0, 0, 1])
+    # set with protected key
+    with raises(ValueError, match="'API' is read only"):
+        sf.set_value(convention, "API", [0, 0, 1])
+    with raises(ValueError, match="'GLOBAL:Conventions' is read only"):
+        sf.set_value(convention, "GLOBAL:Conventions", [0, 0, 1])
+    # set with invalid key
+    with raises(ValueError, match="'Data.RIR' is an invalid key"):
+        sf.set_value(convention, "Data.RIR", [0, 0, 1])
