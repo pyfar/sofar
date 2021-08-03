@@ -161,7 +161,9 @@ def set_value(convention, key, value):
         key = [key]
 
     # check if the key is valid
+    # (this raises an error if the key does not exist)
     current_value = _get_from_nested_dict(convention, key)
+    # (this raises an error if the key does not belong to a value)
     if isinstance(current_value, dict):
         raise ValueError(
             f"The attribute {key} is not contained in the convention")
