@@ -1,10 +1,10 @@
 import os
 import glob
 import json
+from numpy.core.shape_base import atleast_1d
 import requests
 from datetime import datetime
 import platform
-from packaging import version
 import numpy as np
 from bs4 import BeautifulSoup
 from netCDF4 import Dataset
@@ -174,16 +174,17 @@ def write_sofa(filename: str, sofa: dict):
     if not filename.lower().endswith('.sofa'):
         filename += ".sofa"
 
+    # update the dimensions
+    _update_dimensions(sofa)
+
     # open new NETCDF4 file for writing
     with Dataset(filename, "w", format="NETCDF4") as file:
 
         # write dimensions
         for dim in sofa["API"]:
-            # Dimensions are stored in single upper case letters - skip others
-            if len(dim) > 1 or dim.islower():
-                continue
-            # create the dimension
-            file.createDimension(dim, sofa["API"][dim])
+            # Dimensions are stored in single upper case letter keys
+            if len(dim) == 1:
+                file.createDimension(dim, sofa["API"][dim])
 
 
 def _convention_csv2dict(file: str):
@@ -413,31 +414,54 @@ def _add_api(sofa, convention=None):
 
     # populate the SOFA API
     for key in keys:
-
-        # get default value
-        default = convention[key]["default"]
-
-        # update API
         sofa["API"]["Convention"][key] = convention[key]
-
-        # add size of dimension and the field determing the size
-        dimensions = convention[key]["dimensions"]
-        if dimensions is not None:
-            for id, dim in enumerate(dimensions.split(",")[0]):
-                if dim in "remn":
-                    sofa["API"][dim.upper()] = {
-                        "master": key,
-                        "size": np.array(default, ndmin=4).shape[id]}
-
-    # add fixed sizes
-    sofa["API"]["C"] = {"master": None, "size": 3}
-    sofa["API"]["I"] = {"master": None, "size": 1}
 
     return sofa
 
 
 def _update_dimensions(sofa):
-    pass
+
+    # get all keys except API
+    keys = [key for key in sofa.keys() if key != "API"]
+
+    # first run: Get the dimensions for E, R, M, and N
+    for key in keys:
+
+        dimensions = sofa["API"]["Convention"][key]["dimensions"]
+
+        if dimensions is None:
+            continue
+
+        for id, dim in enumerate(dimensions.split(", ")[0]):
+            if dim in "ermn":
+                sofa["API"][dim.upper()] = \
+                    _nd_array(sofa[key], 4).shape[id]
+
+    # add fixed sizes
+    sofa["API"]["C"] = 3
+    sofa["API"]["I"] = 1
+
+    # second run: verify dimensions of data
+    for key in keys:
+
+        dimensions = sofa["API"]["Convention"][key]["dimensions"]
+        shape_matched = False
+
+        if dimensions is None:
+            continue
+
+        for dim in dimensions.split(", "):
+            shape = [sofa["API"][d.upper()] for d in dim]
+
+            if _nd_array(sofa[key], len(shape)).shape == tuple(shape):
+                shape_matched = True
+                sofa["API"][key] = [d for d in dim.upper()]
+                break
+
+        if not shape_matched:
+            raise ValueError(
+                (f"The shape of {key} could not be matched. It has to be: "
+                 f"{dimensions} (see field 'API' in the SOFA file)"))
 
 
 def _is_mandatory(convention, key):
@@ -464,3 +488,19 @@ def _is_mandatory(convention, key):
         is_mandatory = True
 
     return is_mandatory
+
+
+def _nd_array(array, ndim):
+    """
+    Get numpy array with specified number of dimensions. Dimensions are
+    appended at the end if the input array has less dimensions.
+    """
+    if ndim == 1:
+        array = np.atleast_1d(array)
+    if ndim == 2:
+        array = np.atleast_2d(array)
+    if ndim >= 3:
+        array = np.atleast_3d(array)
+    for _ in range(ndim - 3):
+        array = array[..., np.newaxis]
+    return array
