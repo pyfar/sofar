@@ -327,8 +327,8 @@ def _convention2sofa(convention, mandatory):
 
     Parameters
     ----------
-    convention : str
-        The name of the SOFA convention
+    convention : dict
+        The SOFA convention
     mandatory : bool
         Flag to indicate if only mandatory fields are included in the SOFA file
 
@@ -353,25 +353,68 @@ def _convention2sofa(convention, mandatory):
             continue
 
         # skip optional fields if requested
-        if convention[key][1] is None:
-            is_mandatory = False
-        elif "m" not in convention[key][1]:
-            is_mandatory = False
-        else:
-            is_mandatory = True
-
-        if not is_mandatory and mandatory:
+        if not _is_mandatory(convention, key) and mandatory:
             continue
 
-        # replacing to be comparable to the Matlab/Octave API)
-        keys = key.replace(":", "_")
-        # split key for accessing nested dictionary
-        keys = keys.split(".") if "." in keys else [keys]
-
-        # set default value
-        value = convention[key][0]
-        value = "" if value is None else value
+        # get default value and key as list of key(s)
+        value, keys = _get_default_and_keylist(convention, key)
         _set_in_nested_dict(sofa, keys, value)
+
+    # move entries Data and API to the end
+    sofa["Data"] = sofa.pop("Data")
+
+    # write API and date specific read only fields
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    sofa["GLOBAL_DateCreated"] = now
+    sofa["GLOBAL_DateModified"] = now
+    sofa["GLOBAL_APIName"] = "sofar SOFA API for Python (pyfar.org)"
+    sofa["GLOBAL_APIVersion"] = sf.__version__
+    sofa["GLOBAL_ApplicationName"] = "Python"
+    sofa["GLOBAL_ApplicationVersion"] = platform.python_version()
+
+    # add the API
+    sofa = _add_api(convention, sofa, mandatory)
+
+    return sofa
+
+
+def _add_api(convention, sofa, mandatory):
+    """
+    Add API to an empty SOFA file
+
+    Parameters
+    ----------
+    convention : dict
+        The SOFA convention
+    sofa : dict
+        The empty SOFA file without API
+    mandatory : bool
+        Flag to indicate if only mandatory fields are included in the SOFA file
+
+    Returns
+    -------
+    sofa : dict
+        The SOFA file with default values
+    """
+
+    # initialize SOFA API
+    sofa["API"] = {}
+    sofa["API"]["Dimensions"] = {}
+    sofa["API"]["Dimensions"]["Data"] = {}
+
+    # populate the SOFA file
+    for key in convention.keys():
+
+        # comment field is not part of the convention
+        if key == "comment":
+            continue
+
+        # skip optional fields if requested
+        if not _is_mandatory(convention, key) and mandatory:
+            continue
+
+        # get default value and key as list of key(s)
+        value, keys = _get_default_and_keylist(convention, key)
 
         # update API
         dimensions = convention[key][2]
@@ -393,24 +436,50 @@ def _convention2sofa(convention, mandatory):
     sofa["API"]["C"] = 3
     sofa["API"]["I"] = 1
 
-    # move entries Data and API to the end
-    sofa["Data"] = sofa.pop("Data")
-    sofa["API"] = sofa.pop("API")
-
-    # write API and date specific read only fields
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    sofa["GLOBAL_DateCreated"] = now
-    sofa["GLOBAL_DateModified"] = now
-    sofa["GLOBAL_APIName"] = "sofar SOFA API for Python (pyfar.org)"
-    sofa["GLOBAL_APIVersion"] = sf.__version__
-    sofa["GLOBAL_ApplicationName"] = "Python"
-    sofa["GLOBAL_ApplicationVersion"] = platform.python_version()
-
     return sofa
 
 
-def _add_api(sofa):
-    pass
+def _is_mandatory(convention, key):
+    """
+    Check if a field is mandatory
+
+    Parameters
+    ----------
+    convention : dict
+        The SOFA convention
+    key : string
+        The field to be checked
+
+    Returns
+    -------
+    is_mandatory : bool
+    """
+    # skip optional fields if requested
+    if convention[key][1] is None:
+        is_mandatory = False
+    elif "m" not in convention[key][1]:
+        is_mandatory = False
+    else:
+        is_mandatory = True
+
+    return is_mandatory
+
+
+def _get_default_and_keylist(convention: dict, key: str):
+    """
+    1. Return default value from convention based on key.
+    2. Convert key to list of (nested) keys.
+    """
+    # replacing to be comparable to the Matlab/Octave API)
+    keys = key.replace(":", "_")
+    # split key for accessing nested dictionary
+    keys = keys.split(".") if "." in keys else [keys]
+
+    # get the default value
+    value = convention[key][0]
+    value = "" if value is None else value
+
+    return value, keys
 
 
 def _update_dimensions(sofa):
