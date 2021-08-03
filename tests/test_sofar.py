@@ -20,31 +20,31 @@ def test_list_conventions(capfd):
     assert os.path.isfile(paths[0])
 
 
-def test_get_convention():
+def test_create_sofa():
     # test assertion for type of convention parameter
     with raises(TypeError, match="Convention must be a string"):
-        sf.get_convention(1)
+        sf.create_sofa(1)
     # test assertion for invalid conventions
     with raises(ValueError, match="Convention 'invalid' not found"):
-        sf.get_convention("invalid")
+        sf.create_sofa("invalid")
 
     # test conversion
     paths = sf.list_conventions(print_conventions=False, return_paths=True)
     for path in paths:
         name = os.path.basename(path).split(sep="_")[0]
         print(f"Testing: {name}")
-        convention = sf.get_convention(name)
+        convention = sf.create_sofa(name)
         assert isinstance(convention, dict)
 
     # test returning only mandatory fields
-    convention_all = sf.get_convention("SimpleFreeFieldHRIR")
-    convention_man = sf.get_convention("SimpleFreeFieldHRIR", True)
+    convention_all = sf.create_sofa("SimpleFreeFieldHRIR")
+    convention_man = sf.create_sofa("SimpleFreeFieldHRIR", True)
     assert len(convention_all) > len(convention_man)
 
 
 def test_set_value():
     # dummy convention
-    convention = sf.get_convention("SimpleFreeFieldHRIR")
+    convention = sf.create_sofa("SimpleFreeFieldHRIR")
 
     # set with key as string
     sf.set_value(convention, "ListenerPosition", [0, 0, 1])

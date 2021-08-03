@@ -8,6 +8,7 @@ from datetime import datetime
 import platform
 import numpy as np
 from bs4 import BeautifulSoup
+from netCDF4 import Dataset
 import sofar as sf
 
 
@@ -57,8 +58,8 @@ def update_conventions():
         with open(filename_csv, "wb") as file:
             file.write(data.content)
 
-        # convert SOFA conventions definition from csv to json
-        convention_dict = _definition_csv2dict(filename_csv)
+        # convert SOFA conventions from csv to json
+        convention_dict = _convention_csv2dict(filename_csv)
 
         with open(filename_json, 'w') as file:
             json.dump(convention_dict, file)
@@ -110,13 +111,14 @@ def list_conventions(print_conventions=True, return_paths=False):
         return paths
 
 
-def get_convention(name, mandatory=False):
-    """Get definition of SOFA convention from json file.
+def create_sofa(convention, mandatory=False):
+    """Create and emtpy SOFA file.
 
     Parameters
     ----------
-    name : str
-        The name of the convention. See :py:func:`~sofar.list_conventions`.
+    convention : str
+        The name of the convention from which the SOFA file is created. See
+        :py:func:`~sofar.list_conventions`.
     mandatory : bool, optional
         If ``True``, only the mandatory fields of the convention will be
         returned. The default is ``False``, which returns mandatory and
@@ -128,23 +130,23 @@ def get_convention(name, mandatory=False):
         The SOFA convention with the default values as dictionary.
     """
 
-    # get definition
-    definition = _get_definition(name)
+    # get convention
+    convention = _load_convention(convention)
 
-    # convert convention definition to SOFA file in dict format
-    convention = _definition2convention(definition, mandatory)
+    # convert convention to SOFA file in dict format
+    sofa = _convention2sofa(convention, mandatory)
 
-    return convention
+    return sofa
 
 
-def set_value(convention, key, value):
+def set_value(sofa, key, value):
     """
-    Set specific value of a SOFA convention.
+    Set value specified by the key in a SOFA file.
 
     Parameters
     ----------
-    convention : dict
-        A SOFA convention obtained from :py:func:`~sofar.get_convention`.
+    sofa : dict
+        A SOFA file obtained from :py:func:`~sofar.create_sofa`.
     key : str, list of strings
         The name of the attribute to which the value is assigned, i.e.,
         ``'ListenerPosition'``, or ``['Data', 'IR']``.
@@ -153,7 +155,7 @@ def set_value(convention, key, value):
 
     Retruns
     -------
-    The value is updated in `convention` without the need of returning it. This
+    The value is updated in `sofa` without the need for returning it. This
     is because Python dictionaries are mutable objects.
     """
 
@@ -162,30 +164,48 @@ def set_value(convention, key, value):
 
     # check if the key is valid
     # (this raises an error if the key does not exist)
-    current_value = _get_from_nested_dict(convention, key)
+    current_value = _get_from_nested_dict(sofa, key)
     # (this raises an error if the key does not belong to a value)
     if isinstance(current_value, dict):
         raise ValueError(
             f"The attribute {key} is not contained in the convention")
 
     # set the value
-    _set_in_nested_dict(convention, key, value)
+    _set_in_nested_dict(sofa, key, value)
 
 
-def _definition_csv2dict(file: str):
+def write_sofa(filename: str, sofa: dict):
+
+    # check the filename
+    if not filename.lower().endswith('.sofa'):
+        filename += ".sofa"
+
+    # open new NETCDF4 file for writing
+    with Dataset(filename, "w", format="NETCDF4") as file:
+
+        # write dimensions
+        for dim in sofa["API"]:
+            # Dimensions are stored in single upper case letters - skip others
+            if len(dim) > 1 or dim.islower():
+                continue
+            # create the dimension
+            file.createDimension(dim, sofa["API"][dim])
+
+
+def _convention_csv2dict(file: str):
     """
-    Read SOFA convention definition from csv file. The csv files are taken
-    from the official Matlab/Octave SOFA API.
+    Read SOFA convention from csv file. The csv files are taken from the
+    official Matlab/Octave SOFA API.
 
     Parameters
     ----------
     file : str
-        filename of the SOFA convention definition
+        filename of the SOFA convention
 
     Returns
     -------
     convention : dict
-        SOFA convention definition as dictionary. Each key has a list of four
+        SOFA convention as dictionary. Each key has a list of four entries
         entries that are according to `convention['comment']`.
 
     """
@@ -265,13 +285,13 @@ def _definition_csv2dict(file: str):
     return convention
 
 
-def _get_definition(name):
+def _load_convention(name):
     # check input
     if not isinstance(name, str):
         raise TypeError(
             f"Convention must be a string but is of type {type(name)}")
 
-    # load convention definition from json file
+    # load convention from json file
     paths = list_conventions(False, True)
     path = [path for path in paths
             if os.path.basename(path).startswith(name + "_")]
@@ -282,31 +302,31 @@ def _get_definition(name):
              "sofar.list_conventions() for available conventions."))
 
     with open(path[0], "r") as file:
-        definition = json.load(file)
+        convention = json.load(file)
 
-    return definition
+    return convention
 
 
-def _definition2convention(definition, mandatory):
+def _convention2sofa(convention, mandatory):
 
-    # initialize convention
-    convention = {}
-    convention["API"] = {}
-    convention["API"]["Dimensions"] = {}
-    convention["API"]["Dimensions"]["Data"] = {}
-    convention["Data"] = {}
+    # initialize SOFA file
+    sofa = {}
+    sofa["API"] = {}
+    sofa["API"]["Dimensions"] = {}
+    sofa["API"]["Dimensions"]["Data"] = {}
+    sofa["Data"] = {}
 
-    # populate the convention
-    for key in definition.keys():
+    # populate the SOFA file
+    for key in convention.keys():
 
-        # comment field is not part of the definition
+        # comment field is not part of the convention
         if key == "comment":
             continue
 
         # skip optional fields if requested
-        if definition[key][1] is None:
+        if convention[key][1] is None:
             is_mandatory = False
-        elif "m" not in definition[key][1]:
+        elif "m" not in convention[key][1]:
             is_mandatory = False
         else:
             is_mandatory = True
@@ -320,44 +340,52 @@ def _definition2convention(definition, mandatory):
         keys = keys.split(".") if "." in keys else [keys]
 
         # set default value
-        value = definition[key][0]
+        value = convention[key][0]
         value = "" if value is None else value
-        _set_in_nested_dict(convention, keys, value)
+        _set_in_nested_dict(sofa, keys, value)
 
         # update API
-        dimensions = definition[key][2]
+        dimensions = convention[key][2]
         if dimensions is not None:
             # add dimensions to API
             dimensions = dimensions.split(", ") if "," in dimensions \
                 else [dimensions]
             _set_in_nested_dict(
-                convention, ["API", "Dimensions"] + keys, dimensions)
+                sofa, ["API", "Dimensions"] + keys, dimensions)
 
             # add size of dimension and the field determing the size
             for id, dim in enumerate(dimensions[0]):
                 if dim.islower():
-                    convention["API"][dim.upper()] = \
+                    sofa["API"][dim.upper()] = \
                         _atleast_4d(value).shape[id]
-                    convention["API"][dim] = keys
+                    sofa["API"][dim] = keys
 
     # add fixed sizes
-    convention["API"]["C"] = 3
-    convention["API"]["I"] = 1
+    sofa["API"]["C"] = 3
+    sofa["API"]["I"] = 1
 
     # move entries Data and API to the end
-    convention["Data"] = convention.pop("Data")
-    convention["API"] = convention.pop("API")
+    sofa["Data"] = sofa.pop("Data")
+    sofa["API"] = sofa.pop("API")
 
     # write API and date specific read only fields
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    convention["GLOBAL_DateCreated"] = now
-    convention["GLOBAL_DateModified"] = now
-    convention["GLOBAL_APIName"] = "sofar SOFA API for Python (pyfar.org)"
-    convention["GLOBAL_APIVersion"] = sf.__version__
-    convention["GLOBAL_ApplicationName"] = "Python"
-    convention["GLOBAL_ApplicationVersion"] = platform.python_version()
+    sofa["GLOBAL_DateCreated"] = now
+    sofa["GLOBAL_DateModified"] = now
+    sofa["GLOBAL_APIName"] = "sofar SOFA API for Python (pyfar.org)"
+    sofa["GLOBAL_APIVersion"] = sf.__version__
+    sofa["GLOBAL_ApplicationName"] = "Python"
+    sofa["GLOBAL_ApplicationVersion"] = platform.python_version()
 
-    return convention
+    return sofa
+
+
+def _add_api(sofa):
+    pass
+
+
+def _update_dimensions(sofa):
+    pass
 
 
 def _get_from_nested_dict(dictionary, keys):

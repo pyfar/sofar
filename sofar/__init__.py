@@ -7,12 +7,13 @@ __email__ = 'info@pyfar.org'
 __version__ = '0.1.0'
 
 
-from .sofar import (update_conventions, list_conventions, get_convention,
-    set_value)
+from .sofar import (update_conventions, list_conventions, create_sofa,
+                    set_value, write_sofa)
 
 
 __all__ = [
     'update_conventions',
     'list_conventions',
-    'get_convention',
-    'set_value']
+    'create_sofa',
+    'set_value',
+    'write_sofa']
