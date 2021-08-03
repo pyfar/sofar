@@ -206,9 +206,9 @@ def _convention_csv2dict(file: str):
     Returns
     -------
     convention : dict
-        SOFA convention as dictionary. Each key has a list of four entries
-        entries that are according to `convention['comment']`.
-
+        SOFA convention as nested dictionary. Each attribute is a sub
+        dictionary with the keys `default`, `flags`, `dimensions`, `type`, and
+        `comment`.
     """
 
     # read the file
@@ -289,6 +289,17 @@ def _convention_csv2dict(file: str):
         except: # noqa
             raise ValueError((f"Failed to parse line {idl}, entry {idc} in: "
                               f"{file}: \n{line}\n"))
+
+    # reorder the fields to be nicer to read and understand
+    # 1. Move everything to the end that is not GLOBAL
+    keys = [key for key in convention.keys()]
+    for key in keys:
+        if "GLOBAL" not in key:
+            convention[key] = convention.pop(key)
+    # 1. Move Data entries to the end
+    for key in keys:
+        if key.startswith("Data"):
+            convention[key] = convention.pop(key)
 
     return convention
 
