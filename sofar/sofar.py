@@ -188,8 +188,8 @@ def write_sofa(filename: str, sofa: dict):
 
 def _convention_csv2dict(file: str):
     """
-    Read SOFA convention from csv file. The csv files are taken from the
-    official Matlab/Octave SOFA API.
+    Read SOFA convention from csv file and convert to json file. The csv files
+    are taken from the official Matlab/Octave SOFA API.
 
     Parameters
     ----------
@@ -335,7 +335,7 @@ def _load_convention(convention):
 
 def _convention2sofa(convention, mandatory):
     """
-    Convert a SOFA convention to an SOFA file with default values
+    Convert a SOFA convention to a SOFA file filled with the default values.
 
     Parameters
     ----------
@@ -385,7 +385,7 @@ def _add_api(sofa, convention=None):
     """
     Add API to SOFA file. If The SOFA files contains an API it is overwritten.
 
-    The API is basically the convention file, which holds meta data that is
+    The API is basically the convention file, which holds the meta data that is
     required for writing the SOFA file to disk.
 
     Parameters
@@ -436,6 +436,10 @@ def _add_api(sofa, convention=None):
     return sofa
 
 
+def _update_dimensions(sofa):
+    pass
+
+
 def _is_mandatory(convention, key):
     """
     Check if a field is mandatory
@@ -460,7 +464,3 @@ def _is_mandatory(convention, key):
         is_mandatory = True
 
     return is_mandatory
-
-
-def _update_dimensions(sofa):
-    pass
