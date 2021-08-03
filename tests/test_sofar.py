@@ -1,6 +1,8 @@
 import sofar as sf
 import os
 from pytest import raises
+import numpy as np
+import numpy.testing as npt
 
 
 def test_list_conventions(capfd):
@@ -48,7 +50,8 @@ def test_set_value():
 
     # set value by key
     sf.set_value(convention, "ListenerPosition", [0, 0, 1])
-    assert convention["ListenerPosition"] == [0, 0, 1]
+    npt.assert_allclose(convention["ListenerPosition"],
+                        np.atleast_2d([0, 0, 1]))
 
     # set with protected key
     with raises(ValueError, match="'API' is read only"):

@@ -155,7 +155,8 @@ def set_value(sofa, key, value):
     Retruns
     -------
     The value is updated in `sofa` without the need for returning it. This
-    is because Python dictionaries are mutable objects.
+    is because Python dictionaries are mutable objects. Lists are converted
+    to numpy arrays.
     """
 
     # check the key
@@ -163,6 +164,12 @@ def set_value(sofa, key, value):
         raise ValueError(f"'{key}' is an invalid key")
     if key == "API" or "r" in sofa["API"]["Convention"][key]["flags"]:
         raise ValueError(f"'{key}' is read only")
+
+    # check if the value has to be converted
+    dimensions = sofa["API"]["Convention"][key]["dimensions"]
+    if dimensions is not None:
+        ndim = len(dimensions.split(", ")[0])
+        value = _nd_array(value, ndim)
 
     # set the value
     sofa[key] = value
@@ -185,6 +192,25 @@ def write_sofa(filename: str, sofa: dict):
             # Dimensions are stored in single upper case letter keys
             if len(dim) == 1:
                 file.createDimension(dim, sofa["API"][dim])
+
+        # write data
+        for key in sofa.keys():
+            if key == "API":
+                continue
+
+            # get the data type
+            data_type = sofa["API"]["Convention"][key]["type"]
+            if data_type == "double":
+                data_type = "f8"
+            elif data_type == "attribute":
+                data_type = "S1"
+            else:
+                raise ValueError(
+                    f"{data_type} of {key} is not a valid data type")
+
+            if data_type == "double":
+                shape = sofa["API"][key]
+                tmp_var = file.createVariable(key, data_type, shape)
 
 
 def _convention_csv2dict(file: str):
@@ -361,8 +387,12 @@ def _convention2sofa(convention, mandatory):
         if not _is_mandatory(convention, key) and mandatory:
             continue
 
-        # get default value and key as list of key(s)
-        sofa[key] = convention[key]["default"]
+        # set the default value
+        default = convention[key]["default"]
+        if isinstance(default, list):
+            ndim = len(convention[key]["dimensions"].split(", ")[0])
+            default = _nd_array(default, ndim)
+        sofa[key] = default
 
     # write API and date specific read only fields
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -451,11 +481,11 @@ def _update_dimensions(sofa):
             continue
 
         for dim in dimensions.split(", "):
-            shape = [sofa["API"][d.upper()] for d in dim]
+            shape = tuple([sofa["API"][d.upper()] for d in dim])
 
-            if _nd_array(sofa[key], len(shape)).shape == tuple(shape):
+            if _nd_array(sofa[key], len(shape)).shape == shape:
                 shape_matched = True
-                sofa["API"][key] = [d for d in dim.upper()]
+                sofa["API"][key] = tuple([d for d in dim.upper()])
                 break
 
         if not shape_matched:
