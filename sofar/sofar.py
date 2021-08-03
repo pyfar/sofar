@@ -285,20 +285,34 @@ def _convention_csv2dict(file: str):
     return convention
 
 
-def _load_convention(name):
+def _load_convention(convention):
+    """
+    Load SOFA convention from json file.
+
+    Parameters
+    ----------
+    convention : str
+        The name of the convention from which the SOFA file is created. See
+        :py:func:`~sofar.list_conventions`.
+
+    Returns
+    -------
+    convention : dict
+        The SOFA convention as a dictionary object
+    """
     # check input
-    if not isinstance(name, str):
+    if not isinstance(convention, str):
         raise TypeError(
-            f"Convention must be a string but is of type {type(name)}")
+            f"Convention must be a string but is of type {type(convention)}")
 
     # load convention from json file
     paths = list_conventions(False, True)
     path = [path for path in paths
-            if os.path.basename(path).startswith(name + "_")]
+            if os.path.basename(path).startswith(convention + "_")]
 
     if not len(path):
         raise ValueError(
-            (f"Convention '{name}' not found. See "
+            (f"Convention '{convention}' not found. See "
              "sofar.list_conventions() for available conventions."))
 
     with open(path[0], "r") as file:
@@ -308,6 +322,21 @@ def _load_convention(name):
 
 
 def _convention2sofa(convention, mandatory):
+    """
+    Convert a SOFA convention to an SOFA file with default values
+
+    Parameters
+    ----------
+    convention : str
+        The name of the SOFA convention
+    mandatory : bool
+        Flag to indicate if only mandatory fields are included in the SOFA file
+
+    Returns
+    -------
+    sofa : dict
+        The SOFA file with default values
+    """
 
     # initialize SOFA file
     sofa = {}
