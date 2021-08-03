@@ -6,6 +6,7 @@ from functools import reduce
 import operator
 from datetime import datetime
 import platform
+from packaging import version
 import numpy as np
 from bs4 import BeautifulSoup
 from netCDF4 import Dataset
@@ -104,15 +105,15 @@ def list_conventions(print_conventions=True, return_paths=False):
         for path in paths:
             fileparts = os.path.basename(path).split(sep="_")
             convention = fileparts[0]
-            version = fileparts[1][:-5]
-            print(f"{convention} (Version {version})")
+            version_str = fileparts[1][:-5]
+            print(f"{convention} (Version {version_str})")
 
     if return_paths:
         return paths
 
 
 def create_sofa(convention, mandatory=False):
-    """Create and emtpy SOFA file.
+    """Create and empty SOFA file.
 
     Parameters
     ----------
@@ -192,7 +193,7 @@ def write_sofa(filename: str, sofa: dict):
             file.createDimension(dim, sofa["API"][dim])
 
 
-def _convention_csv2dict(file: str):
+def _convention_csv2dict_cp(file: str):
     """
     Read SOFA convention from csv file. The csv files are taken from the
     official Matlab/Octave SOFA API.
@@ -285,6 +286,106 @@ def _convention_csv2dict(file: str):
     return convention
 
 
+def _convention_csv2dict(file: str):
+    """
+    Read SOFA convention from csv file. The csv files are taken from the
+    official Matlab/Octave SOFA API.
+
+    Parameters
+    ----------
+    file : str
+        filename of the SOFA convention
+
+    Returns
+    -------
+    convention : dict
+        SOFA convention as dictionary. Each key has a list of four entries
+        entries that are according to `convention['comment']`.
+
+    """
+
+    # read the file
+    with open(file, 'r') as fid:
+        lines = fid.readlines()
+
+    # write into dict
+    convention = {}
+    for idl, line in enumerate(lines):
+
+        try:
+            # separate by tabs
+            line = line.strip().split("\t")
+            # parse the line entry by entry
+            for idc, cell in enumerate(line):
+                # detect empty cells and leading trailing white spaces
+                cell = None if cell.replace(' ', '') == '' else cell.strip()
+                # nothing to do for empty cells
+                if cell is None:
+                    line[idc] = cell
+                    continue
+                # parse text cells that do not contain arrays
+                if cell[0] != '[':
+                    # check for numbers
+                    try:
+                        cell = float(cell) if '.' in cell else int(cell)
+                    except ValueError:
+                        pass
+
+                    line[idc] = cell
+                    continue
+
+                # parse array cell
+                # remove brackets
+                cell = cell[1:-1]
+
+                if ';' not in cell:
+                    # get rid of white spaces
+                    cell = cell.strip()
+                    cell = cell.replace(' ', ',')
+                    cell = cell.replace(' ', '')
+                    # create flat list of integers and floats
+                    numbers = cell.split(',')
+                    cell = [float(n) if '.' in n else int(n) for n in numbers]
+                else:
+                    # create a nested list of integers and floats
+                    # separate multidimensional arrays
+                    cell = cell.split(';')
+                    cell_nd = [None] * len(cell)
+                    for idx, cc in enumerate(cell):
+                        # get rid of white spaces
+                        cc = cc.strip()
+                        cc = cc.replace(' ', ',')
+                        cc = cc.replace(' ', '')
+                        numbers = cc.split(',')
+                        cell_nd[idx] = [float(n) if '.' in n else int(n)
+                                        for n in numbers]
+
+                    cell = cell_nd
+
+                # write parsed cell to line
+                line[idc] = cell
+
+            # write first line (as kind of comment)
+            if idl == 0:
+                fields = line[1:]
+                continue
+
+            # add blank comment if it does not exist
+            if len(line) == 5:
+                line.append("")
+
+            # write second to last line
+            convention[line[0]] = {}
+            for ff, field in enumerate(fields):
+                convention[line[0]][field.lower()] = line[ff + 1]
+
+        except: # noqa
+            raise ValueError((f"Failed to parse line {idl}, entry {idc} in: "
+                              f"{file}: \n{line}\n"))
+
+    return convention
+
+
 def _load_convention(convention):
     """
     Load SOFA convention from json file.
@@ -340,9 +441,6 @@ def _convention2sofa(convention, mandatory):
 
     # initialize SOFA file
     sofa = {}
-    sofa["API"] = {}
-    sofa["API"]["Dimensions"] = {}
-    sofa["API"]["Dimensions"]["Data"] = {}
     sofa["Data"] = {}
 
     # populate the SOFA file
@@ -365,12 +463,12 @@ def _convention2sofa(convention, mandatory):
 
     # write API and date specific read only fields
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    sofa["GLOBAL_DateCreated"] = now
-    sofa["GLOBAL_DateModified"] = now
-    sofa["GLOBAL_APIName"] = "sofar SOFA API for Python (pyfar.org)"
-    sofa["GLOBAL_APIVersion"] = sf.__version__
-    sofa["GLOBAL_ApplicationName"] = "Python"
-    sofa["GLOBAL_ApplicationVersion"] = platform.python_version()
+    sofa["GLOBAL:DateCreated"] = now
+    sofa["GLOBAL:DateModified"] = now
+    sofa["GLOBAL:APIName"] = "sofar SOFA API for Python (pyfar.org)"
+    sofa["GLOBAL:APIVersion"] = sf.__version__
+    sofa["GLOBAL:ApplicationName"] = "Python"
+    sofa["GLOBAL:ApplicationVersion"] = platform.python_version()
 
     # add the API
     sofa = _add_api(convention, sofa, mandatory)
@@ -471,7 +569,7 @@ def _get_default_and_keylist(convention: dict, key: str):
     2. Convert key to list of (nested) keys.
     """
     # replacing to be comparable to the Matlab/Octave API)
-    keys = key.replace(":", "_")
+    keys = key.replace(":", ":")
     # split key for accessing nested dictionary
     keys = keys.split(".") if "." in keys else [keys]
 
