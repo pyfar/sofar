@@ -64,13 +64,6 @@ def test_set_value():
         sf.set_value(convention, "Data.RIR", [0, 0, 1])
 
 
-# def test_updated_api():
-#     sofa = sf.create_sofa("FreeFieldDirectivityTF")
-
-#     # check initial assignment
-#     assert sofa["API"]["M"] == 1
-
-
 def test_get_size_and_shape_of_string_var():
 
     # test with string

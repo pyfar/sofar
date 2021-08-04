@@ -211,6 +211,7 @@ def update_api(sofa):
     # second run: verify dimensions of data
     for key in keys:
 
+        # handle dimensions
         dimensions = sofa["API"]["Convention"][key]["dimensions"]
 
         if dimensions is None:
@@ -221,6 +222,7 @@ def update_api(sofa):
             value = sofa[key].copy()
         except AttributeError:
             value = sofa[key]
+
         if "S" in dimensions:
             # string or string array like data
             shape_act = _get_size_and_shape_of_string_var(value, key)[1]
@@ -232,15 +234,27 @@ def update_api(sofa):
         for dim in dimensions.split(", "):
 
             shape_ref = tuple([sofa["API"][d.upper()] for d in dim])
+            shape_compare = shape_act[:len(shape_ref)]
 
-            if shape_act[:len(shape_ref)] == shape_ref:
-                shape_matched = True
+            if "S" in dimensions:
+                # the last dimension is S which can be smaller
+                # (e.g. if S=12, there can still be shorter strings in the
+                #  dict. The length is corrected during writing to disk)
+                if shape_compare[:-1] == shape_ref[:-1] \
+                        and shape_compare[-1] <= shape_ref[-1]:
+                    shape_matched = True
+            else:
+                # check if the entire shapes match
+                if shape_compare == shape_ref:
+                    shape_matched = True
+
+            if shape_matched:
                 sofa["API"]["dimensions"][key] = dim.upper()
                 break
 
         if not shape_matched:
             raise ValueError(
-                (f"The shape of {key} is {shape_act[:len(shape_ref)]} but has "
+                (f"The shape of {key} is {shape_compare} but has "
                  f"to be: {dimensions.upper()} "
                  "(see field 'API' in the SOFA file)"))
 
