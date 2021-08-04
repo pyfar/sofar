@@ -1,7 +1,6 @@
 import os
 import glob
 import json
-from numpy.core.shape_base import atleast_1d
 import requests
 from datetime import datetime
 import platform
@@ -47,6 +46,10 @@ def update_conventions():
 
     # Loop conventions
     for convention in conventions:
+
+        # exclude these conventions
+        if convention.startswith(("General_", "GeneralString_")):
+            continue
 
         filename_csv = os.path.join(
             os.path.dirname(__file__), "conventions", convention)
@@ -134,6 +137,7 @@ def create_sofa(convention, mandatory=False):
 
     # convert convention to SOFA file in dict format
     sofa = _convention2sofa(convention, mandatory)
+    update_api(sofa)
 
     return sofa
 
@@ -175,6 +179,72 @@ def set_value(sofa, key, value):
     sofa[key] = value
 
 
+def update_api(sofa):
+
+    sofa["API"]["dimensions"] = {}
+
+    # get all keys except API
+    keys = [key for key in sofa.keys() if key != "API"]
+
+    # first run: Get the dimensions for E, R, M, N, and S
+    S = 0
+    for key in keys:
+
+        value = sofa[key]
+        dimensions = sofa["API"]["Convention"][key]["dimensions"]
+
+        if dimensions is None:
+            continue
+
+        for id, dim in enumerate(dimensions.split(", ")[0]):
+            if dim in "ermn":
+                sofa["API"][dim.upper()] = \
+                    _nd_array(value, 4).shape[id]
+            if dim == "S":
+                S = max(S, _get_size_and_shape_of_string_var(value, key)[0])
+
+    # add fixed sizes
+    sofa["API"]["C"] = 3
+    sofa["API"]["I"] = 1
+    sofa["API"]["S"] = S
+
+    # second run: verify dimensions of data
+    for key in keys:
+
+        dimensions = sofa["API"]["Convention"][key]["dimensions"]
+
+        if dimensions is None:
+            continue
+
+        # get value and actual shape
+        try:
+            value = sofa[key].copy()
+        except AttributeError:
+            value = sofa[key]
+        if "S" in dimensions:
+            # string or string array like data
+            shape_act = _get_size_and_shape_of_string_var(value, key)[1]
+        else:
+            # array like data
+            shape_act = _nd_array(value, 4).shape
+
+        shape_matched = False
+        for dim in dimensions.split(", "):
+
+            shape_ref = tuple([sofa["API"][d.upper()] for d in dim])
+
+            if shape_act[:len(shape_ref)] == shape_ref:
+                shape_matched = True
+                sofa["API"]["dimensions"][key] = dim.upper()
+                break
+
+        if not shape_matched:
+            raise ValueError(
+                (f"The shape of {key} is {shape_act[:len(shape_ref)]} but has "
+                 f"to be: {dimensions.upper()} "
+                 "(see field 'API' in the SOFA file)"))
+
+
 def write_sofa(filename: str, sofa: dict):
 
     # check the filename
@@ -182,7 +252,7 @@ def write_sofa(filename: str, sofa: dict):
         filename += ".sofa"
 
     # update the dimensions
-    _update_dimensions(sofa)
+    update_api(sofa)
 
     # open new NETCDF4 file for writing
     with Dataset(filename, "w", format="NETCDF4") as file:
@@ -192,6 +262,16 @@ def write_sofa(filename: str, sofa: dict):
             # Dimensions are stored in single upper case letter keys
             if len(dim) == 1:
                 file.createDimension(dim, sofa["API"][dim])
+
+        # write global attributes
+        keys = [key for key in sofa.keys() if key.startswith("GLOBAL:")]
+        for key in keys:
+
+            value = _format_value_for_netcdf(sofa, key)
+
+            # setattr(file, key[len("GLOBAL:"):], sofa[key], "S1")
+
+            # file.test =
 
         # write data
         for key in sofa.keys():
@@ -209,7 +289,7 @@ def write_sofa(filename: str, sofa: dict):
                     f"{data_type} of {key} is not a valid data type")
 
             if data_type == "double":
-                shape = sofa["API"][key]
+                shape = tuple([dim for dim in sofa["API"]["dimensions"][key]])
                 tmp_var = file.createVariable(key, data_type, shape)
 
 
@@ -292,7 +372,7 @@ def _convention_csv2dict(file: str):
                 # write parsed cell to line
                 line[idc] = cell
 
-            # write first line (as kind of comment)
+            # first line contains field names
             if idl == 0:
                 fields = line[1:]
                 continue
@@ -300,6 +380,14 @@ def _convention_csv2dict(file: str):
             # add blank comment if it does not exist
             if len(line) == 5:
                 line.append("")
+            # convert empty defaults from None to ""
+            if line[1] is None:
+                line[1] = ""
+
+            # make sure some unusual default values are converted for json
+            if line[1] == "permute([0 0 0 1 0 0; 0 0 0 1 0 0], [3 1 2]);":
+                # Field Data.SOS in SimpleFreeFieldHRSOS and SimpleFreeFieldSOS
+                line[1] = [[[0, 0, 0, 1, 0, 0], [0, 0, 0, 1, 0, 0]]]
 
             # write second to last line
             convention[line[0]] = {}
@@ -407,7 +495,7 @@ def _convention2sofa(convention, mandatory):
             sofa[default[0]] = default[1]
 
     # add the API
-    sofa = _add_api(sofa, convention)
+    _add_api(sofa, convention)
 
     return sofa
 
@@ -446,52 +534,27 @@ def _add_api(sofa, convention=None):
     for key in keys:
         sofa["API"]["Convention"][key] = convention[key]
 
-    return sofa
 
+def _format_value_for_netcdf(sofa, key):
 
-def _update_dimensions(sofa):
+    dimensions = sofa["API"][key] if key in sofa["API"] \
+        else sofa["API"]["Convention"][key]["dimensions"]
+    dtype = sofa["API"]["Convention"][key]["type"]
 
-    # get all keys except API
-    keys = [key for key in sofa.keys() if key != "API"]
-
-    # first run: Get the dimensions for E, R, M, and N
-    for key in keys:
-
-        dimensions = sofa["API"]["Convention"][key]["dimensions"]
-
+    if dtype == "attribute":
+        # dimension must be None or contain "S"
         if dimensions is None:
-            continue
-
-        for id, dim in enumerate(dimensions.split(", ")[0]):
-            if dim in "ermn":
-                sofa["API"][dim.upper()] = \
-                    _nd_array(sofa[key], 4).shape[id]
-
-    # add fixed sizes
-    sofa["API"]["C"] = 3
-    sofa["API"]["I"] = 1
-
-    # second run: verify dimensions of data
-    for key in keys:
-
-        dimensions = sofa["API"]["Convention"][key]["dimensions"]
-        shape_matched = False
-
-        if dimensions is None:
-            continue
-
-        for dim in dimensions.split(", "):
-            shape = tuple([sofa["API"][d.upper()] for d in dim])
-
-            if _nd_array(sofa[key], len(shape)).shape == shape:
-                shape_matched = True
-                sofa["API"][key] = tuple([d for d in dim.upper()])
-                break
-
-        if not shape_matched:
-            raise ValueError(
-                (f"The shape of {key} could not be matched. It has to be: "
-                 f"{dimensions} (see field 'API' in the SOFA file)"))
+            mode = "string"
+        else:
+            if "S" in dimensions:
+                if dimensions == "IS":
+                    mode = "string"
+                else:
+                    mode = "array"
+            else:
+                raise ValueError(
+                    f"error writing sofa.{key}: dimension is {dimensions} but "
+                    "must be None or contain 'S'")
 
 
 def _is_mandatory(convention, key):
@@ -520,6 +583,31 @@ def _is_mandatory(convention, key):
     return is_mandatory
 
 
+def _get_size_and_shape_of_string_var(value, key):
+    """
+    String variables can be strings, list of strings, or numpy arrays of
+    strings. This functions returns the length of the longest string S inside
+    the string variable and the shape of the string variable as required by
+    the SOFA definition.
+    """
+
+    if isinstance(value, str):
+        S = len(value)
+        shape = (1, S)
+    elif isinstance(value, list):
+        S = len(max(value, key=len))
+        shape = (len(value), S)
+    elif isinstance(value, np.ndarray):
+        S = max(np.vectorize(len)(value))
+        shape = value.shape + (S, )
+    else:
+        raise ValueError(
+            (f"sofa['{key}'] must be a string, numpy string "
+                "array, or list of strings"))
+
+    return S, shape
+
+
 def _nd_array(array, ndim):
     """
     Get numpy array with specified number of dimensions. Dimensions are
@@ -531,6 +619,6 @@ def _nd_array(array, ndim):
         array = np.atleast_2d(array)
     if ndim >= 3:
         array = np.atleast_3d(array)
-    for _ in range(ndim - 3):
+    for _ in range(ndim - array.ndim):
         array = array[..., np.newaxis]
     return array

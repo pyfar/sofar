@@ -1,4 +1,5 @@
 import sofar as sf
+from sofar.sofar import _get_size_and_shape_of_string_var
 import os
 from pytest import raises
 import numpy as np
@@ -61,3 +62,29 @@ def test_set_value():
     # set with invalid key
     with raises(ValueError, match="'Data.RIR' is an invalid key"):
         sf.set_value(convention, "Data.RIR", [0, 0, 1])
+
+
+# def test_updated_api():
+#     sofa = sf.create_sofa("FreeFieldDirectivityTF")
+
+#     # check initial assignment
+#     assert sofa["API"]["M"] == 1
+
+
+def test_get_size_and_shape_of_string_var():
+
+    # test with string
+    S, shape = _get_size_and_shape_of_string_var("four", "key")
+    assert S == 4
+    assert shape == (1, 4)
+
+    # test with list of strings
+    S, shape = _get_size_and_shape_of_string_var(["four", "fivee"], "key")
+    assert S == 5
+    assert shape == (2, 5)
+
+    # test with numpy strings array
+    S, shape = _get_size_and_shape_of_string_var(
+        np.array(["four", "fivee"], dtype="S256"), "key")
+    assert S == 5
+    assert shape == (2, 5)

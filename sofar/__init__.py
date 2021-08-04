@@ -8,7 +8,7 @@ __version__ = '0.1.0'
 
 
 from .sofar import (update_conventions, list_conventions, create_sofa,
-                    set_value, write_sofa)
+                    set_value, update_api, write_sofa)
 
 
 __all__ = [
@@ -16,4 +16,5 @@ __all__ = [
     'list_conventions',
     'create_sofa',
     'set_value',
+    'update_api',
     'write_sofa']
