@@ -281,10 +281,11 @@ def write_sofa(filename: str, sofa: dict):
         keys = [key for key in sofa.keys() if key.startswith("GLOBAL:")]
         for key in keys:
 
+            dimensions = sofa["API"]["Dimensions"][key] \
+                if key in sofa["API"]["Dimensions"] else None
             value = _format_value_for_netcdf(
                 sofa[key],
-                sofa["API"]["Dimensions"][key] \
-                    if key in sofa["API"]["Dimensions"] else None,
+                dimensions,
                 sofa["API"]["Convention"][key]["type"],
                 sofa["API"]["S"])[0]
 
@@ -295,10 +296,11 @@ def write_sofa(filename: str, sofa: dict):
         for key in keys:
 
             # get the data and type and shape
+            dimensions = sofa["API"]["Dimensions"][key] \
+                if key in sofa["API"]["Dimensions"] else None
             value, dtype = _format_value_for_netcdf(
                 sofa[key],
-                sofa["API"]["Dimensions"][key] \
-                    if key in sofa["API"]["Dimensions"] else None,
+                dimensions,
                 sofa["API"]["Convention"][key]["type"],
                 sofa["API"]["S"])
 
