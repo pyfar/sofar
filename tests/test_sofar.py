@@ -1,5 +1,6 @@
 import sofar as sf
-from sofar.sofar import _get_size_and_shape_of_string_var
+from sofar.sofar import (_get_size_and_shape_of_string_var,
+                         _format_value_for_netcdf)
 import os
 from pytest import raises
 import numpy as np
@@ -81,3 +82,36 @@ def test_get_size_and_shape_of_string_var():
         np.array(["four", "fivee"], dtype="S256"), "key")
     assert S == 5
     assert shape == (2, 5)
+
+
+def test_format_value_for_netcdf():
+
+    # string and None dimensions
+    value = _format_value_for_netcdf(
+        "string", None, "attribute", 12)
+    assert value == "string"
+
+    # string and IS dimensions
+    value = _format_value_for_netcdf(
+        "string", "IS", "attribute", 12)
+    assert value == "string"
+
+    # single entry array and none Dimensions
+    value = _format_value_for_netcdf(
+        ["string"], "IS", "attribute", 12)
+    assert value == "string"
+
+    # array of strings
+    value = _format_value_for_netcdf(
+        [["a"], ["bc"]], "MS", "attribute", 1)
+    assert all(value == np.array([["a"], ["b"]], "S1"))
+
+    # test with list
+    value = _format_value_for_netcdf(
+        [0, 0], "MR", "double", 12)
+    npt.assert_allclose(value, np.array([0, 0])[np.newaxis, ])
+
+    # test with numpy array
+    value = _format_value_for_netcdf(
+        np.array([0, 0]), "MR", "double", 12)
+    npt.assert_allclose(value, np.array([0, 0])[np.newaxis, ])

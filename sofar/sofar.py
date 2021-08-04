@@ -181,7 +181,7 @@ def set_value(sofa, key, value):
 
 def update_api(sofa):
 
-    sofa["API"]["dimensions"] = {}
+    sofa["API"]["Dimensions"] = {}
 
     # get all keys except API
     keys = [key for key in sofa.keys() if key != "API"]
@@ -249,7 +249,7 @@ def update_api(sofa):
                     shape_matched = True
 
             if shape_matched:
-                sofa["API"]["dimensions"][key] = dim.upper()
+                sofa["API"]["Dimensions"][key] = dim.upper()
                 break
 
         if not shape_matched:
@@ -281,7 +281,11 @@ def write_sofa(filename: str, sofa: dict):
         keys = [key for key in sofa.keys() if key.startswith("GLOBAL:")]
         for key in keys:
 
-            value = _format_value_for_netcdf(sofa, key)
+            value = _format_value_for_netcdf(
+                sofa[key],
+                sofa["API"]["Dimensions"][key] if key in sofa["API"] else None,
+                sofa["API"]["Convention"][key]["type"],
+                sofa["API"]["S"])
 
             # setattr(file, key[len("GLOBAL:"):], sofa[key], "S1")
 
@@ -549,14 +553,18 @@ def _add_api(sofa, convention=None):
         sofa["API"]["Convention"][key] = convention[key]
 
 
-def _format_value_for_netcdf(sofa, key):
+def _format_value_for_netcdf(value, dimensions, dtype, S):
 
-    dimensions = sofa["API"][key] if key in sofa["API"] \
-        else sofa["API"]["Convention"][key]["dimensions"]
-    dtype = sofa["API"]["Convention"][key]["type"]
+    # copy value
+    try:
+        value = value.copy()
+    except AttributeError:
+        value = value
 
+    # attributes can be single strings or string arrays
     if dtype == "attribute":
-        # dimension must be None or contain "S"
+        # dimension None and "IS" denote single strings, other dimensions, e.g.
+        # MS denote string arrays
         if dimensions is None:
             mode = "string"
         else:
@@ -566,9 +574,24 @@ def _format_value_for_netcdf(sofa, key):
                 else:
                     mode = "array"
             else:
-                raise ValueError(
-                    f"error writing sofa.{key}: dimension is {dimensions} but "
-                    "must be None or contain 'S'")
+                raise ValueError((
+                    f"Dimension is {dimensions} but "
+                    "must be None or contain 'S'"))
+
+        if mode == "string":
+            value = value if isinstance(value, str) else value[0]
+        else:
+            value = np.array(value, dtype="S" + str(S))
+
+    # doubles can contain lists or numpy arrays
+    elif dtype == "double":
+        if dimensions is None:
+            raise ValueError(
+                "Dimensions can not be None for a double variable")
+
+        value = _nd_array(value, len(dimensions))
+
+    return value
 
 
 def _is_mandatory(convention, key):
