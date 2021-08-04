@@ -283,32 +283,31 @@ def write_sofa(filename: str, sofa: dict):
 
             value = _format_value_for_netcdf(
                 sofa[key],
-                sofa["API"]["Dimensions"][key] if key in sofa["API"] else None,
+                sofa["API"]["Dimensions"][key] \
+                    if key in sofa["API"]["Dimensions"] else None,
+                sofa["API"]["Convention"][key]["type"],
+                sofa["API"]["S"])[0]
+
+            setattr(file, key[7:], value)
+
+        # write data
+        keys = [key for key in sofa.keys() if ":" not in key and key != "API"]
+        for key in keys:
+
+            # get the data and type and shape
+            value, dtype = _format_value_for_netcdf(
+                sofa[key],
+                sofa["API"]["Dimensions"][key] \
+                    if key in sofa["API"]["Dimensions"] else None,
                 sofa["API"]["Convention"][key]["type"],
                 sofa["API"]["S"])
 
-            # setattr(file, key[len("GLOBAL:"):], sofa[key], "S1")
+            # create variable and write data
+            shape = tuple([dim for dim in sofa["API"]["Dimensions"][key]])
+            tmp_var = file.createVariable(key, dtype, shape)
+            tmp_var[:] = value
 
-            # file.test =
-
-        # write data
-        for key in sofa.keys():
-            if key == "API":
-                continue
-
-            # get the data type
-            data_type = sofa["API"]["Convention"][key]["type"]
-            if data_type == "double":
-                data_type = "f8"
-            elif data_type == "attribute":
-                data_type = "S1"
-            else:
-                raise ValueError(
-                    f"{data_type} of {key} is not a valid data type")
-
-            if data_type == "double":
-                shape = tuple([dim for dim in sofa["API"]["dimensions"][key]])
-                tmp_var = file.createVariable(key, data_type, shape)
+            # write variable attributes
 
 
 def _convention_csv2dict(file: str):
@@ -563,6 +562,7 @@ def _format_value_for_netcdf(value, dimensions, dtype, S):
 
     # attributes can be single strings or string arrays
     if dtype == "attribute":
+        netcdf_dtype = "S1"
         # dimension None and "IS" denote single strings, other dimensions, e.g.
         # MS denote string arrays
         if dimensions is None:
@@ -579,19 +579,24 @@ def _format_value_for_netcdf(value, dimensions, dtype, S):
                     "must be None or contain 'S'"))
 
         if mode == "string":
-            value = value if isinstance(value, str) else value[0]
+            value = str(value) if isinstance(value, (str, float, int)) \
+                else value[0]
         else:
             value = np.array(value, dtype="S" + str(S))
 
     # doubles can contain lists or numpy arrays
     elif dtype == "double":
+        netcdf_dtype = "f8"
         if dimensions is None:
             raise ValueError(
                 "Dimensions can not be None for a double variable")
 
         value = _nd_array(value, len(dimensions))
+    else:
+        raise ValueError(
+            f"dtype is '{dtype}' but must be 'attribute' or 'double'")
 
-    return value
+    return value, netcdf_dtype
 
 
 def _is_mandatory(convention, key):

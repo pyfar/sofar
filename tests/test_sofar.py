@@ -87,31 +87,52 @@ def test_get_size_and_shape_of_string_var():
 def test_format_value_for_netcdf():
 
     # string and None dimensions
-    value = _format_value_for_netcdf(
+    value, dtype = _format_value_for_netcdf(
         "string", None, "attribute", 12)
     assert value == "string"
 
+    # int that should be converted to a string
+    value, dtype = _format_value_for_netcdf(
+        1, None, "attribute", 12)
+    assert value == "1"
+    assert dtype == "S1"
+
+    # float that should be converted to a string
+    value, dtype = _format_value_for_netcdf(
+        0.2, None, "attribute", 12)
+    assert value == "0.2"
+    assert dtype == "S1"
+
     # string and IS dimensions
-    value = _format_value_for_netcdf(
+    value, dtype = _format_value_for_netcdf(
         "string", "IS", "attribute", 12)
     assert value == "string"
+    assert dtype == "S1"
 
     # single entry array and none Dimensions
-    value = _format_value_for_netcdf(
+    value, dtype = _format_value_for_netcdf(
         ["string"], "IS", "attribute", 12)
     assert value == "string"
+    assert dtype == "S1"
 
     # array of strings
-    value = _format_value_for_netcdf(
+    value, dtype = _format_value_for_netcdf(
         [["a"], ["bc"]], "MS", "attribute", 1)
     assert all(value == np.array([["a"], ["b"]], "S1"))
+    assert dtype == "S1"
 
     # test with list
-    value = _format_value_for_netcdf(
+    value, dtype = _format_value_for_netcdf(
         [0, 0], "MR", "double", 12)
     npt.assert_allclose(value, np.array([0, 0])[np.newaxis, ])
+    assert dtype == "f8"
 
     # test with numpy array
-    value = _format_value_for_netcdf(
+    value, dtype = _format_value_for_netcdf(
         np.array([0, 0]), "MR", "double", 12)
     npt.assert_allclose(value, np.array([0, 0])[np.newaxis, ])
+    assert dtype == "f8"
+
+    # test exceptions
+    with raises(ValueError, match="dtype is 'int'"):
+        _format_value_for_netcdf(1, "MR", "int", 12)
