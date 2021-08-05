@@ -122,7 +122,7 @@ def list_conventions(verbose=True, return_type=None):
         return [(n, v) for n, v in zip(conventions, versions)]
 
 
-def create_sofa(convention, mandatory=False):
+def create_sofa(convention, mandatory=False, version="latest"):
     """Create and empty SOFA file.
 
     Parameters
@@ -134,6 +134,9 @@ def create_sofa(convention, mandatory=False):
         If ``True``, only the mandatory fields of the convention will be
         returned. The default is ``False``, which returns mandatory and
         optional fields.
+    version : str, optional
+        The version of the convention as a string. The default is ``'latest'``.
+        Also see :py:func:`~sofar.list_conventions`.
 
     Returns
     -------
@@ -142,7 +145,7 @@ def create_sofa(convention, mandatory=False):
     """
 
     # get convention
-    convention = _load_convention(convention)
+    convention = _load_convention(convention, version)
     # convert convention to SOFA file in dict format
     sofa = _convention2sofa(convention, mandatory)
     # add and update the API
@@ -301,6 +304,19 @@ def update_api(sofa):
                 (f"The shape of {key} is {shape_compare} but has "
                  f"to be: {dimensions.upper()} "
                  "(see field 'API' in the SOFA file)"))
+
+
+def read_sofa(filename):
+
+    # check the filename
+    if not filename.lower().endswith('.sofa'):
+        filename += ".sofa"
+    if not os.path.isfile(filename):
+        raise ValueError("{filename} does not exist")
+
+    # open new NETCDF4 file for reading
+    with Dataset(filename, "r", format="NETCDF4") as file:
+        pass
 
 
 def write_sofa(filename: str, sofa: dict):
@@ -499,7 +515,7 @@ def _convention_csv2dict(file: str):
     return convention
 
 
-def _load_convention(convention):
+def _load_convention(convention, version):
     """
     Load SOFA convention from json file.
 
@@ -519,7 +535,7 @@ def _load_convention(convention):
         raise TypeError(
             f"Convention must be a string but is of type {type(convention)}")
 
-    # load convention from json file
+    # get and check path to json file
     paths = list_conventions(False, "path")
     path = [path for path in paths
             if os.path.basename(path).startswith(convention + "_")]
@@ -529,7 +545,19 @@ def _load_convention(convention):
             (f"Convention '{convention}' not found. See "
              "sofar.list_conventions() for available conventions."))
 
-    with open(path[0], "r") as file:
+    # select the correct version
+    if version == "latest":
+        path = path[-1]
+    else:
+        versions = [p.split('_')[1][:-5] for p in path]
+        if version not in versions:
+            raise ValueError((
+                f"Version {version} not found. "
+                f"Available versions are {versions}"))
+        path = path[versions.index(version)]
+
+    # read convention from json file
+    with open(path, "r") as file:
         convention = json.load(file)
 
     return convention
@@ -607,7 +635,7 @@ def _add_api(sofa, convention=None):
 
     # load the convention if required
     if convention is None:
-        convention = _load_convention(sofa["GLOBAL:SOFAConventions"])
+        convention = _load_convention(sofa["GLOBAL:SOFAConventions"], "latest")
 
     # initialize SOFA API
     keys = [key for key in sofa.keys()]

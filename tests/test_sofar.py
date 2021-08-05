@@ -48,6 +48,13 @@ def test_create_sofa():
     sofa_man = sf.create_sofa("SimpleFreeFieldHRIR", True)
     assert len(sofa_all) > len(sofa_man)
 
+    # test version parameter
+    sofa = sf.create_sofa("GeneralTF")
+    assert str(sofa["GLOBAL:SOFAConventionsVersion"]) == str(2)
+
+    sofa = sf.create_sofa("GeneralTF", version="1.0")
+    assert str(sofa["GLOBAL:SOFAConventionsVersion"]) == str(1.)
+
 
 def test_set_value():
     # dummy SOFA dictionairy
