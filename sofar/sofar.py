@@ -135,8 +135,8 @@ def create_sofa(convention, mandatory=False, version="latest"):
         returned. The default is ``False``, which returns mandatory and
         optional fields.
     version : str, optional
-        The version of the convention as a string. The default is ``'latest'``.
-        Also see :py:func:`~sofar.list_conventions`.
+        The version of the convention as a string, e.g., ``' 2.0'``. The
+        default is ``'latest'``. Also see :py:func:`~sofar.list_conventions`.
 
     Returns
     -------
@@ -149,8 +149,7 @@ def create_sofa(convention, mandatory=False, version="latest"):
     # convert convention to SOFA file in dict format
     sofa = _convention2sofa(convention, mandatory)
     # add and update the API
-    _add_api(sofa, convention)
-    update_api(sofa)
+    update_api(sofa, version)
 
     return sofa
 
@@ -193,7 +192,7 @@ def set_value(sofa, key, value):
     sofa[key] = value
 
 
-def update_api(sofa):
+def update_api(sofa, version="latest"):
     """
     Update the API of a SOFA dictionary and check if the dimensions of the data
     inside the SOFA dictionary are consistent.
@@ -215,10 +214,21 @@ def update_api(sofa):
     sofa : dict
         The data as a SOFA dictionary (as returned by
         :py:func:`~sofar.create_sofa` and :py:func:`~sofar.read_sofa`)
+    version : str, optional
+        The version to which the API is updated.
+        ``'latest'``
+            Use the latest API and upgrade the SOFA file if required.
+        ``'match'``
+            Match the version of the sofa file.
+        str
+            Version string, e.g., ``'1.0'``. Note that this might downgrade
+            the SOFA dictionairy
+
+        The default is latest
 
     Returns
     -------
-    The value is updated in `sofa` without the need for returning it. This
+    The values are updated in `sofa` without the need for returning it. This
     is because Python dictionaries are mutable objects. Lists are converted
     to numpy arrays.
 
@@ -228,6 +238,8 @@ def update_api(sofa):
     thus not have to be called before using `write_sofa`.
     """
 
+    # initialize the API
+    _add_api(sofa, version)
     sofa["API"]["Dimensions"] = {}
 
     # get all keys except API
@@ -319,7 +331,7 @@ def read_sofa(filename):
         pass
 
 
-def write_sofa(filename: str, sofa: dict):
+def write_sofa(filename: str, sofa: dict, version="latest"):
     """
     Write a SOFA dictionary to disk as a SOFA file.
 
@@ -344,7 +356,7 @@ def write_sofa(filename: str, sofa: dict):
         filename += ".sofa"
 
     # update the dimensions
-    update_api(sofa)
+    update_api(sofa, version)
 
     # open new NETCDF4 file for writing
     with Dataset(filename, "w", format="NETCDF4") as file:
@@ -612,20 +624,24 @@ def _convention2sofa(convention, mandatory):
     return sofa
 
 
-def _add_api(sofa, convention=None):
+def _add_api(sofa, version):
     """
     Add API to SOFA file. If The SOFA files contains an API it is overwritten.
 
     The API is basically the convention file, which holds the meta data that is
-    required for writing the SOFA file to disk.
+    required for writing the SOFA file to disk. It is added under sofa['API'].
 
     Parameters
     ----------
     sofa : dict
         The SOFA file without API
-    convention : dict, optional
-        The SOFA convention as a dict. If no dict is provided, the convention
-        is read from the SOFA file and loaded accordingly.
+    version : str
+        ``'latest'``
+            Use the latest API and upgrade the SOFA file if required.
+        ``'match'``
+            Match the version of the sofa file.
+        str
+            Version string, e.g., ``'1.0'``.
 
     Returns
     -------
@@ -633,12 +649,26 @@ def _add_api(sofa, convention=None):
         The SOFA file with API
     """
 
-    # load the convention if required
-    if convention is None:
-        convention = _load_convention(sofa["GLOBAL:SOFAConventions"], "latest")
+    # load the desired convention and compare versions
+    v_current = str(float(sofa["GLOBAL:SOFAConventionsVersion"]))
+    if version == "match":
+        version = v_current
+
+    convention = _load_convention(sofa["GLOBAL:SOFAConventions"], version)
+    v_new = str(float(convention["GLOBAL:SOFAConventionsVersion"]["default"]))
+
+    if v_current != v_new:
+        sofa["GLOBAL:SOFAConventionsVersion"] = float(v_new)
+
+    if float(v_current) < float(v_new):
+        warnings.warn(
+            f"Upgraded SOFA dictionairy from version {v_current} to {v_new}")
+    elif float(v_current) > float(v_new):
+        warnings.warn(
+            f"Downgraded SOFA dictionairy from version {v_current} to {v_new}")
 
     # initialize SOFA API
-    keys = [key for key in sofa.keys()]
+    keys = [key for key in sofa.keys() if key != "API"]
     sofa["API"] = {}
     sofa["API"]["Convention"] = {}
 

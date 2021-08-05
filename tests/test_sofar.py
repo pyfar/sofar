@@ -1,9 +1,9 @@
 import sofar as sf
 from sofar.sofar import (_get_size_and_shape_of_string_var,
-                         _format_value_for_netcdf)
+                         _format_value_for_netcdf, update_api)
 import os
 from tempfile import TemporaryDirectory
-from pytest import raises
+import pytest
 import numpy as np
 import numpy.testing as npt
 
@@ -31,10 +31,10 @@ def test_list_conventions(capfd):
 
 def test_create_sofa():
     # test assertion for type of convention parameter
-    with raises(TypeError, match="Convention must be a string"):
+    with pytest.raises(TypeError, match="Convention must be a string"):
         sf.create_sofa(1)
     # test assertion for invalid conventions
-    with raises(ValueError, match="Convention 'invalid' not found"):
+    with pytest.raises(ValueError, match="Convention 'invalid' not found"):
         sf.create_sofa("invalid")
 
     # test a single conversion
@@ -56,6 +56,32 @@ def test_create_sofa():
     assert str(sofa["GLOBAL:SOFAConventionsVersion"]) == str(1.)
 
 
+def test_update_dimensions():
+
+    # test the default "latest"
+    sofa_1 = sf.create_sofa("GeneralTF", version="1.0")
+    sofa_2 = sofa_1.copy()
+    with pytest.warns(UserWarning, match="Upgraded"):
+        sf.update_api(sofa_2)
+    assert float(sofa_1["GLOBAL:SOFAConventionsVersion"]) == 1.0
+    assert float(sofa_2["GLOBAL:SOFAConventionsVersion"]) == 2.0
+
+    # test "match"
+    sofa_1 = sf.create_sofa("GeneralTF", version="1.0")
+    sofa_2 = sofa_1.copy()
+    sf.update_api(sofa_2, version="match")
+    assert float(sofa_1["GLOBAL:SOFAConventionsVersion"]) == 1.0
+    assert float(sofa_2["GLOBAL:SOFAConventionsVersion"]) == 1.0
+
+    # test version string
+    sofa_1 = sf.create_sofa("GeneralTF")
+    sofa_2 = sofa_1.copy()
+    with pytest.warns(UserWarning, match="Downgraded"):
+        sf.update_api(sofa_2, version="1.0")
+    assert float(sofa_1["GLOBAL:SOFAConventionsVersion"]) == 2.0
+    assert float(sofa_2["GLOBAL:SOFAConventionsVersion"]) == 1.0
+
+
 def test_set_value():
     # dummy SOFA dictionairy
     sofa = sf.create_sofa("SimpleFreeFieldHRIR")
@@ -66,12 +92,12 @@ def test_set_value():
                         np.atleast_2d([0, 0, 1]))
 
     # set with protected key
-    with raises(ValueError, match="'API' is read only"):
+    with pytest.raises(ValueError, match="'API' is read only"):
         sf.set_value(sofa, "API", [0, 0, 1])
-    with raises(ValueError, match="'GLOBAL:Conventions' is read only"):
+    with pytest.raises(ValueError, match="'GLOBAL:Conventions' is read only"):
         sf.set_value(sofa, "GLOBAL:Conventions", [0, 0, 1])
     # set with invalid key
-    with raises(ValueError, match="'Data.RIR' is an invalid key"):
+    with pytest.raises(ValueError, match="'Data.RIR' is an invalid key"):
         sf.set_value(sofa, "Data.RIR", [0, 0, 1])
 
 
