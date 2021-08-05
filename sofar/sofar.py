@@ -158,7 +158,8 @@ def set_value(sofa, key, value):
     Parameters
     ----------
     sofa : dict
-        A SOFA file obtained from :py:func:`~sofar.create_sofa`.
+        A SOFA dictionairy obtained from :py:func:`~sofar.create_sofa` or
+        :py:func:`~sofar.read_sofa`.
     key : str, list of strings
         The name of the attribute to which the value is assigned, i.e.,
         ``'ListenerPosition'``, or ``['Data', 'IR']``.
@@ -168,8 +169,8 @@ def set_value(sofa, key, value):
     Retruns
     -------
     The value is updated in `sofa` without the need for returning it. This
-    is because Python dictionaries are mutable objects. Lists are converted
-    to numpy arrays.
+    is because Python dictionaries are mutable objects, i.e., changes inside
+    this function also change the object outside.
     """
 
     # check the key
@@ -189,6 +190,39 @@ def set_value(sofa, key, value):
 
 
 def update_api(sofa):
+    """
+    Update the API of a SOFA dictionary and check if the dimensions of the data
+    inside the SOFA dictionary are consistent.
+
+    sofa['API'] contains metadata that is by :py:func:`~sofar.write_sofa` for
+    writing the SOFA dictionary to disk. The API contains the following fields:
+
+    'Convention'
+        The SOFA convention with default values, variable dimensions, flags and
+        comments
+    'Dimensions'
+        The detected dimensions of the data inside the SOFA dictionairy
+    'R', 'E', 'M', 'N', 'C', 'I', 'S'
+        The size of the dimensions. This specifies the dimensions of the data
+        inside the SOFA dictionary.
+
+    Parameters
+    ----------
+    sofa : dict
+        The data as a SOFA dictionary (as returned by
+        :py:func:`~sofar.create_sofa` and :py:func:`~sofar.read_sofa`)
+
+    Returns
+    -------
+    The value is updated in `sofa` without the need for returning it. This
+    is because Python dictionaries are mutable objects. Lists are converted
+    to numpy arrays.
+
+    Notes
+    -----
+    :py:func:`~sofar.write_sofa` also calls `update_api`. This function does
+    thus not have to be called before using `write_sofa`.
+    """
 
     sofa["API"]["Dimensions"] = {}
 
@@ -269,6 +303,24 @@ def update_api(sofa):
 
 
 def write_sofa(filename: str, sofa: dict):
+    """
+    Write a SOFA dictionary to disk as a SOFA file.
+
+    Parameters
+    ----------
+    filename : str
+        The filename. '.sofa' is appended to the filename, if it is not
+        explicitly given.
+    sofa : dict
+        The SOFA dictionairy that is written to disk
+
+    Returns
+    -------
+    This function calls :py:func:`~sofar.update_api` before writing to disk.
+    The API is updated in `sofa` without the need for returning it. This
+    is because Python dictionaries are mutable objects, i.e., changes inside
+    this function also change the object outside.
+    """
 
     # check the filename
     if not filename.lower().endswith('.sofa'):
@@ -639,6 +691,11 @@ def _nd_array(array, ndim):
     Get numpy array with specified number of dimensions. Dimensions are
     appended at the end if the input array has less dimensions.
     """
+    try:
+        array = array.copy()
+    except AttributeError:
+        array = array
+
     if ndim == 1:
         array = np.atleast_1d(array)
     if ndim == 2:
