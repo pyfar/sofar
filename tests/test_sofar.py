@@ -81,6 +81,12 @@ def test_update_dimensions():
     assert float(sofa_1["GLOBAL:SOFAConventionsVersion"]) == 2.0
     assert float(sofa_2["GLOBAL:SOFAConventionsVersion"]) == 1.0
 
+    # test detecting and adding missing mandatory fields
+    sofa_1 = sf.create_sofa("GeneralTF")
+    sofa_1.pop("GLOBAL:Conventions")
+    with pytest.warns(UserWarning, match="Mandatory field GLOBAL:Conventions"):
+        sf.update_api(sofa_1)
+
 
 def test_set_value():
     # dummy SOFA dictionairy

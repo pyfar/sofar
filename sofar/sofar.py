@@ -209,6 +209,11 @@ def update_api(sofa, version="latest"):
         The size of the dimensions. This specifies the dimensions of the data
         inside the SOFA dictionary.
 
+    In addition to updateing the API, it is also checked if all mandatory
+    fields are contained in the SOFA dictionairy. If a mandatory field is
+    missing, it is added to the SOFA dictionary with its default value and a
+    user warning is raised.
+
     Parameters
     ----------
     sofa : dict
@@ -245,7 +250,16 @@ def update_api(sofa, version="latest"):
     # get all keys except API
     keys = [key for key in sofa.keys() if key != "API"]
 
-    # first run: Get the dimensions for E, R, M, N, and S
+    # first run: check if the mandatory fields are contained
+    for key in sofa["API"]["Convention"].keys():
+        if _is_mandatory(sofa["API"]["Convention"][key]["flags"]) \
+                and key not in keys:
+            sofa[key] = sofa["API"]["Convention"][key]["default"]
+            warnings.warn((
+                f"Mandatory field {key} was missing and added to the SOFA "
+                "dictionairy with its default value"))
+
+    # second run: Get the dimensions for E, R, M, N, and S
     S = 0
     for key in keys:
 
@@ -267,7 +281,7 @@ def update_api(sofa, version="latest"):
     sofa["API"]["I"] = 1
     sofa["API"]["S"] = S
 
-    # second run: verify dimensions of data
+    # third run: verify dimensions of data
     for key in keys:
 
         # handle dimensions
@@ -667,14 +681,9 @@ def _add_api(sofa, version):
         warnings.warn(
             f"Downgraded SOFA dictionairy from version {v_current} to {v_new}")
 
-    # initialize SOFA API
-    keys = [key for key in sofa.keys() if key != "API"]
+    # add SOFA API
     sofa["API"] = {}
-    sofa["API"]["Convention"] = {}
-
-    # populate the SOFA API
-    for key in keys:
-        sofa["API"]["Convention"][key] = convention[key]
+    sofa["API"]["Convention"] = convention
 
 
 def _format_value_for_netcdf(value, key, dimensions, S):
