@@ -288,28 +288,15 @@ def write_sofa(filename: str, sofa: dict):
         # write global attributes
         keys = [key for key in sofa.keys() if key.startswith("GLOBAL:")]
         for key in keys:
-
-            dimensions = sofa["API"]["Dimensions"][key] \
-                if key in sofa["API"]["Dimensions"] else None
-            value = _format_value_for_netcdf(
-                sofa[key],
-                dimensions,
-                sofa["API"]["Convention"][key]["type"],
-                sofa["API"]["S"])[0]
-
-            setattr(file, key[7:], value)
+            setattr(file, key[7:], str(sofa[key]))
 
         # write data
         keys = [key for key in sofa.keys() if ":" not in key and key != "API"]
         for key in keys:
 
             # get the data and type and shape
-            dimensions = sofa["API"]["Dimensions"][key] \
-                if key in sofa["API"]["Dimensions"] else None
             value, dtype = _format_value_for_netcdf(
-                sofa[key],
-                dimensions,
-                sofa["API"]["Convention"][key]["type"],
+                sofa[key], key, sofa["API"]["Dimensions"][key],
                 sofa["API"]["S"])
 
             # create variable and write data
@@ -562,7 +549,7 @@ def _add_api(sofa, convention=None):
         sofa["API"]["Convention"][key] = convention[key]
 
 
-def _format_value_for_netcdf(value, dimensions, dtype, S):
+def _format_value_for_netcdf(value, key, dimensions, S):
 
     # copy value
     try:
@@ -570,41 +557,27 @@ def _format_value_for_netcdf(value, dimensions, dtype, S):
     except AttributeError:
         value = value
 
-    # attributes can be single strings or string arrays
-    if dtype == "attribute":
-        netcdf_dtype = "S1"
-        # dimension None and "IS" denote single strings, other dimensions, e.g.
-        # MS denote string arrays
-        if dimensions is None:
-            mode = "string"
-        else:
-            if "S" in dimensions:
-                if dimensions == "IS":
-                    mode = "string"
-                else:
-                    mode = "array"
-            else:
-                raise ValueError((
-                    f"Dimension is {dimensions} but "
-                    "must be None or contain 'S'"))
-
-        if mode == "string":
-            value = str(value) if isinstance(value, (str, float, int)) \
-                else value[0]
-        else:
-            value = np.array(value, dtype="S" + str(S))
-
-    # doubles can contain lists or numpy arrays
-    elif dtype == "double":
-        netcdf_dtype = "f8"
-        if dimensions is None:
-            raise ValueError(
-                "Dimensions can not be None for a double variable")
-
+    # parse data
+    if ":" in key:
+        value = str(value)
+        netcdf_dtype = "attribute"
+    elif "S" in dimensions:
+        value = np.array(value, dtype="S" + str(S))
+        netcdf_dtype = 'S1'
+    elif "S" not in dimensions:
         value = _nd_array(value, len(dimensions))
+        netcdf_dtype = "f8"
     else:
-        raise ValueError(
-            f"dtype is '{dtype}' but must be 'attribute' or 'double'")
+        raise ValueError((
+            f"Something went wrong in sofa['{key}']. This is either a bug or "
+            "an error in the convention. 'value' is an attribute if the key "
+            "contains ':'. In this case the input value must be convertible "
+            "to a string. 'value' is a string variable if the dimensions "
+            "contain 'S'. In this case the input value must be a string, a "
+            "list of strings or a numpy fixed length byte array, e.g., "
+            "np.array(data, dtype='S10'). 'vale is a float variable if "
+            "dimensions does not contain 'S'. In this case it must be "
+            "convertible to a numpy array."))
 
     return value, netcdf_dtype
 
