@@ -142,9 +142,10 @@ def create_sofa(convention, mandatory=False):
 
     # get convention
     convention = _load_convention(convention)
-
     # convert convention to SOFA file in dict format
     sofa = _convention2sofa(convention, mandatory)
+    # add and update the API
+    _add_api(sofa, convention)
     update_api(sofa)
 
     return sofa
@@ -305,6 +306,9 @@ def write_sofa(filename: str, sofa: dict):
             tmp_var[:] = value
 
             # write variable attributes
+            sub_keys = [k for k in sofa.keys() if k.startswith(key + ":")]
+            for sub_key in sub_keys:
+                setattr(tmp_var, sub_key[len(key)+1:], str(sofa[sub_key]))
 
 
 def _convention_csv2dict(file: str):
@@ -507,9 +511,6 @@ def _convention2sofa(convention, mandatory):
     for default in defaults:
         if default[0] in sofa:
             sofa[default[0]] = default[1]
-
-    # add the API
-    _add_api(sofa, convention)
 
     return sofa
 
