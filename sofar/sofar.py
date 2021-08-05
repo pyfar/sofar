@@ -69,31 +69,29 @@ def update_conventions():
     print("... done.")
 
 
-def list_conventions(print_conventions=True, return_paths=False):
+def list_conventions(verbose=True, return_type=None):
     """
     List available SOFA conventions.
 
     Parameters
     ----------
-    print_conventions : bool, optional
+    verbose=True : bool, optional
         Print the names and versions of the currently supported conventions to
         the console. The default is ``True``.
-    return_paths : bool, optional
-        Return a list containing the full paths of the files that store the
-        conventions. The default is ``False``.
+    return_type : string, optional
+        ``'path'``
+            Return a list with the full paths and filenames of the convention
+            files
+        ``'name'``
+            Return a list of the convention names without version
+        ``'name_version'``
+            Return a list of tuples containing the convention name and version.
+
+        The default is ``None`` which does not return anything
 
     Returns
     -------
-    paths : list
-        The full paths of the SOFA convention files. A SOFA convention defines
-        the kind of data and the data format that is stored in a SOFA file.
-        The paths are only returned if `return_paths` is ``True`` (see
-        Parameters).
-
-    Notes
-    -----
-    For updating the local convention files see
-    :py:func:`~sofar.update_conventions`.
+    See parameter `return_type`.
     """
     # directory containing the SOFA conventions
     directory = os.path.join(os.path.dirname(__file__), "conventions")
@@ -101,16 +99,26 @@ def list_conventions(print_conventions=True, return_paths=False):
     # SOFA convention files
     paths = [file for file in glob.glob(os.path.join(directory, "*.json"))]
 
-    if print_conventions:
+    if verbose:
         print("Available SOFA conventions:")
-        for path in paths:
-            fileparts = os.path.basename(path).split(sep="_")
-            convention = fileparts[0]
-            version_str = fileparts[1][:-5]
-            print(f"{convention} (Version {version_str})")
 
-    if return_paths:
+    conventions = []
+    versions = []
+    for path in paths:
+        fileparts = os.path.basename(path).split(sep="_")
+        conventions += [fileparts[0]]
+        versions += [fileparts[1][:-5]]
+        if verbose:
+            print(f"{conventions[-1]} (Version {versions[-1]})")
+
+    if return_type is None:
+        return
+    if return_type == "path":
         return paths
+    elif return_type == "name":
+        return conventions
+    elif return_type == "name_version":
+        return [(n, v) for n, v in zip(conventions, versions)]
 
 
 def create_sofa(convention, mandatory=False):
@@ -452,7 +460,7 @@ def _load_convention(convention):
             f"Convention must be a string but is of type {type(convention)}")
 
     # load convention from json file
-    paths = list_conventions(False, True)
+    paths = list_conventions(False, "path")
     path = [path for path in paths
             if os.path.basename(path).startswith(convention + "_")]
 

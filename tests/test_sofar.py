@@ -14,14 +14,18 @@ def test_list_conventions(capfd):
     out, _ = capfd.readouterr()
     assert "Available SOFA conventions:" in out
 
-    sf.list_conventions(print_conventions=False)
+    sf.list_conventions(verbose=False)
     out, _ = capfd.readouterr()
     assert out == ""
 
     # check the return type
-    paths = sf.list_conventions(print_conventions=False, return_paths=True)
+    paths = sf.list_conventions(verbose=False, return_type="path")
     assert isinstance(paths, list)
     assert os.path.isfile(paths[0])
+
+    paths = sf.list_conventions(verbose=False, return_type="name_version")
+    assert isinstance(paths, list)
+    assert isinstance(paths[0], tuple)
 
 
 def test_create_sofa():
@@ -33,9 +37,8 @@ def test_create_sofa():
         sf.create_sofa("invalid")
 
     # test conversion
-    paths = sf.list_conventions(print_conventions=False, return_paths=True)
-    for path in paths:
-        name = os.path.basename(path).split(sep="_")[0]
+    names = sf.list_conventions(verbose=False, return_type="name")
+    for name in names:
         print(f"Testing: {name}")
         convention = sf.create_sofa(name)
         assert isinstance(convention, dict)
