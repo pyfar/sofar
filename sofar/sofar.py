@@ -5,6 +5,7 @@ import requests
 from datetime import datetime
 import platform
 import numpy as np
+import warnings
 from bs4 import BeautifulSoup
 from netCDF4 import Dataset
 import sofar as sf
@@ -347,6 +348,11 @@ def write_sofa(filename: str, sofa: dict):
         keys = [key for key in sofa.keys() if ":" not in key and key != "API"]
         for key in keys:
 
+            if not _is_mandatory(sofa["API"]["Convention"][key]["flags"]) \
+                    and isinstance(sofa[key], str):
+                warnings.warn(f"Skipping empty optional data {key}")
+                continue
+
             # get the data and type and shape
             value, dtype = _format_value_for_netcdf(
                 sofa[key], key, sofa["API"]["Dimensions"][key],
@@ -355,7 +361,18 @@ def write_sofa(filename: str, sofa: dict):
             # create variable and write data
             shape = tuple([dim for dim in sofa["API"]["Dimensions"][key]])
             tmp_var = file.createVariable(key, dtype, shape)
-            tmp_var[:] = value
+            try:
+                pass
+                # tmp_var[:] = value
+            except: # noqa (this is no error handling just improved verbosity)
+                shape_verbose = []
+                for dim in sofa["API"]["Dimensions"][key]:
+                    shape_verbose = shape_verbose.append(
+                        dim + "=" + str(sofa["API"][dim]))
+
+                raise ValueError((
+                    f"Error writing sofa['{key}']: {value} of "
+                    f"intended type '{dtype}' and shape {shape_verbose}"))
 
             # write variable attributes
             sub_keys = [k for k in sofa.keys() if k.startswith(key + ":")]
@@ -542,7 +559,7 @@ def _convention2sofa(convention, mandatory):
     for key in convention.keys():
 
         # skip optional fields if requested
-        if not _is_mandatory(convention, key) and mandatory:
+        if not _is_mandatory(convention[key]["flags"]) and mandatory:
             continue
 
         # set the default value
@@ -635,25 +652,23 @@ def _format_value_for_netcdf(value, key, dimensions, S):
     return value, netcdf_dtype
 
 
-def _is_mandatory(convention, key):
+def _is_mandatory(flags):
     """
     Check if a field is mandatory
 
     Parameters
     ----------
-    convention : dict
-        The SOFA convention
-    key : string
-        The field to be checked
+    flags : None, str
+        The flags from convention[key]["flags"]
 
     Returns
     -------
     is_mandatory : bool
     """
     # skip optional fields if requested
-    if convention[key]["flags"] is None:
+    if flags is None:
         is_mandatory = False
-    elif "m" not in convention[key]["flags"]:
+    elif "m" not in flags:
         is_mandatory = False
     else:
         is_mandatory = True

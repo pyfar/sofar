@@ -2,6 +2,7 @@ import sofar as sf
 from sofar.sofar import (_get_size_and_shape_of_string_var,
                          _format_value_for_netcdf)
 import os
+from tempfile import TemporaryDirectory
 from pytest import raises
 import numpy as np
 import numpy.testing as npt
@@ -36,12 +37,11 @@ def test_create_sofa():
     with raises(ValueError, match="Convention 'invalid' not found"):
         sf.create_sofa("invalid")
 
-    # test conversion
-    names = sf.list_conventions(verbose=False, return_type="name")
-    for name in names:
-        print(f"Testing: {name}")
-        sofa = sf.create_sofa(name)
-        assert isinstance(sofa, dict)
+    # test a single conversion
+    # (all conversions are test in test_roundtrip)
+    name = sf.list_conventions(verbose=False, return_type="name")[0]
+    sofa = sf.create_sofa(name)
+    assert isinstance(sofa, dict)
 
     # test returning only mandatory fields
     sofa_all = sf.create_sofa("SimpleFreeFieldHRIR")
@@ -66,6 +66,25 @@ def test_set_value():
     # set with invalid key
     with raises(ValueError, match="'Data.RIR' is an invalid key"):
         sf.set_value(sofa, "Data.RIR", [0, 0, 1])
+
+
+def test_roundtrip():
+    """"
+    Cyclic test of create, write, read functions
+
+    1. create_sofa
+    2. write_sofa
+    3. read_sofa
+    4. compare SOFA from 1. and 3.
+    """
+
+    temp_dir = TemporaryDirectory()
+    names = sf.list_conventions(verbose=False, return_type="name")
+
+    for name in names:
+        print(f"Testing: {name}")
+        sofa = sf.create_sofa(name)
+        sf.write_sofa(os.path.join(temp_dir.name, name), sofa)
 
 
 def test_get_size_and_shape_of_string_var():
