@@ -40,32 +40,32 @@ def test_create_sofa():
     names = sf.list_conventions(verbose=False, return_type="name")
     for name in names:
         print(f"Testing: {name}")
-        convention = sf.create_sofa(name)
-        assert isinstance(convention, dict)
+        sofa = sf.create_sofa(name)
+        assert isinstance(sofa, dict)
 
     # test returning only mandatory fields
-    convention_all = sf.create_sofa("SimpleFreeFieldHRIR")
-    convention_man = sf.create_sofa("SimpleFreeFieldHRIR", True)
-    assert len(convention_all) > len(convention_man)
+    sofa_all = sf.create_sofa("SimpleFreeFieldHRIR")
+    sofa_man = sf.create_sofa("SimpleFreeFieldHRIR", True)
+    assert len(sofa_all) > len(sofa_man)
 
 
 def test_set_value():
-    # dummy convention
-    convention = sf.create_sofa("SimpleFreeFieldHRIR")
+    # dummy SOFA dictionairy
+    sofa = sf.create_sofa("SimpleFreeFieldHRIR")
 
     # set value by key
-    sf.set_value(convention, "ListenerPosition", [0, 0, 1])
-    npt.assert_allclose(convention["ListenerPosition"],
+    sf.set_value(sofa, "ListenerPosition", [0, 0, 1])
+    npt.assert_allclose(sofa["ListenerPosition"],
                         np.atleast_2d([0, 0, 1]))
 
     # set with protected key
     with raises(ValueError, match="'API' is read only"):
-        sf.set_value(convention, "API", [0, 0, 1])
+        sf.set_value(sofa, "API", [0, 0, 1])
     with raises(ValueError, match="'GLOBAL:Conventions' is read only"):
-        sf.set_value(convention, "GLOBAL:Conventions", [0, 0, 1])
+        sf.set_value(sofa, "GLOBAL:Conventions", [0, 0, 1])
     # set with invalid key
     with raises(ValueError, match="'Data.RIR' is an invalid key"):
-        sf.set_value(convention, "Data.RIR", [0, 0, 1])
+        sf.set_value(sofa, "Data.RIR", [0, 0, 1])
 
 
 def test_get_size_and_shape_of_string_var():
