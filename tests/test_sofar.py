@@ -126,6 +126,7 @@ def test_roundtrip():
         sofa = sf.create_sofa(name)
         sf.write_sofa(os.path.join(temp_dir.name, name), sofa)
         sofa_r = sf.read_sofa(os.path.join(temp_dir.name, name))
+        assert sf.compare_sofa(sofa, sofa_r, verbose=False, exclude="DATE")
 
 
 def test_get_size_and_shape_of_string_var():

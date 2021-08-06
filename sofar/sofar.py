@@ -5,6 +5,7 @@ import requests
 from datetime import datetime
 import platform
 import numpy as np
+import numpy.testing as npt
 import warnings
 from bs4 import BeautifulSoup
 from netCDF4 import Dataset
@@ -472,6 +473,127 @@ def write_sofa(filename: str, sofa: dict, version="latest"):
                 setattr(tmp_var, sub_key[len(key)+1:], str(sofa[sub_key]))
 
 
+def compare_sofa(sofa_a, sofa_b, verbose=True, exclude=None):
+    """
+    Compare two sofa files against each other
+
+    Parameters
+    ----------
+    sofa_a : dict
+        SOFA dictionairy
+    sofa_b : dict
+        SOFA dictionairy
+    verbose : bool, optional
+        Print to console if differences were found. The default is True.
+    exclude : str, optional
+        Specify what fields should be excluded from the comparison
+
+        ``'GLOBAL'``
+            Exclude all global attributes, i.e., fields starting with 'GLOBAL:'
+        ``'DATE'``
+            Exclude date attributs, i.e., fields that contain 'Date'
+        ``'ATTR'``
+            Exclude all attributes, i.e., fields that contain ':'
+
+        The default is None, which does not exclude anything.
+
+    Returns
+    -------
+    is_identical : bool
+        True if sofa_a and sofa_b are identical, False otherwise.
+    """
+
+    is_identical = True
+
+    # set filter for excluding keys
+    if exclude is not None:
+        if exclude.upper() == "GLOBAL":
+            exclude = "GLOBAL:"
+        elif exclude.upper() == "ATTR":
+            exclude = ":"
+        elif exclude.upper() != "DATE":
+            raise ValueError(
+                f"Exclude is {exclude} but must be GLOBAL, DATE, or ATTR")
+
+    # get the keys
+    keys_a = [k for k in sofa_a.keys() if exclude not in k and k != "API"]
+    keys_b = [k for k in sofa_b.keys() if exclude not in k and k != "API"]
+
+    # check for equal length
+    if len(keys_a) != len(keys_b):
+        is_identical = False
+        if verbose:
+            warnings.warn((f"not identical: sofa_a has {len(keys_a)} entries "
+                           f"and sofa_b {len(keys_b)}."))
+
+    # check if the keys match
+    if not keys_a <= keys_b:
+        is_identical = False
+        if verbose:
+            warnings.warn(
+                "not identical: sofa_a and sofa_b do not have the keys.")
+
+    # compare attributes
+    for key in [k for k in keys_a if ":" in k]:
+
+        if sofa_a[key] != sofa_b[key]:
+            is_identical = False
+            if verbose:
+                warnings.warn(
+                    f"not identical: different values for {key}")
+
+    # compare data
+    for key in [k for k in keys_a if ":" not in k]:
+
+        # get the values and copy them to avoid changing mutable objects
+        a = sofa_a[key]
+        b = sofa_b[key]
+        try:
+            a = a.copy()
+            b = b.copy()
+        except AttributeError:
+            pass
+
+        currently_identical = True
+
+        # This is a bit messy because the comparison depends on the data type.
+        # Does anyone have a better idea?
+        if isinstance(a, (int, float, complex, str)) \
+                and isinstance(b, (int, float, complex, str)):
+            if a != b:
+                currently_identical = False
+        elif isinstance(a, np.ndarray) and isinstance(a, np.ndarray):
+            if str(a.dtype).startswith("<U") or str(b.dtype).startswith("<U"):
+                if not np.all(np.squeeze(a) == np.squeeze(b)):
+                    currently_identical = False
+            else:
+                if npt.assert_allclose(np.squeeze(a), np.squeeze(b)):
+                    currently_identical = False
+        elif isinstance(a, (list, tuple, np.ndarray)) \
+                and isinstance(b, (list, tuple, np.ndarray)):
+            if npt.assert_allclose(np.squeeze(a), np.squeeze(b)):
+                currently_identical = False
+        elif isinstance(a, str) or isinstance(b, str):
+            if not np.all(np.squeeze(a) == np.squeeze(b)):
+                currently_identical = False
+        else:
+            try:
+                if not np.all(np.squeeze(a) == np.squeeze(b)):
+                    currently_identical = False
+            except: # noqa (not a real exception, only more verbose feedback)
+                is_identical = False
+                warnings.warn(
+                    f"not identical: data types of {key} could not be matched")
+
+        if not currently_identical:
+            is_identical = False
+            if verbose:
+                warnings.warn(
+                    f"not identical: different values for {key}")
+
+    return is_identical
+
+
 def _convention_csv2dict(file: str):
     """
     Read SOFA convention from csv file and convert to json file. The csv files
@@ -764,7 +886,7 @@ def _format_value_for_netcdf(value, key, dimensions, S):
     try:
         value = value.copy()
     except AttributeError:
-        value = value
+        pass
 
     # parse data
     if ":" in key:
