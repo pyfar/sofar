@@ -1,6 +1,6 @@
 import sofar as sf
 from sofar.sofar import (_get_size_and_shape_of_string_var,
-                         _format_value_for_netcdf, update_api)
+                         _format_value_for_netcdf)
 import os
 from tempfile import TemporaryDirectory
 import pytest
@@ -124,6 +124,7 @@ def test_roundtrip():
         print(f"Testing: {name}")
         sofa = sf.create_sofa(name)
         sf.write_sofa(os.path.join(temp_dir.name, name), sofa)
+        sofa_r = sf.read_sofa(os.path.join(temp_dir.name, name))
 
 
 def test_get_size_and_shape_of_string_var():

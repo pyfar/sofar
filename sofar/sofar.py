@@ -140,8 +140,8 @@ def create_sofa(convention, mandatory=False, version="latest"):
 
     Returns
     -------
-    convention : dict
-        The SOFA convention with the default values as dictionary.
+    sofa : dict
+        The SOFA dictionairy filled with the default values of the convention.
     """
 
     # get convention
@@ -194,8 +194,12 @@ def set_value(sofa, key, value):
 
 def update_api(sofa, version="latest"):
     """
-    Update the API of a SOFA dictionary and check if the dimensions of the data
-    inside the SOFA dictionary are consistent.
+    Update the API of a SOFA dictionary.
+
+    Update the API, check if all mandatory fields are contained and if the
+    dimensions of the data inside the SOFA dictionary are consistent. If a
+    mandatory field is missing, it is added to the SOFA dictionary with its
+    default value and a warning is raised.
 
     sofa['API'] contains metadata that is by :py:func:`~sofar.write_sofa` for
     writing the SOFA dictionary to disk. The API contains the following fields:
@@ -208,11 +212,6 @@ def update_api(sofa, version="latest"):
     'R', 'E', 'M', 'N', 'C', 'I', 'S'
         The size of the dimensions. This specifies the dimensions of the data
         inside the SOFA dictionary.
-
-    In addition to updateing the API, it is also checked if all mandatory
-    fields are contained in the SOFA dictionairy. If a mandatory field is
-    missing, it is added to the SOFA dictionary with its default value and a
-    user warning is raised.
 
     Parameters
     ----------
@@ -229,7 +228,7 @@ def update_api(sofa, version="latest"):
             Version string, e.g., ``'1.0'``. Note that this might downgrade
             the SOFA dictionairy
 
-        The default is latest
+        The default is ``'latest'``
 
     Returns
     -------
@@ -332,7 +331,40 @@ def update_api(sofa, version="latest"):
                  "(see field 'API' in the SOFA file)"))
 
 
-def read_sofa(filename):
+def read_sofa(filename, update=True, version="latest"):
+    """
+    Read SOFA file from disk and convert it to SOFA dictionairy.
+
+    Numeric data is returned as floats or numpy float arrays unless they have
+    missing data, in which case they are returned as numpy masked arrays.
+
+    Parameters
+    ----------
+    filename : str
+        The filename. '.sofa' is appended to the filename, if it is not
+        explicitly given.
+    update : bool, optional
+        Update the API by calling :py:func:`~sofar.update_api`. This helps
+        to find potential errors in the data and is thus recommended. If
+        reading a file does not work, try to call `read_sofa` with
+        ``update=False``. The default is ``True``.
+    version : str, optional
+        The version to which the API is updated.
+        ``'latest'``
+            Use the latest API and upgrade the SOFA file if required.
+        ``'match'``
+            Match the version of the sofa file.
+        str
+            Version string, e.g., ``'1.0'``. Note that this might downgrade
+            the SOFA dictionairy
+
+        The default is ``'latest'``
+
+    Returns
+    -------
+    sofa : dict
+        The SOFA dictionairy filled with the default values of the convention.
+    """
 
     # check the filename
     if not filename.lower().endswith('.sofa'):
@@ -340,9 +372,46 @@ def read_sofa(filename):
     if not os.path.isfile(filename):
         raise ValueError("{filename} does not exist")
 
+    # init SOFA dictionairy
+    sofa = {}
+
     # open new NETCDF4 file for reading
     with Dataset(filename, "r", format="NETCDF4") as file:
-        pass
+
+        # load global attributes
+        for attr in file.ncattrs():
+            sofa["GLOBAL:" + attr] = getattr(file, attr)
+
+        # load data
+        for var in file.variables.keys():
+            # retrieve and check for missing values
+            value = file[var][:]
+            if np.ma.is_masked(value):
+                warnings.warn(
+                    (f"Entry {var} contains missing data"))
+            else:
+                # Convert to numpy array or scalar
+                value = np.asarray(value)
+                if value.size == 1:
+                    value = value[0]
+
+            # write data to dict
+            sofa[var] = value
+
+            # load variable attributes
+            for attr in file[var].ncattrs():
+                sofa[var + ":" + attr] = getattr(file[var], attr)
+
+    # update api
+    if update:
+        try:
+            update_api(sofa, version)
+        except: # noqa (No error handling - just improved verbosity)
+            raise ValueError((
+                "The API could not be updated, maybe do to errornous data in "
+                "the SOFA file. Try calling read_sofa with update=False"))
+
+    return sofa
 
 
 def write_sofa(filename: str, sofa: dict, version="latest"):
@@ -390,11 +459,6 @@ def write_sofa(filename: str, sofa: dict, version="latest"):
         keys = [key for key in sofa.keys() if ":" not in key and key != "API"]
         for key in keys:
 
-            if not _is_mandatory(sofa["API"]["Convention"][key]["flags"]) \
-                    and isinstance(sofa[key], str):
-                warnings.warn(f"Skipping empty optional data {key}")
-                continue
-
             # get the data and type and shape
             value, dtype = _format_value_for_netcdf(
                 sofa[key], key, sofa["API"]["Dimensions"][key],
@@ -404,8 +468,7 @@ def write_sofa(filename: str, sofa: dict, version="latest"):
             shape = tuple([dim for dim in sofa["API"]["Dimensions"][key]])
             tmp_var = file.createVariable(key, dtype, shape)
             try:
-                pass
-                # tmp_var[:] = value
+                tmp_var[:] = value
             except: # noqa (this is no error handling just improved verbosity)
                 shape_verbose = []
                 for dim in sofa["API"]["Dimensions"][key]:
