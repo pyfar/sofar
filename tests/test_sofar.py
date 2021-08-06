@@ -1,6 +1,7 @@
 import sofar as sf
 from sofar.sofar import (_get_size_and_shape_of_string_var,
-                         _format_value_for_netcdf)
+                         _format_value_for_netcdf,
+                         _format_value_from_netcdf)
 import os
 from tempfile import TemporaryDirectory
 import pytest
@@ -205,3 +206,31 @@ def test_format_value_for_netcdf():
     npt.assert_allclose(value, np.array([0, 0])[np.newaxis, ])
     assert dtype == "f8"
     assert value.ndim == 2
+
+
+def test_format_value_from_netcdf():
+
+    # single string
+    value = _format_value_from_netcdf(
+        np.array(["string"], dtype="S6"), "Some:Attribute")
+    assert value == "string"
+
+    # array of strings
+    value = _format_value_from_netcdf(
+        np.array(["string1", "string2"], dtype="S7"), "Some:Attribute")
+    assert all(value == np.array(["string1", "string2"], dtype="U"))
+
+    # numerical array that can be scalar
+    value = _format_value_from_netcdf(
+        np.array([44100], dtype="float"), "Data.SamplingRate")
+    assert value == 44100.
+
+    # numerical array that can not be scalar
+    value = _format_value_from_netcdf(
+        np.array([44100], dtype="float"), "Data.IR")
+    assert value == np.array(44100., dtype="float")
+
+    # test with invalid data dyte
+    with pytest.raises(TypeError, match="Data.IR: value.dtype is int32 but"):
+        _format_value_from_netcdf(
+            np.array([44100], dtype="int"), "Data.IR")
