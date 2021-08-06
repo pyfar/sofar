@@ -513,11 +513,15 @@ def compare_sofa(sofa_a, sofa_b, verbose=True, exclude=None):
             exclude = ":"
         elif exclude.upper() != "DATE":
             raise ValueError(
-                f"Exclude is {exclude} but must be GLOBAL, DATE, or ATTR")
+                f"exclude is {exclude} but must be GLOBAL, DATE, or ATTR")
 
     # get the keys
-    keys_a = [k for k in sofa_a.keys() if exclude not in k and k != "API"]
-    keys_b = [k for k in sofa_b.keys() if exclude not in k and k != "API"]
+    if exclude is not None:
+        keys_a = [k for k in sofa_a.keys() if k != "API" and exclude not in k]
+        keys_b = [k for k in sofa_b.keys() if k != "API" and exclude not in k]
+    else:
+        keys_a = [k for k in sofa_a.keys() if k != "API"]
+        keys_b = [k for k in sofa_b.keys() if k != "API"]
 
     # check for equal length
     if len(keys_a) != len(keys_b):
@@ -526,12 +530,16 @@ def compare_sofa(sofa_a, sofa_b, verbose=True, exclude=None):
             warnings.warn((f"not identical: sofa_a has {len(keys_a)} entries "
                            f"and sofa_b {len(keys_b)}."))
 
+        return is_identical
+
     # check if the keys match
-    if not keys_a <= keys_b:
+    if set(keys_a) != set(keys_b):
         is_identical = False
         if verbose:
             warnings.warn(
-                "not identical: sofa_a and sofa_b do not have the keys.")
+                "not identical: sofa_a and sofa_b do not have the same keys")
+
+        return is_identical
 
     # compare attributes
     for key in [k for k in keys_a if ":" in k]:

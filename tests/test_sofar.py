@@ -129,6 +129,46 @@ def test_roundtrip():
         assert sf.compare_sofa(sofa, sofa_r, verbose=False, exclude="DATE")
 
 
+def test_compare_sofa():
+
+    sofa_a = sf.create_sofa("SimpleFreeFieldHRIR")
+
+    # check invalid
+    with pytest.raises(ValueError, match="exclude is"):
+        sf.compare_sofa(sofa_a, sofa_a, exclude="wrong")
+
+    # check identical dictionaries
+    assert sf.compare_sofa(sofa_a, sofa_a.copy())
+
+    # check different number of keys
+    sofa_b = sofa_a.copy()
+    sofa_b.pop("ReceiverPosition")
+    with pytest.warns(UserWarning, match="not identical: sofa_a has"):
+        is_identical = sf.compare_sofa(sofa_a, sofa_b)
+        assert not is_identical
+
+    # check different keys
+    sofa_b = sofa_a.copy()
+    sofa_b["PositionReceiver"] = sofa_b.pop("ReceiverPosition")
+    with pytest.warns(UserWarning, match="not identical: sofa_a and sofa_b"):
+        is_identical = sf.compare_sofa(sofa_a, sofa_b)
+        assert not is_identical
+
+    # check different value for attribute
+    sofa_b = sofa_a.copy()
+    sofa_b["GLOBAL:Conventions"] = "SOFAAA"
+    with pytest.warns(UserWarning, match="not identical: different values for"):
+        is_identical = sf.compare_sofa(sofa_a, sofa_b)
+        assert not is_identical
+
+    # check different value for variable
+    sofa_b = sofa_a.copy()
+    sofa_b["Data.SamplingRate"] = 96e3
+    with pytest.warns(UserWarning, match="not identical: different values for"):
+        is_identical = sf.compare_sofa(sofa_a, sofa_b)
+        assert not is_identical
+
+
 def test_get_size_and_shape_of_string_var():
 
     # test with string
