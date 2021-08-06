@@ -22,13 +22,13 @@ GLOBAL:Title		m		attribute
 ListenerPosition	[0 0 0] 	m	IC, MC	double
 ListenerPosition:Type	cartesian	m	  	attribute
 ListenerPosition:Units	metre	m	  	attribute
-ReceiverPosition	[0 0 0]	m	I, R, M, RM, RCI, RCM	double
+ReceiverPosition	[0 0 0]	m	IC, RC, RCM	double
 ReceiverPosition:Type	cartesian	m	  	attribute
 ReceiverPosition:Units	metre	m	  	attribute
 SourcePosition	[0 0 1]	m	IC, MC	double	In order to store different directions/positions around the listener, SourcePosition is assumed to vary
 SourcePosition:Type	spherical	m	  	attribute
 SourcePosition:Units	degree, degree, metre	m	  	attribute
-EmitterPosition	[0 0 0]	m	I, E, M, EM, ECI, ECM	double
+EmitterPosition	[0 0 0]	m	IC, EC, ECM	double
 EmitterPosition:Type	cartesian	m	  	attribute
 EmitterPosition:Units	metre	m	  	attribute
 Data.Real	0	m	mrne	double	The real part of the complex spectrum

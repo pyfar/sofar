@@ -171,7 +171,7 @@
             0
         ],
         "flags": "m",
-        "dimensions": "I, R, IM, RM, RCI, RCM",
+        "dimensions": "IC, RC, RCM",
         "type": "double",
         "comment": ""
     },
