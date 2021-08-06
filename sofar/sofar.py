@@ -305,22 +305,21 @@ def update_api(sofa, version="latest"):
         shape_matched = False
         for dim in dimensions.split(", "):
 
-            shape_ref = tuple([sofa["API"][d.upper()] for d in dim])
+            # get the reference shape ('S' translates to a shape of 1, because
+            # the strings are stored in an array whose shape does not reflect
+            # the max. lengths of the actual strings inside it)
+            shape_ref = tuple(
+                [sofa["API"][d.upper()] if d != "S" else 1 for d in dim])
+
+            # get shape for comparison to correct length by cropping and
+            # appending singelton dimensions if required
             shape_compare = shape_act[:len(shape_ref)]
+            for _ in range(len(shape_ref) - len(shape_compare)):
+                shape_compare += (1, )
 
-            if "S" in dimensions:
-                # the last dimension is S which can be smaller
-                # (e.g. if S=12, there can still be shorter strings in the
-                #  dict. The length is corrected during writing to disk)
-                if shape_compare[:-1] == shape_ref[:-1] \
-                        and shape_compare[-1] <= shape_ref[-1]:
-                    shape_matched = True
-            else:
-                # check if the entire shapes match
-                if shape_compare == shape_ref:
-                    shape_matched = True
-
-            if shape_matched:
+            # check if the shapes match and write to API
+            if shape_compare == shape_ref:
+                shape_matched = True
                 sofa["API"]["Dimensions"][key] = dim.upper()
                 break
 
@@ -384,18 +383,8 @@ def read_sofa(filename, update=True, version="latest"):
 
         # load data
         for var in file.variables.keys():
-            # retrieve and check for missing values
-            value = file[var][:]
-            if np.ma.is_masked(value):
-                warnings.warn(
-                    (f"Entry {var} contains missing data"))
-            else:
-                # Convert to numpy array or scalar
-                value = np.asarray(value)
-                if value.size == 1:
-                    value = value[0]
-
-            # write data to dict
+            # format and write value
+            value = _format_value_from_netcdf(file[var][:], var)
             sofa[var] = value
 
             # load variable attributes
@@ -409,7 +398,9 @@ def read_sofa(filename, update=True, version="latest"):
         except: # noqa (No error handling - just improved verbosity)
             raise ValueError((
                 "The API could not be updated, maybe do to errornous data in "
-                "the SOFA file. Try calling read_sofa with update=False"))
+                "the SOFA file. Tr to call sofa=sofar.read_sofa(filename, "
+                "update=False) and than call sofar.update_api(sofa) to get "
+                "more informations"))
 
     return sofa
 
@@ -580,6 +571,8 @@ def _convention_csv2dict(file: str):
             if line[1] == "permute([0 0 0 1 0 0; 0 0 0 1 0 0], [3 1 2]);":
                 # Field Data.SOS in SimpleFreeFieldHRSOS and SimpleFreeFieldSOS
                 line[1] = [[[0, 0, 0, 1, 0, 0], [0, 0, 0, 1, 0, 0]]]
+            if line[1] == "{''}":
+                line[1] = ['']
 
             # write second to last line
             convention[line[0]] = {}
@@ -751,7 +744,7 @@ def _add_api(sofa, version):
 
 def _format_value_for_netcdf(value, key, dimensions, S):
     """
-    Format value from SOFA dictionary to be saved in NETCDF4 file.
+    Format value from SOFA dictionary for saving in a NETCDF4 file.
 
     Parameters
     ----------
@@ -803,8 +796,46 @@ def _format_value_for_netcdf(value, key, dimensions, S):
     return value, netcdf_dtype
 
 
-def _format_value_from_netcdf():
-    pass
+def _format_value_from_netcdf(value, key):
+    """
+    Format value from NETCDF4 file for saving in a SOFA dictionairy
+
+    Parameters
+    ----------
+    value : np.array of dtype float or S
+        The value to be formatted
+    key : str
+        The variable name of the current value. Needed for verbose errors.
+
+    Returns
+    -------
+    value : str, number, numpy array
+        The formatted value.
+    """
+
+    if str(value.dtype).startswith("float"):
+        if np.ma.is_masked(value):
+            warnings.warn(f"Entry {key} contains missing data")
+        else:
+            # Convert to numpy array or scalar
+            value = np.asarray(value)
+    elif str(value.dtype).startswith("|S"):
+        # string arrays are stored in masked arrays with empty strings '' being
+        # masked. Convert to regular arrays with unmasked empty strings
+        value = np.asarray(value)
+        # decode binary format
+        value = value.astype("U")
+    else:
+        raise TypeError(
+            f"{key}: value.dtype is {value.dtype} but must be float or S")
+
+    # convert arrays to scalars if they do not store data that is usually used
+    # as scalar metadata, e.g., the SamplingRate
+    data_keys = ["Data.IR", "Data.Real", "Data.Imag", "Data.SOS" "Data.Delay"]
+    if value.size == 1 and key not in data_keys:
+        value = value[0]
+
+    return value
 
 
 def _is_mandatory(flags):
@@ -836,18 +867,19 @@ def _get_size_and_shape_of_string_var(value, key):
     String variables can be strings, list of strings, or numpy arrays of
     strings. This functions returns the length of the longest string S inside
     the string variable and the shape of the string variable as required by
-    the SOFA definition.
+    the SOFA definition. Note that the shape is the shape of the array that
+    holds the strings. NETCDF stores all string variables in arrays.
     """
 
     if isinstance(value, str):
         S = len(value)
-        shape = (1, S)
+        shape = (1, 1)
     elif isinstance(value, list):
         S = len(max(value, key=len))
-        shape = (len(value), S)
+        shape = np.array(value).shape
     elif isinstance(value, np.ndarray):
         S = max(np.vectorize(len)(value))
-        shape = value.shape + (S, )
+        shape = value.shape
     else:
         raise ValueError(
             (f"sofa['{key}'] must be a string, numpy string "

@@ -124,7 +124,7 @@ def test_roundtrip():
         print(f"Testing: {name}")
         sofa = sf.create_sofa(name)
         sf.write_sofa(os.path.join(temp_dir.name, name), sofa)
-        # sofa_r = sf.read_sofa(os.path.join(temp_dir.name, name))
+        sofa_r = sf.read_sofa(os.path.join(temp_dir.name, name))
 
 
 def test_get_size_and_shape_of_string_var():
@@ -132,23 +132,23 @@ def test_get_size_and_shape_of_string_var():
     # test with string
     S, shape = _get_size_and_shape_of_string_var("four", "key")
     assert S == 4
-    assert shape == (1, 4)
+    assert shape == (1, 1)
 
     # test with single string list
     S, shape = _get_size_and_shape_of_string_var(["four"], "key")
     assert S == 4
-    assert shape == (1, 4)
+    assert shape == (1, )
 
     # test with list of strings
     S, shape = _get_size_and_shape_of_string_var(["four", "fivee"], "key")
     assert S == 5
-    assert shape == (2, 5)
+    assert shape == (2, )
 
     # test with numpy strings array
     S, shape = _get_size_and_shape_of_string_var(
         np.array(["four", "fivee"], dtype="S256"), "key")
     assert S == 5
-    assert shape == (2, 5)
+    assert shape == (2, )
 
 
 def test_format_value_for_netcdf():
