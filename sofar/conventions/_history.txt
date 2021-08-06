@@ -31,3 +31,13 @@ SingleRoomDRIR_0.3.csv
 - ReceiverPosition: Change dimension from 'rCI, 'rCM'' to 'RCI, RCM' according
   to AES69
 
+SingleRoomSRIR_1.0
+------------------
+Has the attributes RoomCorners:Type and RoomCorners:Units but no variable of
+the same name - variables are RoomCornerA and RoomCornerB
+- removed idle attributes and created attributes RoomCornerA:*, and
+  RoomCornerB*
+
+SingleRoomMimoSRIR_1.0, SingleRoomSRIR_1.0
+------------------------------------------
+- Corrected type in EmiiterView:Type to EmitterView:Type
