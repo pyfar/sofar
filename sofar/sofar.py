@@ -750,7 +750,27 @@ def _add_api(sofa, version):
 
 
 def _format_value_for_netcdf(value, key, dimensions, S):
+    """
+    Format value from SOFA dictionary to be saved in NETCDF4 file.
 
+    Parameters
+    ----------
+    value : str, array like
+        The value to be formatted
+    key : str
+        The variable name of the current value. Needed for verbose errors.
+    dimensions : str
+        The intended dimensions from sofa['API']['Dimensions']
+    S : int
+        Length of the string array.
+
+    Returns
+    -------
+    value : str, numpy array
+        The formatted value.
+    netcdf_dtype : str
+        The data type as a string for writing to a NETCDF4 file.
+    """
     # copy value
     try:
         value = value.copy()
@@ -763,6 +783,7 @@ def _format_value_for_netcdf(value, key, dimensions, S):
         netcdf_dtype = "attribute"
     elif "S" in dimensions:
         value = np.array(value, dtype="S" + str(S))
+        value = _nd_array(value, len(dimensions))
         netcdf_dtype = 'S1'
     elif "S" not in dimensions:
         value = _nd_array(value, len(dimensions))
@@ -780,6 +801,10 @@ def _format_value_for_netcdf(value, key, dimensions, S):
             "convertible to a numpy array."))
 
     return value, netcdf_dtype
+
+
+def _format_value_from_netcdf():
+    pass
 
 
 def _is_mandatory(flags):
