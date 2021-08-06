@@ -246,8 +246,10 @@ def update_api(sofa, version="latest"):
     _add_api(sofa, version)
     sofa["API"]["Dimensions"] = {}
 
-    # get all keys except API
-    keys = [key for key in sofa.keys() if key != "API"]
+    # get all keys that have a dimension and exclude the API
+    keys = [key for key in sofa.keys()
+            if key != "API"
+            and sofa["API"]["Convention"][key]["dimensions"] is not None]
 
     # first run: check if the mandatory fields are contained
     for key in sofa["API"]["Convention"].keys():
@@ -264,9 +266,6 @@ def update_api(sofa, version="latest"):
 
         value = sofa[key]
         dimensions = sofa["API"]["Convention"][key]["dimensions"]
-
-        if dimensions is None:
-            continue
 
         for id, dim in enumerate(dimensions.split(", ")[0]):
             if dim in "ermn":
@@ -285,9 +284,6 @@ def update_api(sofa, version="latest"):
 
         # handle dimensions
         dimensions = sofa["API"]["Convention"][key]["dimensions"]
-
-        if dimensions is None:
-            continue
 
         # get value and actual shape
         try:
