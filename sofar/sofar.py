@@ -475,6 +475,41 @@ def write_sofa(filename: str, sofa: dict, version="latest"):
                 setattr(tmp_var, sub_key[len(key)+1:], str(sofa[sub_key]))
 
 
+def info(sofa, info="summary"):
+    """
+    Print information about a SOFA dictionariy
+
+    Parameters
+    ----------
+    sofa : dict
+        A SOFA dictionairy.
+    info : str
+        Specifies the kind of information that is printed:
+
+        ``'summary'``
+            Print general information about the SOFA dictionairy
+        ``'keys'``
+            Print the name of all keys
+        ``'mandatory'``
+            Print all mandatory keys
+        ``'optional'``
+            Print all optional keys
+        ``'dimensions'``
+            Print the dimensions
+        ``'comments'``
+            Print the explanatory comments
+        ``'defaults'``
+            Print the default values
+
+        The dimensions comments and defaults can be printed for specific keys,
+        e.g., ``'dimensions:Data.IR'`` will only print the dimensions for a
+        single key, while ``'dimensions.Data'`` will print the dimensions for
+        multiple keys because the term `Data` occurs more than once.
+
+    """
+    pass
+
+
 def compare_sofa(sofa_a, sofa_b, verbose=True, exclude=None):
     """
     Compare two sofa files against each other
