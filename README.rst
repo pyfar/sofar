@@ -1,100 +1,37 @@
-========
-Overview
-========
+======
+Readme
+======
 
-.. start-badges
+Sofar is maybe the most intuitive Python package for the SOFA file format so
+far. SOFA files store spatially distributed acoustic data such as impulse
+responses or transfer functions. Sofar offers an easy to use interface for
+reading, manipulating, and writing SOFA files.
 
-.. list-table::
-    :stub-columns: 1
+Getting Started
+===============
 
-    * - docs
-      - |docs|
-    * - tests
-      - | |travis| |appveyor| |requires|
-        | |codecov|
-    * - package
-      - | |version| |wheel| |supported-versions| |supported-implementations|
-        | |commits-since|
-
-.. |docs| image:: https://readthedocs.org/projects/sofar/badge/?style=flat
-    :target: https://readthedocs.org/projects/sofar
-    :alt: Documentation Status
-
-.. |travis| image:: https://travis-ci.org/f-brinkmann/sofar.svg?branch=master
-    :alt: Travis-CI Build Status
-    :target: https://travis-ci.org/f-brinkmann/sofar
-
-.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/github/f-brinkmann/sofar?branch=master&svg=true
-    :alt: AppVeyor Build Status
-    :target: https://ci.appveyor.com/project/f-brinkmann/sofar
-
-.. |requires| image:: https://requires.io/github/f-brinkmann/sofar/requirements.svg?branch=master
-    :alt: Requirements Status
-    :target: https://requires.io/github/f-brinkmann/sofar/requirements/?branch=master
-
-.. |codecov| image:: https://codecov.io/github/f-brinkmann/sofar/coverage.svg?branch=master
-    :alt: Coverage Status
-    :target: https://codecov.io/github/f-brinkmann/sofar
-
-.. |version| image:: https://img.shields.io/pypi/v/sofar.svg
-    :alt: PyPI Package latest release
-    :target: https://pypi.python.org/pypi/sofar
-
-.. |commits-since| image:: https://img.shields.io/github/commits-since/f-brinkmann/sofar/v0.1.0.svg
-    :alt: Commits since latest release
-    :target: https://github.com/f-brinkmann/sofar/compare/v0.1.0...master
-
-.. |wheel| image:: https://img.shields.io/pypi/wheel/sofar.svg
-    :alt: PyPI Wheel
-    :target: https://pypi.python.org/pypi/sofar
-
-.. |supported-versions| image:: https://img.shields.io/pypi/pyversions/sofar.svg
-    :alt: Supported versions
-    :target: https://pypi.python.org/pypi/sofar
-
-.. |supported-implementations| image:: https://img.shields.io/pypi/implementation/sofar.svg
-    :alt: Supported implementations
-    :target: https://pypi.python.org/pypi/sofar
-
-
-.. end-badges
-
-maybe the most intuitive python package for SOFA files so far
-
-* Free software: BSD 3-Clause License
+Check out `read the docs`_ for example use cases and the complete
+documentation. Packages related to sofar are listed at `pyfar.org`_. For more
+information on the SOFA file format visit `sofaconventions.org`_.
 
 Installation
 ============
 
-::
+Use pip to install sofar
 
-    pip install sofar
+.. code-block:: console
 
-Documentation
-=============
+    $ pip install sofar
 
-https://sofar.readthedocs.io/
+(Requires Python >= 3.7)
 
-Development
-===========
+Contributing
+============
 
-To run the all tests run::
+Refer to the `contribution guidelines`_ for more information.
 
-    tox
 
-Note, to combine the coverage data from all the tox environments run:
-
-.. list-table::
-    :widths: 10 90
-    :stub-columns: 1
-
-    - - Windows
-      - ::
-
-            set PYTEST_ADDOPTS=--cov-append
-            tox
-
-    - - Other
-      - ::
-
-            PYTEST_ADDOPTS=--cov-append tox
+.. _contribution guidelines: https://github.com/pyfar/sofar/blob/develop/CONTRIBUTING.rst
+.. _pyfar.org: https://pyfar.org
+.. _read the docs: https://sofar.readthedocs.io/en/latest
+.. _sofaconventions.org: https://sofaconventions.org

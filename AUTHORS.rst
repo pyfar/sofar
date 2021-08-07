@@ -1,5 +1,14 @@
-
-Authors
+=======
+Credits
 =======
 
-* Fabian Brinkmann - pyfar.org
+The sofar developers
+--------------------
+
+- Fabian Brinkmann
+
+
+Funding
+-------
+
+- Institute for Advanced Procrastination

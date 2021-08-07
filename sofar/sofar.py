@@ -221,6 +221,7 @@ def update_api(sofa, version="latest"):
         :py:func:`~sofar.create_sofa` and :py:func:`~sofar.read_sofa`)
     version : str, optional
         The version to which the API is updated.
+
         ``'latest'``
             Use the latest API and upgrade the SOFA file if required.
         ``'match'``
@@ -346,6 +347,7 @@ def read_sofa(filename, update=True, version="latest"):
         ``update=False``. The default is ``True``.
     version : str, optional
         The version to which the API is updated.
+
         ``'latest'``
             Use the latest API and upgrade the SOFA file if required.
         ``'match'``
