@@ -573,7 +573,8 @@ def info(sofa, info="summary"):
         for key in [k for k in sofa.keys() if k != "API"]:
 
             if info == "type":
-                meta_data = _get_dtype(sofa['API']['Convention'][key])
+                meta_data = _get_dtype(
+                    key, sofa['API']['Convention'][key]["type"])
             else:
                 meta_data = sofa['API']['Convention'][key][info]
 
@@ -582,12 +583,14 @@ def info(sofa, info="summary"):
     elif info in [k for k in sofa.keys() if k != "API"]:
         info_str += (
             f"{info}\n"
-            f"\ttype: {_get_dtype(sofa['API']['Convention'][info])}\n"
+            f"\ttype: "
+            f"{_get_dtype(info, sofa['API']['Convention'][info]['type'])}\n"
             f"\tmandatory: "
             f"{_is_mandatory(sofa['API']['Convention'][info]['flags'])}\n"
             f"\tread only: "
             f"{_is_read_only(sofa['API']['Convention'][info]['flags'])}\n"
             f"\tdefault: {sofa['API']['Convention'][info]['default']}\n"
+            f"\tdimensions: {sofa['API']['Convention'][info]['dimensions']}\n"
             f"\tcomment: {sofa['API']['Convention'][info]['comment']}")
     else:
         raise ValueError(f"info='{info}' is invalid")
@@ -1134,7 +1137,7 @@ def _is_read_only(flags):
     return is_read_only
 
 
-def _get_dtype(api_entry):
+def _get_dtype(key, api_type):
     """
     Return the data type of an entry from the API.
 
@@ -1149,16 +1152,16 @@ def _get_dtype(api_entry):
         'attribute', 'double', or 'string'
     """
 
-    if api_entry["dimensions"] is None:
-        dtype = "attribute"
-    elif api_entry["type"] == "double":
+    if key.startswith("GLOBAL:"):
+        dtype = "global attribute"
+    elif ":" in key:
+        dtype = "variable attribute"
+    elif api_type == "double":
         dtype = "double"
-    elif api_entry["type"] == "attribute":
+    elif api_type == "attribute":
         dtype = "string"
     else:
-        raise ValueError((
-            f"Unidentified type with dimensions = {api_entry['dimensions']} "
-            f"and type {api_entry['type']}"))
+        raise ValueError("Unidentified type")
 
     return dtype
 
