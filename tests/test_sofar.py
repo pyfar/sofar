@@ -141,6 +141,12 @@ def test_info(capfd):
     assert "optional entries:" in out
     assert "Data.IR" not in out
 
+    # test listing read only entries
+    sf.info(sofa, "read only")
+    out, _ = capfd.readouterr()
+    assert "read only entries:" in out
+    assert out.endswith("GLOBAL:DataType\n\n")
+
     # test listing default values
     sf.info(sofa, "default")
     out, _ = capfd.readouterr()
@@ -158,7 +164,6 @@ def test_info(capfd):
     out, _ = capfd.readouterr()
     assert "showing comment:" in out
     assert "GLOBAL:SOFAConventions\n\tThis convention set is for HRIRs"
-
 
 
 def test_roundtrip():

@@ -180,7 +180,7 @@ def set_value(sofa, key, value):
     # check the key
     if key not in sofa.keys():
         raise ValueError(f"'{key}' is an invalid key")
-    if key == "API" or "r" in sofa["API"]["Convention"][key]["flags"]:
+    if key == "API" or _is_read_only(sofa["API"]["Convention"][key]["flags"]):
         raise ValueError(f"'{key}' is read only")
 
     # check if the value has to be converted
@@ -496,6 +496,8 @@ def info(sofa, info="summary"):
             Print names of mandatory entries.
         ``'optional'``
             Print names of optional entries.
+        ``'read only'``
+            Print names of read only entries.
         ``'dimensions'``
             Print the dimensions if they are not None. Note that small letters
             denote the entry that sets the size of a dimension. E.g., if the
@@ -529,8 +531,8 @@ def info(sofa, info="summary"):
             attr = info[1]
             info = info[0]
 
-    modes = ["summary", "all", "mandatory", "optional", "dimensions",
-             "comment", "default"]
+    modes = ["summary", "all", "mandatory", "optional", "read only",
+             "dimensions", "comment", "default"]
     if info not in modes:
         raise ValueError(f"info is {info} but must be in {', '.join(modes)}")
 
@@ -563,7 +565,7 @@ def info(sofa, info="summary"):
         for key in dimensions.keys():
             info_str += f"\t{key} = {sofa['API'][key]} ({dimensions[key]})\n"
 
-    elif info in ["all", "mandatory", "optional"]:
+    elif info in ["all", "mandatory", "optional", "read only"]:
 
         info_str += f"{info} entries:\n"
 
@@ -571,9 +573,11 @@ def info(sofa, info="summary"):
 
             # check if field should be skipped
             flags = sofa["API"]["Convention"][key]["flags"]
-            if (not _is_mandatory(flags) and info == "mandatory")\
+            if (not _is_mandatory(flags) and info == "mandatory") \
                     or \
-                    (_is_mandatory(flags) and info == "optional"):
+                    (_is_mandatory(flags) and info == "optional") \
+                    or \
+                    (not _is_read_only(flags) and info == "read only"):
                 continue
 
             info_str += key + "\n"
@@ -1104,6 +1108,30 @@ def _is_mandatory(flags):
         is_mandatory = True
 
     return is_mandatory
+
+
+def _is_read_only(flags):
+    """
+    Check if a field is read only
+
+    Parameters
+    ----------
+    flags : None, str
+        The flags from convention[key]["flags"]
+
+    Returns
+    -------
+    is_read_only : bool
+    """
+    # skip optional fields if requested
+    if flags is None:
+        is_read_only = False
+    elif "r" not in flags:
+        is_read_only = False
+    else:
+        is_read_only = True
+
+    return is_read_only
 
 
 def _get_size_and_shape_of_string_var(value, key):
