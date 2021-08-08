@@ -108,6 +108,14 @@ def test_set_value():
         sf.set_value(sofa, "Data.RIR", [0, 0, 1])
 
 
+def test_info():
+
+    # test with wring info string
+    with pytest.raises(
+            ValueError, match="info is invalid but must be in summary, "):
+        sf.info({}, "invalid")
+
+
 def test_roundtrip():
     """"
     Cyclic test of create, write, read functions
@@ -126,7 +134,7 @@ def test_roundtrip():
         sofa = sf.create_sofa(name)
         sf.write_sofa(os.path.join(temp_dir.name, name), sofa)
         sofa_r = sf.read_sofa(os.path.join(temp_dir.name, name))
-        assert sf.compare_sofa(sofa, sofa_r, verbose=False, exclude="DATE")
+        assert sf.compare_sofa(sofa, sofa_r, verbose=True, exclude="DATE")
 
 
 def test_compare_sofa():

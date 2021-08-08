@@ -248,12 +248,9 @@ def update_api(sofa, version="latest"):
     _add_api(sofa, version)
     sofa["API"]["Dimensions"] = {}
 
-    # get all keys that have a dimension and exclude the API
-    keys = [key for key in sofa.keys()
-            if key != "API"
-            and sofa["API"]["Convention"][key]["dimensions"] is not None]
-
     # first run: check if the mandatory fields are contained
+    keys = [key for key in sofa.keys() if key != "API"]
+
     for key in sofa["API"]["Convention"].keys():
         if _is_mandatory(sofa["API"]["Convention"][key]["flags"]) \
                 and key not in keys:
@@ -263,6 +260,10 @@ def update_api(sofa, version="latest"):
                 "dictionairy with its default value"))
 
     # second run: Get the dimensions for E, R, M, N, and S
+    keys = [key for key in sofa.keys()
+            if key != "API"
+            and sofa["API"]["Convention"][key]["dimensions"] is not None]
+
     S = 0
     for key in keys:
 
@@ -487,8 +488,10 @@ def info(sofa, info="summary"):
         Specifies the kind of information that is printed:
 
         ``'summary'``
-            Print general information about the SOFA dictionairy
-        ``'keys'``
+            Print general information about the SOFA dictionairy including the
+            size of the dimensions. Note that this calls
+            ``sofar.update_api(sofa, version='match')``.
+        ``'all'``
             Print the name of all keys
         ``'mandatory'``
             Print all mandatory keys
@@ -507,7 +510,41 @@ def info(sofa, info="summary"):
         multiple keys because the term `Data` occurs more than once.
 
     """
-    pass
+
+    # check input
+    modes = ["summary", "all", "mandatory", "optional", "dimensions",
+             "comments", "defaults"]
+    if info not in modes:
+        raise ValueError(f"info is {info} but must be in {', '.join(modes)}")
+
+    info_str = (
+        f"{sofa['GLOBAL:SOFAConventions']} "
+        F"{sofa['GLOBAL:SOFAConventionsVersion']} "
+        f"(SOFA version {sofa['GLOBAL:Version']})\n")
+    info_str += "-" * len(info_str) + "\n"
+
+    if info == "summary":
+
+        update_api(sofa, version="match")
+
+        dimensions = {
+            "M": "measurements",
+            "N": "time samples/frequencies/SOS coefficients/SH coefficients",
+            "R": "receiver",
+            "E": "emitter",
+            "S": "maximum string length",
+            "C": "coordinate dimensions, fixed",
+            "I": "single dimension, fixed"}
+
+        info_str += (
+            f"Created\n\t{sofa['GLOBAL:DateCreated']}\n"
+            F"Modified\n\t{sofa['GLOBAL:DateModified']}\n")
+
+        info_str += "Dimensions\n"
+        for key in dimensions.keys():
+            info_str += f"\t{key} = {sofa['API'][key]} ({dimensions[key]})\n"
+
+    print(info_str)
 
 
 def compare_sofa(sofa_a, sofa_b, verbose=True, exclude=None):
@@ -581,7 +618,7 @@ def compare_sofa(sofa_a, sofa_b, verbose=True, exclude=None):
     # compare attributes
     for key in [k for k in keys_a if ":" in k]:
 
-        if sofa_a[key] != sofa_b[key]:
+        if str(sofa_a[key]) != str(sofa_b[key]):
             is_identical = False
             if verbose:
                 warnings.warn(
