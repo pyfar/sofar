@@ -478,7 +478,7 @@ def write_sofa(filename: str, sofa: dict, version="latest"):
 
 def info(sofa, info="summary"):
     """
-    Print information about a SOFA dictionariy
+    Print information about a SOFA dictionary
 
     Parameters
     ----------
@@ -489,34 +489,55 @@ def info(sofa, info="summary"):
 
         ``'summary'``
             Print general information about the SOFA dictionairy including the
-            size of the dimensions. Note that this calls
-            ``sofar.update_api(sofa, version='match')``.
+            size of the dimensions.
         ``'all'``
-            Print the name of all keys
+            Print the name of all entries.
         ``'mandatory'``
-            Print all mandatory keys
+            Print names of mandatory entries.
         ``'optional'``
-            Print all optional keys
+            Print names of optional entries.
         ``'dimensions'``
-            Print the dimensions
-        ``'comments'``
-            Print the explanatory comments
-        ``'defaults'``
-            Print the default values
+            Print the dimensions if they are not None. Note that small letters
+            denote the entry that sets the size of a dimension. E.g., if the
+            dimension of `Data.IR` is 'MRn' than the dimension `N` is of size
+            numpy.shape(sofa['Data.IR'])[2].
+        ``'comment'``
+            Print the explanatory comments if they are not empty.
+        ``'default'``
+            Print the default values except for empty strings.
 
         The dimensions comments and defaults can be printed for specific keys,
         e.g., ``'dimensions:Data.IR'`` will only print the dimensions for a
         single key, while ``'dimensions.Data'`` will print the dimensions for
         multiple keys because the term `Data` occurs more than once.
 
+    Notes
+    -----
+    ``sofar.update_api(sofa, version='match')`` is called to make sure that
+    the required meta data is available.
+
     """
 
     # check input
+    modes = ("dimensions", "comment", 'default')
+    if info.startswith(modes):
+        info = info.split(":")
+        if len(info) == 1:
+            info = info[0]
+            attr = ""
+        else:
+            attr = info[1]
+            info = info[0]
+
     modes = ["summary", "all", "mandatory", "optional", "dimensions",
-             "comments", "defaults"]
+             "comment", "default"]
     if info not in modes:
         raise ValueError(f"info is {info} but must be in {', '.join(modes)}")
 
+    # update the API to make sure all meta data is in place
+    update_api(sofa, version="match")
+
+    # start printing the information
     info_str = (
         f"{sofa['GLOBAL:SOFAConventions']} "
         F"{sofa['GLOBAL:SOFAConventionsVersion']} "
@@ -524,8 +545,6 @@ def info(sofa, info="summary"):
     info_str += "-" * len(info_str) + "\n"
 
     if info == "summary":
-
-        update_api(sofa, version="match")
 
         dimensions = {
             "M": "measurements",
@@ -543,6 +562,31 @@ def info(sofa, info="summary"):
         info_str += "Dimensions\n"
         for key in dimensions.keys():
             info_str += f"\t{key} = {sofa['API'][key]} ({dimensions[key]})\n"
+
+    elif info in ["all", "mandatory", "optional"]:
+
+        info_str += f"{info} entries:\n"
+
+        for key in [k for k in sofa.keys() if k != "API"]:
+
+            # check if field should be skipped
+            flags = sofa["API"]["Convention"][key]["flags"]
+            if (not _is_mandatory(flags) and info == "mandatory")\
+                    or \
+                    (_is_mandatory(flags) and info == "optional"):
+                continue
+
+            info_str += key + "\n"
+
+    else:
+
+        info_str += f"showing {info}:\n"
+
+        for key in [k for k in sofa.keys() if k != "API" and attr in k]:
+
+            meta_data = sofa['API']['Convention'][key][info]
+            if meta_data is not None and meta_data != "":
+                info_str += f"{key}\n\t{meta_data}\n"
 
     print(info_str)
 

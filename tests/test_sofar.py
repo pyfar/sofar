@@ -108,12 +108,57 @@ def test_set_value():
         sf.set_value(sofa, "Data.RIR", [0, 0, 1])
 
 
-def test_info():
+def test_info(capfd):
 
-    # test with wring info string
+    sofa = sf.create_sofa("SimpleFreeFieldHRIR")
+
+    # test with wrong info string
     with pytest.raises(
             ValueError, match="info is invalid but must be in summary, "):
-        sf.info({}, "invalid")
+        sf.info(sofa, "invalid")
+
+    # test default
+    sf.info(sofa)
+    out, _ = capfd.readouterr()
+    assert out.startswith("SimpleFreeFieldHRIR 1.0 (SOFA version 2.0")
+    assert "M = 1 (measurements)" in out
+
+    # test listing all entry names
+    sf.info(sofa, "all")
+    out, _ = capfd.readouterr()
+    assert "all entries:" in out
+    assert "SourceUp" in out and "Data.IR" in out
+
+    # test listing only mandatory entries
+    sf.info(sofa, "mandatory")
+    out, _ = capfd.readouterr()
+    assert "mandatory entries:" in out
+    assert "SourceUp" not in out
+
+    # test listing only optional entries
+    sf.info(sofa, "optional")
+    out, _ = capfd.readouterr()
+    assert "optional entries:" in out
+    assert "Data.IR" not in out
+
+    # test listing default values
+    sf.info(sofa, "default")
+    out, _ = capfd.readouterr()
+    assert "showing default:" in out
+    assert "ListenerPosition\n\t[0, 0, 0]"
+
+    # test listing default values
+    sf.info(sofa, "dimensions")
+    out, _ = capfd.readouterr()
+    assert "showing dimensions:" in out
+    assert "ListenerPosition\n\tIC, MC"
+
+    # test listing default values
+    sf.info(sofa, "comment")
+    out, _ = capfd.readouterr()
+    assert "showing comment:" in out
+    assert "GLOBAL:SOFAConventions\n\tThis convention set is for HRIRs"
+
 
 
 def test_roundtrip():
