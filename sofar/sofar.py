@@ -498,6 +498,8 @@ def info(sofa, info="summary"):
             Print names of optional entries.
         ``'read only'``
             Print names of read only entries.
+        ``'type'``
+            Print the types of the entries
         ``'dimensions'``
             Print the dimensions if they are not None. Note that small letters
             denote the entry that sets the size of a dimension. E.g., if the
@@ -507,11 +509,9 @@ def info(sofa, info="summary"):
             Print the explanatory comments if they are not empty.
         ``'default'``
             Print the default values except for empty strings.
-
-        The dimensions comments and defaults can be printed for specific keys,
-        e.g., ``'dimensions:Data.IR'`` will only print the dimensions for a
-        single key, while ``'dimensions.Data'`` will print the dimensions for
-        multiple keys because the term `Data` occurs more than once.
+        key
+            If key is the name of an entry in `sofa` all information for that
+            entry will be printed.
 
     Notes
     -----
@@ -519,22 +519,6 @@ def info(sofa, info="summary"):
     the required meta data is available.
 
     """
-
-    # check input
-    modes = ("dimensions", "comment", 'default')
-    if info.startswith(modes):
-        info = info.split(":")
-        if len(info) == 1:
-            info = info[0]
-            attr = ""
-        else:
-            attr = info[1]
-            info = info[0]
-
-    modes = ["summary", "all", "mandatory", "optional", "read only",
-             "dimensions", "comment", "default"]
-    if info not in modes:
-        raise ValueError(f"info is {info} but must be in {', '.join(modes)}")
 
     # update the API to make sure all meta data is in place
     update_api(sofa, version="match")
@@ -582,15 +566,31 @@ def info(sofa, info="summary"):
 
             info_str += key + "\n"
 
-    else:
+    elif info in ["read only", "type", "dimensions", "comment", "default"]:
 
         info_str += f"showing {info}:\n"
 
-        for key in [k for k in sofa.keys() if k != "API" and attr in k]:
+        for key in [k for k in sofa.keys() if k != "API"]:
 
-            meta_data = sofa['API']['Convention'][key][info]
+            if info == "type":
+                meta_data = _get_dtype(sofa['API']['Convention'][key])
+            else:
+                meta_data = sofa['API']['Convention'][key][info]
+
             if meta_data is not None and meta_data != "":
                 info_str += f"{key}\n\t{meta_data}\n"
+    elif info in [k for k in sofa.keys() if k != "API"]:
+        info_str += (
+            f"{info}\n"
+            f"\ttype: {_get_dtype(sofa['API']['Convention'][info])}\n"
+            f"\tmandatory: "
+            f"{_is_mandatory(sofa['API']['Convention'][info]['flags'])}\n"
+            f"\tread only: "
+            f"{_is_read_only(sofa['API']['Convention'][info]['flags'])}\n"
+            f"\tdefault: {sofa['API']['Convention'][info]['default']}\n"
+            f"\tcomment: {sofa['API']['Convention'][info]['comment']}")
+    else:
+        raise ValueError(f"info='{info}' is invalid")
 
     print(info_str)
 
@@ -1132,6 +1132,35 @@ def _is_read_only(flags):
         is_read_only = True
 
     return is_read_only
+
+
+def _get_dtype(api_entry):
+    """
+    Return the data type of an entry from the API.
+
+    Parameters
+    ----------
+    api_entry : dict
+        sofa['API']['Convention'][key]
+
+    Returns
+    -------
+    dtype : str
+        'attribute', 'double', or 'string'
+    """
+
+    if api_entry["dimensions"] is None:
+        dtype = "attribute"
+    elif api_entry["type"] == "double":
+        dtype = "double"
+    elif api_entry["type"] == "attribute":
+        dtype = "string"
+    else:
+        raise ValueError((
+            f"Unidentified type with dimensions = {api_entry['dimensions']} "
+            f"and type {api_entry['type']}"))
+
+    return dtype
 
 
 def _get_size_and_shape_of_string_var(value, key):

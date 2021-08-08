@@ -114,7 +114,7 @@ def test_info(capfd):
 
     # test with wrong info string
     with pytest.raises(
-            ValueError, match="info is invalid but must be in summary, "):
+            ValueError, match="info='invalid' is invalid"):
         sf.info(sofa, "invalid")
 
     # test default
@@ -159,11 +159,16 @@ def test_info(capfd):
     assert "showing dimensions:" in out
     assert "ListenerPosition\n\tIC, MC"
 
-    # test listing default values
+    # test listing comments values
     sf.info(sofa, "comment")
     out, _ = capfd.readouterr()
     assert "showing comment:" in out
     assert "GLOBAL:SOFAConventions\n\tThis convention set is for HRIRs"
+
+    # list information for specific entry
+    sf.info(sofa, "ListenerPosition")
+    out, _ = capfd.readouterr()
+    assert "type: double\n\tmandatory: True" in out
 
 
 def test_roundtrip():
