@@ -500,10 +500,9 @@ def info(sofa, info):
         ``'type'``
             Print the types of the entries
         ``'shape'``
-            Print the shape if it is not None. Note that small letters
-            denote the entry that sets the size of a dimension. E.g., if the
-            shape of `Data.IR` is 'mRN' than the dimension `M` is of size
-            numpy.shape(sofa['Data.IR'])[0].
+            Print the shape variables. The shape is given in the form of
+            letters, e.g., `MRN`. These letters denote the dimensions of the
+            SOFA dictionary (see above).
         ``'comment'``
             Print the explanatory comments if they are not empty.
         ``'default'``
@@ -533,7 +532,7 @@ def info(sofa, info):
 
         dimensions = {
             "M": "measurements",
-            "N": "time samples/frequencies/SOS coefficients/SH coefficients",
+            "N": "samples/frequencies/SOS coefficients/SH coefficients",
             "R": "receiver",
             "E": "emitter",
             "S": "maximum string length",
@@ -577,19 +576,24 @@ def info(sofa, info):
                 meta_data = sofa['API']['Convention'][key][info]
 
             if meta_data is not None and meta_data != "":
+                if info == "dimensions":
+                    meta_data = meta_data.upper()
                 info_str += f"{key}\n\t{meta_data}\n"
+
     elif info in [k for k in sofa.keys() if k != "API"]:
-        info_str += (
-            f"{info}\n"
-            f"\ttype: "
-            f"{_get_dtype(info, sofa['API']['Convention'][info]['type'])}\n"
-            f"\tmandatory: "
-            f"{_is_mandatory(sofa['API']['Convention'][info]['flags'])}\n"
-            f"\tread only: "
-            f"{_is_read_only(sofa['API']['Convention'][info]['flags'])}\n"
-            f"\tdefault: {sofa['API']['Convention'][info]['default']}\n"
-            f"\tshape: {sofa['API']['Convention'][info]['dimensions']}\n"
-            f"\tcomment: {sofa['API']['Convention'][info]['comment']}")
+
+        for key in [k for k in sofa.keys() if info in k and k != "API"]:
+            info_str += (
+                f"{key}\n"
+                f"\ttype: "
+                f"{_get_dtype(info, sofa['API']['Convention'][key]['type'])}\n"
+                f"\tmandatory: "
+                f"{_is_mandatory(sofa['API']['Convention'][key]['flags'])}\n"
+                f"\tread only: "
+                f"{_is_read_only(sofa['API']['Convention'][key]['flags'])}\n"
+                f"\tdefault: {sofa['API']['Convention'][key]['default']}\n"
+                f"\tshape: {str(sofa['API']['Convention'][key]['dimensions']).upper()}\n"  # noqa
+                f"\tcomment: {sofa['API']['Convention'][key]['comment']}\n")
     else:
         raise ValueError(f"info='{info}' is invalid")
 
