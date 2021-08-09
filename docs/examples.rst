@@ -36,7 +36,7 @@ To list all entries inside a sofa dictionary, try the following
 
 .. code-block:: python
 
-    sofa = sf.info(sofa, "all")
+    sf.info(sofa, "all")
 
 Note that this function can also be used to list only the mandatory or
 optional fields.
@@ -62,25 +62,88 @@ Lets take a look at an example
 
 .. code-block:: python
 
-    sofa = sf.info(sofa, "Data.IR")
+    sf.info(sofa, "Data.IR")
     >>> SimpleFreeFieldHRIR 1.0 (SOFA version 2.0)
     >>> ------------------------------------------
     >>> type : double
     >>> mandatory : True
     >>> read only : False
     >>> default : [0, 0]
-    >>> dimensions : mRn
+    >>> shape : mRn
     >>> comment :
 
-`Data.IR` is a mandatory double variable in which the actual HRIRs are stored.
+`Data.IR` is a mandatory double variable of shape `mRn` in which the actual
+HRIRs are stored. The letters M, R, and N are the `dimensions` of the SOFA
+dictionary. They can be seen via
 
-TODO:
-* What are dimensions
-* What dimensions are there
-* Example for entering data
-* Example for writing sofa file
-* Example for reading sofa file
-* Mention other functions briefly
+.. code-block:: python
+
+    sf.info(sofa, "dimensions")
+    >>> SimpleFreeFieldHRIR 1.0 (SOFA version 2.0)
+    >>> ------------------------------------------
+    >>> Dimensions
+    >>>     M = 1 (measurements)
+    >>>     N = 1 (samples/frequencies/SOS coefficients/SH coefficients)
+    >>>     R = 2 (receiver)
+    >>>     E = 1 (emitter)
+    >>>     S = 0 (maximum string length)
+    >>>     C = 3 (coordinate dimension, fixed)
+    >>>     I = 1 (single dimension, fixed)
+
+For the `SimpleFreeFieldHRIR` convention, `M` denotes the number of source
+positions for which HRIRs are available, `R` is the number of ears - which is
+two, and `N` gives the lengths of the HRIRs in samples. `S` is zero, because
+the convention does not have any string variables. `C` is always three, because
+coordinates are either given by x, y, and z values or by their azimuth,
+elevation and radius in degree.
+
+To enter data you should use the following
+
+.. code-block:: python
+
+    sf.set_value(sofa, "Data.IR", [1, 1])
+    sf.set_value(sofa, "SourcePosition", [0, 0, 1])
+
+Now, the SOFA dictionary contains one HRIR - which is 1 for the left ear and
+1 for the right ear - for a source at 0 degree azimuth and elevation with a
+radius of 1 meter. Note that you just entered a list for `Data.IR` although
+it has to be a three-dimensional double variable. Don't worry about this, sofar
+will convert this for you in the next step. Also note, that `sf.set_value` does
+not return anything. Because Python dictionaries are mutable, all changes made
+inside the function can also be seen after the function finished.
+
+You should now fill all mandatory entries of the SOFA dictionary if you were
+for real. For this is example we'll cut it here for the sake of brevity.
+
+To write your SOFA dictionary to disk type
+
+.. code-block:: python
+
+    sf.write_sofa("your/path/to/SingleHRIR.sofa", sofa)
+
+Before writing the data to disk the function `sf.update_api` is called,
+which checks if the data you entered is consistent. Update API would for
+example tell you that you are in trouble if you entered only one HRIR but two
+source positions. If the check passed the file will be written to disk. It is
+good to know that SOFA files are essentially netCDF4 files which is based
+on HDF5. The can thus be viewed with `HDF View`_.
+
+To read your sofa file you can use
+
+.. code-block:: python
+
+    sofa_read = sf.read_sofa("your/path/to/SingleHRIR.sofa")
+
+And to see that the written and read files contain the same data you can check
+
+.. code-block:: python
+
+    sf.compare(sofa, sofa_read)
+    >>> True
+
+This is it for the tour of SOFA and sofar. For the detailed documentation of
+sofar refer to the next page.
 
 
 .. _sofaconventions.org: https://sofaconventions.org
+.. _HDF view: https://www.hdfgroup.org/downloads/hdfview/
