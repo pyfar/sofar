@@ -1,4 +1,4 @@
-.. |pyfar_logo| image:: resources/pyfar.png
+.. |pyfar_logo| image:: resources/sofar.png
    :width: 150
    :alt: Alternative text
 
