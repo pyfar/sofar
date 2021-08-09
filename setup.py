@@ -13,12 +13,14 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'netCDF4',
+    'numpy>=1.14.0',
     'beautifulsoup4'
 ]
 
 setup_requirements = ['pytest-runner', ]
 
 test_requirements = [
+    'pip'
     'pytest',
     'bump2version',
     'wheel',

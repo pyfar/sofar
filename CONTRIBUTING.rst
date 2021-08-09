@@ -54,11 +54,14 @@ Ready to contribute? Here's how to set up `sofar` for local development.
 
     $ git clone https://github.com/pyfar/sofar.git
 
-3. Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development::
+3. Install your local copy into a virtualenv. Assuming you have Anaconda or Miniconda installed, this is how you set up your fork for local development::
 
-    $ mkvirtualenv sofar
+    $ conda env --name sofar
+    $ conda activate sofar
     $ cd sofar/
-    $ python setup.py develop
+    $ conda install pip
+    $ pip install -e .
+    $ pip install -r requirements_dev.txt
 
 4. Create a branch for local development. Indicate the intention of your branch in its respective name (i.e. `feature/branch-name` or `bugfix/branch-name`)::
 
@@ -67,13 +70,12 @@ Ready to contribute? Here's how to set up `sofar` for local development.
    Now you can make your changes locally.
 
 5. When you're done making changes, check that your changes pass flake8 and the
-   tests, including testing other Python versions with tox::
+   tests::
 
     $ flake8 sofar tests
     $ pytest
-    $ tox
 
-   To get flake8 and tox, pip install them into your virtualenv. The flake8 test must pass without any warnings for `./sofar` and `./tests` using the default or a stricter configuration. Flake8 ignores `E123/E133, E226` and `E241/E242` by default. If necessary adjust the your flake8 and linting configuration in your IDE accordingly.
+   flake8 test must pass without any warnings for `./sofar` and `./tests` using the default or a stricter configuration. Flake8 ignores `E123/E133, E226` and `E241/E242` by default. If necessary adjust the your flake8 and linting configuration in your IDE accordingly.
 
 6. Commit your changes and push your branch to GitHub::
 
@@ -98,47 +100,13 @@ Before you submit a pull request, check that it meets these guidelines:
 
 Testing Guidelines
 -----------------------
-Pyfar uses test-driven development based on `three steps <https://martinfowler.com/bliki/TestDrivenDevelopment.html>`_ and `continuous integration <https://en.wikipedia.org/wiki/Continuous_integration>`_ to test and monitor the code.
+Sofar uses test-driven development based on `three steps <https://martinfowler.com/bliki/TestDrivenDevelopment.html>`_ and `continuous integration <https://en.wikipedia.org/wiki/Continuous_integration>`_ to test and monitor the code.
 In the following, you'll find a guideline. Note: these instructions are not generally applicable outside of sofar.
 
 - The main tool used for testing is `pytest <https://docs.pytest.org/en/stable/index.html>`_.
 - All tests are located in the *tests/* folder.
 - Make sure that all important parts of sofar are covered by the tests. This can be checked using *coverage* (see below).
 - In case of sofar, mainly **state verification** is applied in the tests. This means that the outcome of a function is compared to a desired value (``assert ...``). For more information, it is refered to `Martin Fowler's article <https://martinfowler.com/articles/mocksArentStubs.html.>`_.
-
-
-Fixtures
-~~~~~~~~
-"Software test fixtures initialize test functions. They provide a fixed baseline so that tests execute reliably and produce consistent, repeatable, results. Initialization may setup services, state, or other operating environments. These are accessed by test functions through arguments; for each fixture used by a test function there is typically a parameter (named after the fixture) in the test function’s definition." (from https://docs.pytest.org/en/stable/fixture.html)
-
-- All fixtures are implemented in *conftest.py*, which makes them automatically available to all tests. This prevents from implementing redundant, unreliable code in several test files.
-- Typical fixtures are sofar objects with varying properties, stubs as well as functions need for initiliazing tests.
-- Define the variables used in the tests only once, either in the test itself or in the definition of the fixture. This assures consistency and prevents from failing tests due to the definition of variables with the same purpose at different positions or in different files.
-
-Have a look at already implemented fixtures in *confest.py*.
-
-**Dummies**
-
-If the objects used in the tests have arbitrary properties, tests are usually better to read, when these objects are initialized within the tests. If the initialization requires several operations or the object has non-arbitrary properties, this is a hint to use a fixture.
-Good examples illustrating these two cases are the initializations in *test_signal.py* vs. the sine and impulse signal fixtures in *conftest.py*.
-
-**Stubs**
-
-Stubs mimic actual objects, but have minimum functionality and **fixed, well defined properties**. They are **only used in cases, when a dependence on the actual sofar class is prohibited**. This is the case, when functionalities of the class itself or methods it depends on are tested. Examples are the tests of the Signal class and its methods in *test_signal.py* and *test_fft.py*.
-
-It requires a little more effort to implement stubs of the sofar classes. Therefore, stub utilities are provided in *sofar/testing/stub_utils.py* and imported in *confest.py*, where the actual stubs are implemented.
-
-- Note: the stub utilities are not meant to be imported to test files directly or used for other purposes than testing. They solely provide functionality to create fixtures.
-- The utilities simplify and harmonize testing within the sofar package and improve the readability and reliability.
-- The implementation as the private submodule ``sofar.testing.stub_utils``  further allows the use of similar stubs in related packages with sofar dependency (e.g. other packages from the sofar family).
-
-**Mocks**
-
-Mocks are similar to stubs but used for **behavioral verification**. For example, a mock can replace a function or an object to check if it is called with correct parameters. A main motivation for using mocks is to avoid complex or time-consuming external dependencies, for example database queries.
-
-- A typical use case of mocks in the sofar context is hardware communication, for example reading and writing of large files or audio in- and output. These use cases are rare compared to tests performing state verification.
-- In contrast to some other guidelines on mocks, external dependencies do **not** need to be mocked in general. Failing tests due to changes in external packages are meaningful hints to modify the code.
-- Examples of internal mocking can be found in *test_io.py*, indicated by the pytest ``@patch`` calls.
 
 Tips
 ~~~~~~~~~~~
@@ -155,7 +123,7 @@ You can create an html report on the test `coverage <https://coverage.readthedoc
 Writing the Documentation
 -------------------------
 
-Pyfar follows the `numpy style guide <https://numpydoc.readthedocs.io/en/latest/format.html>`_ for the docstring. A docstring has to consist at least of
+Sofar follows the `numpy style guide <https://numpydoc.readthedocs.io/en/latest/format.html>`_ for the docstring. A docstring has to consist at least of
 
 - A short and/or extended summary,
 - the Parameters section, and
@@ -169,13 +137,11 @@ Optional fields that are often used are
 
 Here are a few tips to make things run smoothly
 
-- Use the tags ``:py:func:``, ``:py:mod:``, and ``:py:class:`` to reference sofar functions, modules, and classes: For example ``:py:func:`~sofar.plot.time``` for a link that displays only the function name.
+- Use the tags ``:py:func:``, ``:py:mod:``, and ``:py:class:`` to reference sofar functions, modules, and classes: For example ``:py:func:`~sofar.write_sofa``` for a link that displays only the function name.
 - Code snippets and values as well as external modules, classes, functions are marked by double ticks \`\` to appear in mono spaced font, e.g., ``x=3`` or ``sofar.Signal``.
 - Parameters, returns, and attributes are marked by single ticks \` to appear as emphasized text, e.g., *unit*.
 - Use ``[#]_`` and ``.. [#]`` to get automatically numbered footnotes.
 - Do not use footnotes in the short summary. Only use footnotes in the extended summary if there is a short summary. Otherwise, it messes with the auto-footnotes.
-- If a method or class takes or returns sofar objects for example write ``parameter_name : Signal``. This will create a link to the ``sofar.Signal`` class.
-- Plots can be included in by using the prefix ``.. plot::`` followed by an empty line and an indented block containing the code for the plot. See `sofar.plot.line.time.py` for examples.
 
 See the `Sphinx homepage <https://www.sphinx-doc.org>`_ for more information.
 
