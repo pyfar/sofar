@@ -476,7 +476,7 @@ def write_sofa(filename: str, sofa: dict, version="latest"):
                 setattr(tmp_var, sub_key[len(key)+1:], str(sofa[sub_key]))
 
 
-def info(sofa, info="summary"):
+def info(sofa, info):
     """
     Print information about a SOFA dictionary
 
@@ -487,9 +487,6 @@ def info(sofa, info="summary"):
     info : str
         Specifies the kind of information that is printed:
 
-        ``'summary'``
-            Print general information about the SOFA dictionairy including the
-            size of the dimensions.
         ``'all'``
             Print the name of all entries.
         ``'mandatory'``
@@ -498,13 +495,15 @@ def info(sofa, info="summary"):
             Print names of optional entries.
         ``'read only'``
             Print names of read only entries.
+        ``'dimensions'``
+            Print dimensions of the SOFA dictionairy.
         ``'type'``
             Print the types of the entries
-        ``'dimensions'``
-            Print the dimensions if they are not None. Note that small letters
+        ``'shape'``
+            Print the shape if it is not None. Note that small letters
             denote the entry that sets the size of a dimension. E.g., if the
-            dimension of `Data.IR` is 'MRn' than the dimension `N` is of size
-            numpy.shape(sofa['Data.IR'])[2].
+            shape of `Data.IR` is 'mRN' than the dimension `M` is of size
+            numpy.shape(sofa['Data.IR'])[0].
         ``'comment'``
             Print the explanatory comments if they are not empty.
         ``'default'``
@@ -530,7 +529,7 @@ def info(sofa, info="summary"):
         f"(SOFA version {sofa['GLOBAL:Version']})\n")
     info_str += "-" * len(info_str) + "\n"
 
-    if info == "summary":
+    if info == "dimensions":
 
         dimensions = {
             "M": "measurements",
@@ -540,10 +539,6 @@ def info(sofa, info="summary"):
             "S": "maximum string length",
             "C": "coordinate dimensions, fixed",
             "I": "single dimension, fixed"}
-
-        info_str += (
-            f"Created\n\t{sofa['GLOBAL:DateCreated']}\n"
-            F"Modified\n\t{sofa['GLOBAL:DateModified']}\n")
 
         info_str += "Dimensions\n"
         for key in dimensions.keys():
@@ -566,9 +561,12 @@ def info(sofa, info="summary"):
 
             info_str += key + "\n"
 
-    elif info in ["read only", "type", "dimensions", "comment", "default"]:
+    elif info in ["read only", "type", "shape", "comment", "default"]:
 
         info_str += f"showing {info}:\n"
+
+        if info == "shape":
+            info = "dimensions"
 
         for key in [k for k in sofa.keys() if k != "API"]:
 
@@ -590,7 +588,7 @@ def info(sofa, info="summary"):
             f"\tread only: "
             f"{_is_read_only(sofa['API']['Convention'][info]['flags'])}\n"
             f"\tdefault: {sofa['API']['Convention'][info]['default']}\n"
-            f"\tdimensions: {sofa['API']['Convention'][info]['dimensions']}\n"
+            f"\tshape: {sofa['API']['Convention'][info]['dimensions']}\n"
             f"\tcomment: {sofa['API']['Convention'][info]['comment']}")
     else:
         raise ValueError(f"info='{info}' is invalid")

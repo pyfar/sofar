@@ -117,12 +117,6 @@ def test_info(capfd):
             ValueError, match="info='invalid' is invalid"):
         sf.info(sofa, "invalid")
 
-    # test default
-    sf.info(sofa)
-    out, _ = capfd.readouterr()
-    assert out.startswith("SimpleFreeFieldHRIR 1.0 (SOFA version 2.0")
-    assert "M = 1 (measurements)" in out
-
     # test listing all entry names
     sf.info(sofa, "all")
     out, _ = capfd.readouterr()
@@ -147,16 +141,22 @@ def test_info(capfd):
     assert "read only entries:" in out
     assert out.endswith("GLOBAL:DataType\n\n")
 
+    # test dimensions
+    sf.info(sofa, "dimensions")
+    out, _ = capfd.readouterr()
+    assert out.startswith("SimpleFreeFieldHRIR 1.0 (SOFA version 2.0")
+    assert "M = 1 (measurements)" in out
+
     # test listing default values
     sf.info(sofa, "default")
     out, _ = capfd.readouterr()
     assert "showing default:" in out
     assert "ListenerPosition\n\t[0, 0, 0]"
 
-    # test listing default values
-    sf.info(sofa, "dimensions")
+    # test listing default shapes
+    sf.info(sofa, "shape")
     out, _ = capfd.readouterr()
-    assert "showing dimensions:" in out
+    assert "showing shape:" in out
     assert "ListenerPosition\n\tIC, MC"
 
     # test listing comments values
