@@ -39,7 +39,7 @@
         "flags": "m",
         "dimensions": null,
         "type": "attribute",
-        "comment": "Shall be ‘shoebox’ or ‘dae’"
+        "comment": "Shall be 'shoebox' or 'dae'"
     },
     "GLOBAL:Title": {
         "default": "",

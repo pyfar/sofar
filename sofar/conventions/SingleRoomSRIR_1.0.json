@@ -39,7 +39,7 @@
         "flags": "m",
         "dimensions": null,
         "type": "attribute",
-        "comment": "Shall be ‘shoebox’ or ‘dae’"
+        "comment": "Shall be 'shoebox' or 'dae'"
     },
     "GLOBAL:Title": {
         "default": "",
@@ -408,7 +408,7 @@
         "flags": "m",
         "dimensions": null,
         "type": "attribute",
-        "comment": "Shall be ‘cartesian’ or ‘spherical’, restricting to spatially discrete emitters."
+        "comment": "Shall be 'cartesian' or 'spherical', restricting to spatially discrete emitters."
     },
     "EmitterPosition:Units": {
         "default": "degree, degree, metre",
@@ -444,7 +444,7 @@
         "flags": null,
         "dimensions": null,
         "type": "attribute",
-        "comment": "Shall be ‘cartesian’ or ‘spherical’, restricting to spatially discrete emitters."
+        "comment": "Shall be 'cartesian' or 'spherical', restricting to spatially discrete emitters."
     },
     "EmitterView:Units": {
         "default": "metre",

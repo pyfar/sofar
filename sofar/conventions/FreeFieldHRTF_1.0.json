@@ -244,14 +244,14 @@
         "flags": "m",
         "dimensions": "IC, ECI, ECM",
         "type": "double",
-        "comment": "Radius in ‘spherical harmonics’, Position in ‘cartesian’ and ‘spherical’"
+        "comment": "Radius in 'spherical harmonics', Position in 'cartesian' and 'spherical'"
     },
     "EmitterPosition:Type": {
         "default": "spherical harmonics",
         "flags": "m",
         "dimensions": null,
         "type": "attribute",
-        "comment": "Can be ‘spherical harmonics’, ‘cartesian’, or ‘spherical’"
+        "comment": "Can be 'spherical harmonics', 'cartesian', or 'spherical'"
     },
     "EmitterPosition:Units": {
         "default": "degree, degree, metre",
