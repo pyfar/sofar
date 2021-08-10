@@ -168,7 +168,9 @@ def test_info(capfd):
     # list information for specific entry
     sf.info(sofa, "ListenerPosition")
     out, _ = capfd.readouterr()
-    assert "type: double\n\tmandatory: True" in out
+    assert "ListenerPosition\n\ttype: double" in out
+    assert "ListenerPosition:Type\n\ttype: variable attribute" in out
+    assert "ListenerPosition:Units\n\ttype: variable attribute" in out
 
 
 def test_roundtrip():

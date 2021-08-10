@@ -586,7 +586,7 @@ def info(sofa, info):
             info_str += (
                 f"{key}\n"
                 f"\ttype: "
-                f"{_get_dtype(info, sofa['API']['Convention'][key]['type'])}\n"
+                f"{_get_dtype(key, sofa['API']['Convention'][key]['type'])}\n"
                 f"\tmandatory: "
                 f"{_is_mandatory(sofa['API']['Convention'][key]['flags'])}\n"
                 f"\tread only: "
