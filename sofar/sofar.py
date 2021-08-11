@@ -223,7 +223,7 @@ class Sofa():
 
     def update_api(self, version="latest"):
         """
-        Update the API of a SOFA dictionary.
+        Update the API of a SOFA object.
 
         The API contains meta data about the SOFA object, such as the type and
         default values of its attributes. It is required to show information
@@ -236,7 +236,7 @@ class Sofa():
         This function updates the API, checks if all mandatory fields are
         contained and if the dimensions of the data inside the SOFA object are
         according to the SOFA standard. If a mandatory attribute is missing, it
-        is added to the SOFA dictionary with its default value and a warning is
+        is added to the SOFA object with its default value and a warning is
         raised.
 
         The API of a SOFA object contains of three parts, that are stored
@@ -248,10 +248,10 @@ class Sofa():
             and comments. These data are read from the official SOFA
             conventions contained in the SOFA Matlab/Octave API
         self._dimensions
-            The detected dimensions of the data inside the SOFA dictionairy
+            The detected dimensions of the data inside the SOFA object
         self._api
             The size of the dimensions (see ``self.info("dimensions")``). This
-            specifies the dimensions of the data inside the SOFA dictionary.
+            specifies the dimensions of the data inside the SOFA object.
 
         Parameters
         ----------
@@ -264,7 +264,7 @@ class Sofa():
                 Match the version of the sofa file.
             str
                 Version string, e.g., ``'1.0'``. Note that this might downgrade
-                the SOFA dictionairy
+                the SOFA object
 
             The default is ``'latest'``
 
