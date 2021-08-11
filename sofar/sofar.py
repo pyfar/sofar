@@ -98,6 +98,10 @@ class Sofa():
                 f"{name} is a mandatory attribute that can not be deleted")
         super().__delattr__(name)
 
+    def __repr__(self):
+        return (f"sofar SOFA object: {self.GLOBAL_SOFAConventions} "
+                f"{self.GLOBAL_SOFAConventionsVersion}")
+
     def info(self, info):
         """
         Print information about a SOFA object
