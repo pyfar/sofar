@@ -92,11 +92,15 @@ class Sofa():
         # can't delete non existing attributes
         if not hasattr(self, name):
             raise TypeError(f"{name} is not an attribute")
+        # delete anything if not frozen
+        if not self._frozen:
+            super().__delattr__(name)
         # don't allow deleting mandatory attributes
-        if _is_mandatory(self._convention[name]["flags"]) and self._frozen:
+        elif not _is_mandatory(self._convention[name]["flags"]):
+            super().__delattr__(name)
+        else:
             raise TypeError(
                 f"{name} is a mandatory attribute that can not be deleted")
-        super().__delattr__(name)
 
     def __repr__(self):
         return (f"sofar.SOFA object: {self.GLOBAL_SOFAConventions} "
@@ -288,7 +292,7 @@ class Sofa():
             if _is_mandatory(self._convention[key]["flags"]) \
                     and key not in keys:
                 self._frozen = False
-                setattr(self, self._convention[key]["default"])
+                setattr(self, key, self._convention[key]["default"])
                 self._frozen = True
                 warnings.warn((
                     f"Mandatory attribute {key} was missing and added to the "
@@ -360,7 +364,7 @@ class Sofa():
             if not shape_matched:
                 raise ValueError(
                     (f"The shape of {key} is {shape_compare} but has "
-                     f"to be: {dimensions.upper()} "
+                     f"to be {dimensions.upper()} "
                      "(see ``self.info('dimensions')`` and "
                      "``self.info('shape')``"))
 
@@ -380,16 +384,19 @@ class Sofa():
                 Version string, e.g., ``'1.0'``.
         """
 
-        # load the desired convention and compare versions
+        # verify convention and version
+        c_current = self.GLOBAL_SOFAConventions
         v_current = str(self.GLOBAL_SOFAConventionsVersion)
-        if version == "match":
-            version = v_current
 
+        v_new = _verify_convention_and_version(
+                version, v_current, c_current)
+
+        # load and add convention
         convention = self._load_convention(
-            self.GLOBAL_SOFAConventions, version)
-        v_new = str(float(
-            convention["GLOBAL_SOFAConventionsVersion"]["default"]))
+            c_current, v_new)
+        self._convention = convention
 
+        # let the user know
         if v_current != v_new:
             self._frozen = False
             self.GLOBAL_SOFAConventionsVersion = v_new
@@ -401,9 +408,6 @@ class Sofa():
         elif float(v_current) > float(v_new):
             warnings.warn(("Downgraded SOFA object from "
                            f"version {v_current} to {v_new}"))
-
-        # add convention
-        self._convention = convention
 
     def _load_convention(self, convention, version):
         """
@@ -608,12 +612,14 @@ def list_conventions(verbose=True, return_type=None):
 
     if return_type is None:
         return
-    if return_type == "path":
+    elif return_type == "path":
         return paths
     elif return_type == "name":
         return conventions
     elif return_type == "name_version":
         return [(n, v) for n, v in zip(conventions, versions)]
+    else:
+        raise ValueError(f"return_type {return_type} is invalid")
 
 
 def read_sofa(filename, update_api=True, version="latest"):
@@ -656,28 +662,27 @@ def read_sofa(filename, update_api=True, version="latest"):
     if not filename.lower().endswith('.sofa'):
         filename += ".sofa"
     if not os.path.isfile(filename):
-        raise ValueError("{filename} does not exist")
+        raise ValueError(f"{filename} does not exist")
 
     # open new NETCDF4 file for reading
     with Dataset(filename, "r", format="NETCDF4") as file:
 
         # get convention name and version
         convention = getattr(file, "SOFAConventions")
-        read_version = getattr(file, "SOFAConventionsVersion")
+        version_in = getattr(file, "SOFAConventionsVersion")
+
+        # check if convention and version exist
+        try:
+            version_out = _verify_convention_and_version(
+                version, version_in, convention)
+        except ValueError as ve:
+            if "Convention" in str(ve):
+                raise ValueError(f"File has unknown convention {convention}")
+            else:
+                raise ValueError("Version not found. Try version=latest")
 
         # get SOFA object with default values
-        try:
-            sofa = sf.Sofa(convention, version=read_version)
-        except ValueError:
-            try:
-                warnings.warn((
-                    f"No exact match found for {convention} {read_version}. "
-                    "Trying to load latest version."))
-                sofa = sf.Sofa(convention, version="latest")
-            except ValueError:
-                raise ValueError(
-                    f"Convention {convention} is not included in sofar")
-        convention = sofa._convention
+        sofa = sf.Sofa(convention, version=version_out, update_api=update_api)
 
         # allow writing read only attributes
         sofa._frozen = False
@@ -754,9 +759,7 @@ def write_sofa(filename: str, sofa: Sofa, version="latest"):
 
         # write dimensions
         for dim in sofa._api:
-            # Dimensions are stored in single upper case letter keys
-            if len(dim) == 1:
-                file.createDimension(dim, sofa._api[dim])
+            file.createDimension(dim, sofa._api[dim])
 
         # write global attributes
         keys = [key for key in all_keys if key.startswith("GLOBAL_")]
@@ -780,17 +783,7 @@ def write_sofa(filename: str, sofa: Sofa, version="latest"):
             shape = tuple([dim for dim in sofa._dimensions[key]])
             tmp_var = file.createVariable(
                 key.replace("Data_", "Data."), dtype, shape)
-            try:
-                tmp_var[:] = value
-            except:  # noqa (this is no error handling just improved verbosity)
-                shape_verbose = []
-                for dim in sofa._dimensions[key]:
-                    shape_verbose = shape_verbose.append(
-                        dim + "=" + str(sofa._api[dim]))
-
-                raise ValueError((
-                    f"Error writing sofa.{key}: {value} of "
-                    f"intended type '{dtype}' and shape {shape_verbose}"))
+            tmp_var[:] = value
 
             # write variable attributes
             sub_keys = [k for k in all_keys if k.startswith(key + "_")]
@@ -1218,6 +1211,58 @@ def _get_size_and_shape_of_string_var(value, key):
                 "array, or list of strings"))
 
     return S, shape
+
+
+def _verify_convention_and_version(version, version_in, convention):
+    """
+    Verify if convention and version exist and return version
+
+    Parameters
+    ----------
+    version : str
+        'latest', 'match', version string (e.g., '1.0')
+    version_in : str
+        The version to be checked against
+    convention : str
+        The name of the convention to be checked
+
+    Returns
+    -------
+    version_out : str
+        The version to be used depending on `version`, and `version_in`
+    """
+
+    # check if the convention exists in sofar
+    if convention not in sf.list_conventions(False, "name"):
+        raise ValueError(
+            f"Convention {convention} does not exist")
+
+    name_version = sf.list_conventions(False, "name_version")
+
+    if version == "latest":
+        # get latest version (comes last)
+        for versions in name_version:
+            if versions[0] == convention:
+                version_out = versions[1]
+    else:
+        # check which version is wanted
+        if version == "match":
+            match = version_in
+        else:
+            match = version
+
+        version_out = None
+        for versions in name_version:
+            # check if convention and version match
+            if versions[0] == convention \
+                    and str(float(versions[1])) == match:
+                version_out = str(float(versions[1]))
+
+        if version_out is None:
+            raise ValueError(
+                f"Version {match} does not exist. Try version='latest'")
+
+    return version_out
 
 
 def _nd_array(array, ndim):

@@ -2,13 +2,15 @@ import sofar as sf
 from sofar.sofar import (_get_size_and_shape_of_string_var,
                          _format_value_for_netcdf,
                          _format_value_from_netcdf,
-                         _is_mandatory, _is_read_only, _nd_array)
+                         _is_mandatory, _is_read_only, _nd_array,
+                         _verify_convention_and_version)
 import os
 from tempfile import TemporaryDirectory
 import pytest
 import numpy as np
 import numpy.testing as npt
 from copy import deepcopy
+from netCDF4 import Dataset
 
 
 def test_list_conventions(capfd):
@@ -27,9 +29,17 @@ def test_list_conventions(capfd):
     assert isinstance(paths, list)
     assert os.path.isfile(paths[0])
 
-    paths = sf.list_conventions(verbose=False, return_type="name_version")
-    assert isinstance(paths, list)
-    assert isinstance(paths[0], tuple)
+    names = sf.list_conventions(verbose=False, return_type="name")
+    assert isinstance(names, list)
+    assert not os.path.isfile(names[0])
+
+    names_versions = sf.list_conventions(
+        verbose=False, return_type="name_version")
+    assert isinstance(names_versions, list)
+    assert isinstance(names_versions[0], tuple)
+
+    with pytest.raises(ValueError, match="return_type None is invalid"):
+        sf.list_conventions(verbose=False, return_type="None")
 
 
 def test_create_sofa_object(capfd):
@@ -61,6 +71,10 @@ def test_create_sofa_object(capfd):
     # test version parameter
     sofa = sf.Sofa("GeneralTF", version="1.0")
     assert str(sofa.GLOBAL_SOFAConventionsVersion) == "1.0"
+
+    # test invalid version
+    with pytest.raises(ValueError, match="Version 0.25 not found. Available"):
+        sf.Sofa("GeneralTF", version="0.25")
 
     # test without updating the api
     sofa = sf.Sofa("GeneralTF", update_api=False)
@@ -122,6 +136,21 @@ def test_update_api_in_sofa_object():
     with pytest.warns(UserWarning, match="Downgraded"):
         sofa.update_api(version="1.0")
     assert str(sofa.GLOBAL_SOFAConventionsVersion) == "1.0"
+
+    # test missing default attribute
+    sofa = sf.Sofa("GeneralTF")
+    sofa._frozen = False
+    delattr(sofa, "GLOBAL_Conventions")
+    sofa._frozen = True
+    with pytest.warns(UserWarning, match="Mandatory attribute GLOBAL_Conv"):
+        sofa.update_api()
+    assert sofa.GLOBAL_Conventions == "SOFA"
+
+    # test attribute with wrong shape
+    sofa = sf.Sofa("GeneralTF")
+    sofa.ListenerPosition = 1
+    with pytest.raises(ValueError, match=("The shape of ListenerPosition")):
+        sofa.update_api()
 
 
 def test_info(capfd):
@@ -187,6 +216,54 @@ def test_info(capfd):
     assert "ListenerPosition\n\ttype: double" in out
     assert "ListenerPosition_Type\n\ttype: attribute" in out
     assert "ListenerPosition_Units\n\ttype: attribute" in out
+
+
+def test_read_sofa():
+
+    temp_dir = TemporaryDirectory()
+    filename = os.path.join(temp_dir.name, "test.sofa")
+    sofa = sf.Sofa("SimpleFreeFieldHRIR")
+
+    # test defaults
+    sf.write_sofa(filename, sofa)
+    sofa = sf.read_sofa(filename)
+    assert hasattr(sofa, "_api")
+
+    # reading without updating API
+    sofa = sf.read_sofa(filename, update_api=False)
+    assert not hasattr(sofa, "_api")
+
+    # read non-existing file
+    with pytest.raises(ValueError, match="test.sofa does not exist"):
+        sf.read_sofa("test.sofa")
+
+    # read file of unknown convention
+    sofa = sf.Sofa("SimpleFreeFieldHRIR")
+    sf.write_sofa(filename, sofa)
+    with Dataset(filename, "r+", format="NETCDF4") as file:
+        setattr(file, "SOFAConventions", "Funky")
+    with pytest.raises(ValueError, match="File has unknown convention Funky"):
+        sf.read_sofa(filename)
+
+    # read file of unknown version
+    sofa = sf.Sofa("SimpleFreeFieldHRIR")
+    sf.write_sofa(filename, sofa)
+    with pytest.raises(ValueError, match="Version not found"):
+        sf.read_sofa(filename, version="0.25")
+
+    # read file containing a variable with wrong shape
+    sofa = sf.Sofa("SimpleFreeFieldHRIR")
+    sf.write_sofa(filename, sofa)
+    # create variable with wrong shape
+    with Dataset(filename, "r+", format="NETCDF4") as file:
+        file.createDimension('A', 10)
+        var = file.createVariable("Data_IR", "f8", ('I', 'A'))
+        var[:] = np.zeros((1, 10)).astype("double")
+    # reading data with update API generates an error
+    with pytest.raises(ValueError, match="The API could not be updated"):
+        sf.read_sofa(filename)
+    # data can be read without updating API
+    sf.read_sofa(filename, update_api=False)
 
 
 def test_roundtrip():
@@ -399,6 +476,27 @@ def test_is_readonly():
     assert _is_read_only("rm")
     assert not _is_read_only("m")
     assert not _is_read_only(None)
+
+
+def test_verify_convention_and_version():
+
+    # test different possibilities for version
+    version = _verify_convention_and_version("latest", "1.0", "GeneralTF")
+    assert version == "2.0"
+
+    version = _verify_convention_and_version("2.0", "1.0", "GeneralTF")
+    assert version == "2.0"
+
+    version = _verify_convention_and_version("match", "1.0", "GeneralTF")
+    assert version == "1.0"
+
+    # test assertions
+    with pytest.raises(ValueError, match="Convention Funky does not exist"):
+        _verify_convention_and_version("latest", "1.0", "Funky")
+    with pytest.raises(ValueError, match="Version 1.1 does not exist"):
+        _verify_convention_and_version("match", "1.1", "GeneralTF")
+    with pytest.raises(ValueError, match="Version 1.2 does not exist"):
+        _verify_convention_and_version("1.2", "1.0", "GeneralTF")
 
 
 def test_nd_array():
