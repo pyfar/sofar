@@ -1,14 +1,12 @@
 import sofar as sf
 from sofar.sofar import (_get_size_and_shape_of_string_var,
                          _format_value_for_netcdf,
-                         _format_value_from_netcdf,
-                         _is_mandatory, _is_read_only)
+                         _format_value_from_netcdf)
 import os
 from tempfile import TemporaryDirectory
 import pytest
 import numpy as np
 import numpy.testing as npt
-from copy import deepcopy
 
 
 def test_list_conventions(capfd):
@@ -32,152 +30,147 @@ def test_list_conventions(capfd):
     assert isinstance(paths[0], tuple)
 
 
-def test_create_sofa_object():
+def test_create_sofa():
     # test assertion for type of convention parameter
     with pytest.raises(TypeError, match="Convention must be a string"):
-        sf.Sofa(1)
+        sf.create_sofa(1)
     # test assertion for invalid conventions
     with pytest.raises(ValueError, match="Convention 'invalid' not found"):
-        sf.Sofa("invalid")
+        sf.create_sofa("invalid")
 
-    # test creation with defaults
-    sofa = sf.Sofa("GeneralTF")
-    assert isinstance(sofa, sf.sofar.Sofa)
-    assert sofa.GLOBAL_SOFAConventionsVersion == "2.0"
-    assert hasattr(sofa, '_convention')
-    assert hasattr(sofa, '_dimensions')
-    assert hasattr(sofa, '_api')
+    # test a single conversion
+    # (all conversions are test in test_roundtrip)
+    name = sf.list_conventions(verbose=False, return_type="name")[0]
+    sofa = sf.create_sofa(name)
+    assert isinstance(sofa, dict)
 
     # test returning only mandatory fields
-    sofa_all = sf.Sofa("GeneralTF")
-    sofa_man = sf.Sofa("GeneralTF", mandatory=True)
-    assert len(sofa_all.__dict__) > len(sofa_man.__dict__)
+    sofa_all = sf.create_sofa("SimpleFreeFieldHRIR")
+    sofa_man = sf.create_sofa("SimpleFreeFieldHRIR", True)
+    assert len(sofa_all) > len(sofa_man)
 
     # test version parameter
-    sofa = sf.Sofa("GeneralTF", version="1.0")
-    assert str(sofa.GLOBAL_SOFAConventionsVersion) == "1.0"
+    sofa = sf.create_sofa("GeneralTF")
+    assert str(sofa["GLOBAL:SOFAConventionsVersion"]) == str(2)
 
-    # test without updating the api
-    sofa = sf.Sofa("GeneralTF", update_api=False)
-    assert hasattr(sofa, '_convention')
-    assert not hasattr(sofa, '_dimensions')
-    assert not hasattr(sofa, '_api')
+    sofa = sf.create_sofa("GeneralTF", version="1.0")
+    assert str(sofa["GLOBAL:SOFAConventionsVersion"]) == str(1.)
 
 
-def test_set_attributes_of_sofa_object():
-    sofa = sf.Sofa("GeneralTF")
-
-    # set attribute
-    assert (sofa.ListenerPosition == [0, 0, 0]).all()
-    sofa.ListenerPosition = np.array([1, 1, 1])
-    assert (sofa.ListenerPosition == [1, 1, 1]).all()
-
-    # set read only attribute
-    with pytest.raises(TypeError, match="GLOBAL_Version is a read only"):
-        sofa.GLOBAL_Version = 1
-
-    # set non-existing attribute
-    with pytest.raises(TypeError, match="new is an invalid attribute"):
-        sofa.new = 1
-
-
-def test_delete_attributes_os_sofa_object():
-    sofa = sf.Sofa("GeneralTF")
-
-    # delete optional attribute
-    delattr(sofa, "GLOBAL_ApplicationName")
-
-    # delete mandatory attribute
-    with pytest.raises(TypeError, match="GLOBAL_Version is a mandatory"):
-        delattr(sofa, "GLOBAL_Version")
-
-
-def test_update_api_in_sofa_object():
+def test_update_dimensions():
 
     # test the default "latest"
-    sofa = sf.Sofa("GeneralTF", version="1.0")
-    assert str(sofa.GLOBAL_SOFAConventionsVersion) == "1.0"
+    sofa_1 = sf.create_sofa("GeneralTF", version="1.0")
+    sofa_2 = sofa_1.copy()
     with pytest.warns(UserWarning, match="Upgraded"):
-        sofa.update_api()
-    assert str(sofa.GLOBAL_SOFAConventionsVersion) == "2.0"
+        sf.update_api(sofa_2)
+    assert float(sofa_1["GLOBAL:SOFAConventionsVersion"]) == 1.0
+    assert float(sofa_2["GLOBAL:SOFAConventionsVersion"]) == 2.0
 
     # test "match"
-    sofa = sf.Sofa("GeneralTF", version="1.0")
-    assert str(sofa.GLOBAL_SOFAConventionsVersion) == "1.0"
-    sofa.update_api(version="match")
-    assert str(sofa.GLOBAL_SOFAConventionsVersion) == "1.0"
+    sofa_1 = sf.create_sofa("GeneralTF", version="1.0")
+    sofa_2 = sofa_1.copy()
+    sf.update_api(sofa_2, version="match")
+    assert float(sofa_1["GLOBAL:SOFAConventionsVersion"]) == 1.0
+    assert float(sofa_2["GLOBAL:SOFAConventionsVersion"]) == 1.0
 
-    # test downgrading
-    sofa = sf.Sofa("GeneralTF")
-    assert str(sofa.GLOBAL_SOFAConventionsVersion) == "2.0"
+    # test version string
+    sofa_1 = sf.create_sofa("GeneralTF")
+    sofa_2 = sofa_1.copy()
     with pytest.warns(UserWarning, match="Downgraded"):
-        sofa.update_api(version="1.0")
-    assert str(sofa.GLOBAL_SOFAConventionsVersion) == "1.0"
+        sf.update_api(sofa_2, version="1.0")
+    assert float(sofa_1["GLOBAL:SOFAConventionsVersion"]) == 2.0
+    assert float(sofa_2["GLOBAL:SOFAConventionsVersion"]) == 1.0
+
+    # test detecting and adding missing mandatory fields
+    sofa_1 = sf.create_sofa("GeneralTF")
+    sofa_1.pop("GLOBAL:Conventions")
+    with pytest.warns(UserWarning, match="Mandatory field GLOBAL:Conventions"):
+        sf.update_api(sofa_1)
+
+
+def test_set_value():
+    # dummy SOFA dictionairy
+    sofa = sf.create_sofa("SimpleFreeFieldHRIR")
+
+    # set value by key
+    sf.set_value(sofa, "ListenerPosition", [0, 0, 1])
+    npt.assert_allclose(sofa["ListenerPosition"],
+                        np.atleast_2d([0, 0, 1]))
+
+    # set with protected key
+    with pytest.raises(ValueError, match="'API' is read only"):
+        sf.set_value(sofa, "API", [0, 0, 1])
+    with pytest.raises(ValueError, match="'GLOBAL:Conventions' is read only"):
+        sf.set_value(sofa, "GLOBAL:Conventions", [0, 0, 1])
+    # set with invalid key
+    with pytest.raises(ValueError, match="'Data.RIR' is an invalid key"):
+        sf.set_value(sofa, "Data.RIR", [0, 0, 1])
 
 
 def test_info(capfd):
 
-    sofa = sf.Sofa("SimpleFreeFieldHRIR")
+    sofa = sf.create_sofa("SimpleFreeFieldHRIR")
 
     # test with wrong info string
     with pytest.raises(
             ValueError, match="info='invalid' is invalid"):
-        sofa.info("invalid")
+        sf.info(sofa, "invalid")
 
     # test listing all entry names
-    sofa.info("all")
+    sf.info(sofa, "all")
     out, _ = capfd.readouterr()
     assert "all entries:" in out
-    assert "SourceUp" in out and "Data_IR" in out
+    assert "SourceUp" in out and "Data.IR" in out
 
     # test listing only mandatory entries
-    sofa.info("mandatory")
+    sf.info(sofa, "mandatory")
     out, _ = capfd.readouterr()
     assert "mandatory entries:" in out
     assert "SourceUp" not in out
 
     # test listing only optional entries
-    sofa.info("optional")
+    sf.info(sofa, "optional")
     out, _ = capfd.readouterr()
     assert "optional entries:" in out
-    assert "Data_IR" not in out
+    assert "Data.IR" not in out
 
     # test listing read only entries
-    sofa.info("read only")
+    sf.info(sofa, "read only")
     out, _ = capfd.readouterr()
     assert "read only entries:" in out
-    assert out.endswith("GLOBAL_DataType\n\n")
+    assert out.endswith("GLOBAL:DataType\n\n")
 
     # test dimensions
-    sofa.info("dimensions")
+    sf.info(sofa, "dimensions")
     out, _ = capfd.readouterr()
     assert out.startswith("SimpleFreeFieldHRIR 1.0 (SOFA version 2.0")
     assert "M = 1 (measurements)" in out
 
     # test listing default values
-    sofa.info("default")
+    sf.info(sofa, "default")
     out, _ = capfd.readouterr()
     assert "showing default:" in out
     assert "ListenerPosition\n\t[0, 0, 0]"
 
     # test listing default shapes
-    sofa.info("shape")
+    sf.info(sofa, "shape")
     out, _ = capfd.readouterr()
     assert "showing shape:" in out
     assert "ListenerPosition\n\tIC, MC"
 
     # test listing comments values
-    sofa.info("comment")
+    sf.info(sofa, "comment")
     out, _ = capfd.readouterr()
     assert "showing comment:" in out
-    assert "GLOBAL_SOFAConventions\n\tThis convention set is for HRIRs"
+    assert "GLOBAL:SOFAConventions\n\tThis convention set is for HRIRs"
 
     # list information for specific entry
-    sofa.info("ListenerPosition")
+    sf.info(sofa, "ListenerPosition")
     out, _ = capfd.readouterr()
     assert "ListenerPosition\n\ttype: double" in out
-    assert "ListenerPosition_Type\n\ttype: attribute" in out
-    assert "ListenerPosition_Units\n\ttype: attribute" in out
+    assert "ListenerPosition:Type\n\ttype: variable attribute" in out
+    assert "ListenerPosition:Units\n\ttype: variable attribute" in out
 
 
 def test_roundtrip():
@@ -195,81 +188,50 @@ def test_roundtrip():
 
     for name in names:
         print(f"Testing: {name}")
-        file = os.path.join(temp_dir.name, name)
-        sofa = sf.Sofa(name)
-        sf.write_sofa(file, sofa)
-        sofa_r = sf.read_sofa(file)
-        identical = sf.compare_sofa(sofa, sofa_r, verbose=True, exclude="DATE")
-        assert identical
+        sofa = sf.create_sofa(name)
+        sf.write_sofa(os.path.join(temp_dir.name, name), sofa)
+        sofa_r = sf.read_sofa(os.path.join(temp_dir.name, name))
+        assert sf.compare_sofa(sofa, sofa_r, verbose=True, exclude="DATE")
 
 
 def test_compare_sofa():
 
-    sofa_a = sf.Sofa("SimpleFreeFieldHRIR")
+    sofa_a = sf.create_sofa("SimpleFreeFieldHRIR")
 
     # check invalid
     with pytest.raises(ValueError, match="exclude is"):
         sf.compare_sofa(sofa_a, sofa_a, exclude="wrong")
 
     # check identical dictionaries
-    assert sf.compare_sofa(sofa_a, sofa_a)
+    assert sf.compare_sofa(sofa_a, sofa_a.copy())
 
     # check different number of keys
-    sofa_b = deepcopy(sofa_a)
-    sofa_b._frozen = False
-    delattr(sofa_b, "ReceiverPosition")
-    sofa_b._frozen = True
+    sofa_b = sofa_a.copy()
+    sofa_b.pop("ReceiverPosition")
     with pytest.warns(UserWarning, match="not identical: sofa_a has"):
         is_identical = sf.compare_sofa(sofa_a, sofa_b)
         assert not is_identical
 
     # check different keys
-    sofa_b = deepcopy(sofa_a)
-    sofa_b._frozen = False
-    sofa_b.PositionReceiver = sofa_b.ReceiverPosition
-    delattr(sofa_b, "ReceiverPosition")
-    sofa_b._frozen = True
+    sofa_b = sofa_a.copy()
+    sofa_b["PositionReceiver"] = sofa_b.pop("ReceiverPosition")
     with pytest.warns(UserWarning, match="not identical: sofa_a and sofa_b"):
         is_identical = sf.compare_sofa(sofa_a, sofa_b)
         assert not is_identical
 
     # check different value for attribute
-    sofa_b = deepcopy(sofa_a)
-    sofa_b.Data_SamplingRate_Units = "kW"
+    sofa_b = sofa_a.copy()
+    sofa_b["GLOBAL:Conventions"] = "SOFAAA"
     with pytest.warns(UserWarning, match="not identical: different values for"):
         is_identical = sf.compare_sofa(sofa_a, sofa_b)
         assert not is_identical
 
     # check different value for variable
-    sofa_b = deepcopy(sofa_a)
-    sofa_b.Data_SamplingRate = 96e3
+    sofa_b = sofa_a.copy()
+    sofa_b["Data.SamplingRate"] = 96e3
     with pytest.warns(UserWarning, match="not identical: different values for"):
         is_identical = sf.compare_sofa(sofa_a, sofa_b)
         assert not is_identical
-
-    # check exclude GLOBAL attributes
-    sofa_b = deepcopy(sofa_a)
-    sofa_b._frozen = False
-    delattr(sofa_b, "GLOBAL_Version")
-    sofa_b._frozen = True
-    is_identical = sf.compare_sofa(sofa_a, sofa_b, exclude="GLOBAL")
-    assert is_identical
-
-    # check exclude Date attributes
-    sofa_b = deepcopy(sofa_a)
-    sofa_b._frozen = False
-    delattr(sofa_b, "GLOBAL_DateModified")
-    sofa_b._frozen = True
-    is_identical = sf.compare_sofa(sofa_a, sofa_b, exclude="DATE")
-    assert is_identical
-
-    # check exclude Date attributes
-    sofa_b = deepcopy(sofa_a)
-    sofa_b._frozen = False
-    delattr(sofa_b, "GLOBAL_DateModified")
-    sofa_b._frozen = True
-    is_identical = sf.compare_sofa(sofa_a, sofa_b, exclude="ATTR")
-    assert is_identical
 
 
 def test_get_size_and_shape_of_string_var():
@@ -378,15 +340,3 @@ def test_format_value_from_netcdf():
     with pytest.raises(TypeError, match="Data.IR: value.dtype is int32 but"):
         _format_value_from_netcdf(
             np.array([44100], dtype="int"), "Data.IR")
-
-
-def test_is_mandatory():
-    assert _is_mandatory("rm")
-    assert not _is_mandatory("r")
-    assert not _is_mandatory(None)
-
-
-def test_is_readonly():
-    assert _is_read_only("rm")
-    assert not _is_read_only("m")
-    assert not _is_read_only(None)

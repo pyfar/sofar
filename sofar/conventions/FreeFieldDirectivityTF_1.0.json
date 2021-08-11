@@ -399,7 +399,7 @@
         "default": "",
         "flags": null,
         "dimensions": "IS, MS",
-        "type": "attribute",
+        "type": "string",
         "comment": "A more detailed structure of the source. In a simple setting, a single Emitter is considered that is collocated with the source. In a more complicated setting, this may be the strings of a violin or the units of a loudspeaker."
     },
     "MIDINote": {
@@ -413,7 +413,7 @@
         "default": "",
         "flags": null,
         "dimensions": "MS",
-        "type": "attribute",
+        "type": "string",
         "comment": "This variable is used when the description varies with M."
     },
     "SourceTuningFrequency": {
