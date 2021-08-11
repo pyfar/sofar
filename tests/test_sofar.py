@@ -2,7 +2,7 @@ import sofar as sf
 from sofar.sofar import (_get_size_and_shape_of_string_var,
                          _format_value_for_netcdf,
                          _format_value_from_netcdf,
-                         _is_mandatory, _is_read_only)
+                         _is_mandatory, _is_read_only, _nd_array)
 import os
 from tempfile import TemporaryDirectory
 import pytest
@@ -300,53 +300,53 @@ def test_format_value_for_netcdf():
 
     # string and None dimensions (a.k.a NETCDF attribute)
     value, dtype = _format_value_for_netcdf(
-        "string", "test:attr", None, 12)
+        "string", "test_attr", "attribute", None, 12)
     assert value == "string"
     assert dtype == "attribute"
 
     # int that should be converted to a string
     value, dtype = _format_value_for_netcdf(
-        1, "test:attr", None, 12)
+        1, "test_attr", "attribute", None, 12)
     assert value == "1"
     assert dtype == "attribute"
 
     # float that should be converted to a string
     value, dtype = _format_value_for_netcdf(
-        0.2, "test:attr", None, 12)
+        0.2, "test_attr", "attribute", None, 12)
     assert value == "0.2"
     assert dtype == "attribute"
 
     # string and IS dimensions
     value, dtype = _format_value_for_netcdf(
-        "string", "test.var", "IS", 12)
+        "string", "TestVar", "string", "IS", 12)
     assert value == np.array("string", dtype="S12")
     assert dtype == "S1"
     assert value.ndim == 2
 
     # single entry array and none Dimensions
     value, dtype = _format_value_for_netcdf(
-        ["string"], "test.var", "IS", 12)
+        ["string"], "TestVar", "string", "IS", 12)
     assert value == np.array(["string"], dtype="S12")
     assert dtype == "S1"
     assert value.ndim == 2
 
     # array of strings
     value, dtype = _format_value_for_netcdf(
-        [["a"], ["bc"]], "test.var", "MS", 12)
+        [["a"], ["bc"]], "TestVar", "string", "MS", 12)
     assert all(value == np.array([["a"], ["bc"]], "S12"))
     assert dtype == "S1"
     assert value.ndim == 2
 
     # test with list
     value, dtype = _format_value_for_netcdf(
-        [0, 0], "test.var", "MR", 12)
+        [0, 0], "TestVar", "double", "MR", 12)
     npt.assert_allclose(value, np.array([0, 0])[np.newaxis, ])
     assert dtype == "f8"
     assert value.ndim == 2
 
     # test with numpy array
     value, dtype = _format_value_for_netcdf(
-        np.array([0, 0]), "test.var", "MR", 12)
+        np.array([0, 0]), "TestVar", "double", "MR", 12)
     npt.assert_allclose(value, np.array([0, 0])[np.newaxis, ])
     assert dtype == "f8"
     assert value.ndim == 2
@@ -390,3 +390,17 @@ def test_is_readonly():
     assert _is_read_only("rm")
     assert not _is_read_only("m")
     assert not _is_read_only(None)
+
+
+def test_nd_array():
+    # test with single dimension array
+    for ndim in range(6, 1):
+        array = _nd_array(1)
+        assert array.ndim == ndim
+        assert array.flatten == np.array([1])
+
+    # test with two-dimensional array
+    for ndim in range(6, 1):
+        array = _nd_array(np.atleast_2d(1))
+        assert array.ndim == ndim
+        assert array.flatten == np.array([1])

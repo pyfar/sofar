@@ -13,6 +13,44 @@ import sofar as sf
 
 
 class Sofa():
+    """Create a SOFA file with default values.
+
+    Parameters
+    ----------
+    convention : str
+        The name of the convention from which the SOFA file is created. See
+        :py:func:`~sofar.list_conventions`.
+    mandatory : bool, optional
+        If ``True``, only the mandatory fields of the convention will be
+        returned. The default is ``False``, which returns mandatory and
+        optional fields.
+    version : str, optional
+        The version of the convention as a string, e.g., ``' 2.0'``. The
+        default is ``'latest'``. Also see
+        :py:func:`~sofar.list_conventions`.
+    update_api : bool, optional
+        Update the API by calling :py:func:`~Sofa.update_api`. This helps
+        to find potential errors in the default values and is thus recommended.
+        If reading a file does not work, try to call `Sofa` with
+        ``update=False``. The default is ``True``.
+
+    Returns
+    -------
+    sofa : Sofa
+        A SOFA object filled with the default values of the convention.
+
+    Examples
+    --------
+    .. code-block:: python
+
+        import sofar as sf
+
+        # create SOFA object
+        sofa = sf.Sofa("SimpleFreeFieldHRIR")
+
+    For more examples refer to the documentation at
+    https://pyfar.readthedocs.io/en/latest/
+    """
 
     # these have to be set here, because they are used in __setattr__ and
     # Python checks if they exist upon class creation
@@ -21,27 +59,7 @@ class Sofa():
 
     def __init__(self, convention, mandatory=False, version="latest",
                  update_api=True):
-        """Create a SOFA file with default values.
-
-        Parameters
-        ----------
-        convention : str
-            The name of the convention from which the SOFA file is created. See
-            :py:func:`~sofar.list_conventions`.
-        mandatory : bool, optional
-            If ``True``, only the mandatory fields of the convention will be
-            returned. The default is ``False``, which returns mandatory and
-            optional fields.
-        version : str, optional
-            The version of the convention as a string, e.g., ``' 2.0'``. The
-            default is ``'latest'``. Also see
-            :py:func:`~sofar.list_conventions`.
-
-        Returns
-        -------
-        sofa : dict
-            The SOFA dictionairy filled with the default values of the convention.
-        """
+        """See class docstring"""
 
         # get convention
         self._convention = self._load_convention(convention, version)
@@ -82,42 +100,43 @@ class Sofa():
 
     def info(self, info):
         """
-        Print information about a SOFA dictionary
+        Print information about a SOFA object
 
         Parameters
         ----------
-        sofa : dict
-            A SOFA dictionairy.
         info : str
             Specifies the kind of information that is printed:
 
             ``'all'``
-                Print the name of all entries.
+                Print the name of all object attributes.
             ``'mandatory'``
-                Print names of mandatory entries.
+                Print names of mandatory object attributes.
             ``'optional'``
-                Print names of optional entries.
+                Print names of optional object attributes.
             ``'read only'``
-                Print names of read only entries.
+                Print names of read only object attributes.
             ``'dimensions'``
-                Print dimensions of the SOFA dictionairy.
+                Print dimensions of the SOFA object.
             ``'type'``
-                Print the types of the entries
+                Print the data types of the object attributes
             ``'shape'``
-                Print the shape variables. The shape is given in the form of
-                letters, e.g., `MRN`. These letters denote the dimensions of the
-                SOFA dictionary (see above).
+                Print the shape object attributes if they are not None. The
+                shape is given in the form of letters, e.g., `MRN`. These
+                letters denote the dimensions of the SOFA object (see
+                `dimensions` above).
             ``'comment'``
-                Print the explanatory comments if they are not empty.
+                Print the explanatory comments for the object attributes if
+                they are not empty.
             ``'default'``
-                Print the default values except for empty strings.
+                Print the default values of the object attributes except for
+                empty strings.
             key
-                If key is the name of an entry in `sofa` all information for that
-                entry will be printed.
+                If key is the name of an object attribute, all information for
+                attribute will be printed.
 
         Notes
         -----
-        ``update_api(sofa, version='match')`` is called to make sure that the
+        ``self.update_api(version='match')`` is called to make sure that the
         required meta data is available.
 
         """
@@ -194,7 +213,8 @@ class Sofa():
                     f"\tread only: "
                     f"{_is_read_only(self._convention[key]['flags'])}\n"
                     f"\tdefault: {self._convention[key]['default']}\n"
-                    f"\tshape: {str(self._convention[key]['dimensions']).upper()}\n"  # noqa
+                    f"\tshape: "
+                    f"{str(self._convention[key]['dimensions']).upper()}\n"
                     f"\tcomment: {self._convention[key]['comment']}\n")
         else:
             raise ValueError(f"info='{info}' is invalid")
@@ -205,28 +225,36 @@ class Sofa():
         """
         Update the API of a SOFA dictionary.
 
-        Update the API, check if all mandatory fields are contained and if the
-        dimensions of the data inside the SOFA dictionary are consistent. If a
-        mandatory field is missing, it is added to the SOFA dictionary with its
-        default value and a warning is raised.
+        The API contains meta data about the SOFA object, such as the type and
+        default values of its attributes. It is required to show information
+        about the SOFA object and to write a SOFA file to disk.
 
-        sofa['API'] contains metadata that is by :py:func:`~sofar.write_sofa` for
-        writing the SOFA dictionary to disk. The API contains the following fields:
+        .. note::
+            ``update_api`` is automatically called when you create a new SOFA
+            object or read a SOFA file disk using the default parameters.
 
-        'Convention'
-            The SOFA convention with default values, variable dimensions, flags and
-            comments
-        'Dimensions'
+        This function updates the API, checks if all mandatory fields are
+        contained and if the dimensions of the data inside the SOFA object are
+        according to the SOFA standard. If a mandatory attribute is missing, it
+        is added to the SOFA dictionary with its default value and a warning is
+        raised.
+
+        The API of a SOFA object contains of three parts, that are stored
+        as private attributes. They should usually not be manipulated outside
+        of `update_api`
+
+        self._convention
+            The SOFA convention with default values, variable dimensions, flags
+            and comments. These data are read from the official SOFA
+            conventions contained in the SOFA Matlab/Octave API
+        self._dimensions
             The detected dimensions of the data inside the SOFA dictionairy
-        'R', 'E', 'M', 'N', 'C', 'I', 'S'
-            The size of the dimensions. This specifies the dimensions of the data
-            inside the SOFA dictionary.
+        self._api
+            The size of the dimensions (see ``self.info("dimensions")``). This
+            specifies the dimensions of the data inside the SOFA dictionary.
 
         Parameters
         ----------
-        sofa : dict
-            The data as a SOFA dictionary (as returned by
-            :py:func:`~sofar.create_sofa` and :py:func:`~sofar.read_sofa`)
         version : str, optional
             The version to which the API is updated.
 
@@ -240,16 +268,6 @@ class Sofa():
 
             The default is ``'latest'``
 
-        Returns
-        -------
-        The values are updated in `sofa` without the need for returning it. This
-        is because Python dictionaries are mutable objects. Lists are converted
-        to numpy arrays.
-
-        Notes
-        -----
-        :py:func:`~sofar.write_sofa` also calls `update_api`. This function does
-        thus not have to be called before using `write_sofa`.
         """
 
         # initialize the API
@@ -259,7 +277,7 @@ class Sofa():
         self._api = {}
         self._frozen = True
 
-        # first run: check if the mandatory fields are contained
+        # first run: check if the mandatory attributes are contained
         keys = [key for key in self.__dict__.keys() if not key.startswith("_")]
 
         for key in self._convention.keys():
@@ -269,8 +287,8 @@ class Sofa():
                 setattr(self, self._convention[key]["default"])
                 self._frozen = True
                 warnings.warn((
-                    f"Mandatory field {key} was missing and added to the SOFA "
-                    "dictionairy with its default value"))
+                    f"Mandatory attribute {key} was missing and added to the "
+                    "SOFA object with its default value"))
 
         # second run: Get the dimensions for E, R, M, N, and S
         keys = [key for key in self.__dict__.keys() if not key.startswith("_")
@@ -339,19 +357,16 @@ class Sofa():
                 raise ValueError(
                     (f"The shape of {key} is {shape_compare} but has "
                      f"to be: {dimensions.upper()} "
-                     "(see field 'API' in the SOFA file)"))
+                     "(see ``self.info('dimensions')`` and "
+                     "``self.info('shape')``"))
 
     def _add_api(self, version):
         """
-        Add API to SOFA file. If The SOFA files contains an API it is overwritten.
-
-        The API is basically the convention file, which holds the meta data that is
-        required for writing the SOFA file to disk. It is added under sofa['API'].
+        Add API to SOFA object. If The SOFA files contains an API it is
+        overwritten.
 
         Parameters
         ----------
-        sofa : dict
-            The SOFA file without API
         version : str
             ``'latest'``
                 Use the latest API and upgrade the SOFA file if required.
@@ -359,11 +374,6 @@ class Sofa():
                 Match the version of the sofa file.
             str
                 Version string, e.g., ``'1.0'``.
-
-        Returns
-        -------
-        sofa : dict
-            The SOFA file with API
         """
 
         # load the desired convention and compare versions
@@ -382,10 +392,10 @@ class Sofa():
             self._frozen = True
 
         if float(v_current) < float(v_new):
-            warnings.warn(("Upgraded SOFA dictionairy from "
+            warnings.warn(("Upgraded SOFA object from "
                            f"version {v_current} to {v_new}"))
         elif float(v_current) > float(v_new):
-            warnings.warn(("Downgraded SOFA dictionairy from "
+            warnings.warn(("Downgraded SOFA object from "
                            f"version {v_current} to {v_new}"))
 
         # add convention
@@ -400,11 +410,16 @@ class Sofa():
         convention : str
             The name of the convention from which the SOFA file is created. See
             :py:func:`~sofar.list_conventions`.
+        version : str
+            ``'latest'``
+                Use the latest API and upgrade the SOFA file if required.
+            str
+                Version string, e.g., ``'1.0'``.
 
         Returns
         -------
         convention : dict
-            The SOFA convention as a dictionary object
+            The SOFA convention as a dictionary
         """
         # check input
         if not isinstance(convention, str):
@@ -446,19 +461,12 @@ class Sofa():
 
     def _convention2sofa(self,  mandatory):
         """
-        Convert a SOFA convention to a SOFA file filled with the default values.
+        Use SOFA convention to create attributes with default values.
 
         Parameters
         ----------
-        convention : dict
-            The SOFA convention
         mandatory : bool
-            Flag to indicate if only mandatory fields are included in the SOFA file
-
-        Returns
-        -------
-        sofa : dict
-            The SOFA file with default values
+            Flag to indicate if only mandatory fields are to be included.
         """
 
         # populate the SOFA file
@@ -477,18 +485,16 @@ class Sofa():
             # create attribute with default value
             setattr(self, key, default)
 
-        # write API and date specific read only fields
+        # write API and date specific fields (some read only)
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        defaults = (
-            ["GLOBAL_DateCreated", now],
-            ["GLOBAL_DateModified", now],
-            ["GLOBAL_APIName", "sofar SOFA API for Python (pyfar.org)"],
-            ["GLOBAL_APIVersion", sf.__version__],
-            ["GLOBAL_ApplicationName", "Python"],
-            ["GLOBAL_ApplicationVersion", platform.python_version()])
-        for default in defaults:
-            if default[0] in self.__dict__:
-                setattr(self, default[0], default[1])
+        self._frozen = False
+        self.GLOBAL_DateCreated = now
+        self.GLOBAL_DateModified = now
+        self.GLOBAL_APIName = "sofar SOFA API for Python (pyfar.org)"
+        self.GLOBAL_APIVersion = sf.__version__
+        self.GLOBAL_ApplicationName = "Python"
+        self.GLOBAL_ApplicationVersion = platform.python_version()
+        self._frozen = True
 
 
 def update_conventions():
@@ -507,6 +513,10 @@ def update_conventions():
     The csv and json files are stored at sofar/conventions. Sofar works only on
     the json files. To get a list of all currently available SOFA conventions
     and their paths see :py:func:`~sofar.list_conventions`.
+
+    .. note::
+        If the official convention contain errors, calling this function might
+        break sofar. Be sure that you want to do this.
     """
 
     # url for parsing and downloading the convention files
@@ -604,7 +614,7 @@ def list_conventions(verbose=True, return_type=None):
 
 def read_sofa(filename, update_api=True, version="latest"):
     """
-    Read SOFA file from disk and convert it to SOFA dictionairy.
+    Read SOFA file from disk and convert it to SOFA object.
 
     Numeric data is returned as floats or numpy float arrays unless they have
     missing data, in which case they are returned as numpy masked arrays.
@@ -615,10 +625,10 @@ def read_sofa(filename, update_api=True, version="latest"):
         The filename. '.sofa' is appended to the filename, if it is not
         explicitly given.
     update_api : bool, optional
-        Update the API by calling :py:func:`~sofar.update_api`. This helps
+        Update the API by calling :py:func:`~Sofa.update_api`. This helps
         to find potential errors in the data and is thus recommended. If
-        reading a file does not work, try to call `read_sofa` with
-        ``update=False``. The default is ``True``.
+        reading a file fails, try to call `read_sofa` with ``update=False``.
+        The default is ``True``.
     version : str, optional
         The version to which the API is updated.
 
@@ -628,14 +638,14 @@ def read_sofa(filename, update_api=True, version="latest"):
             Match the version of the sofa file.
         str
             Version string, e.g., ``'1.0'``. Note that this might downgrade
-            the SOFA dictionairy
+            the SOFA object
 
         The default is ``'latest'``
 
     Returns
     -------
-    sofa : dict
-        The SOFA dictionairy filled with the default values of the convention.
+    sofa : Sofa
+        The SOFA object filled with the default values of the convention.
     """
 
     # check the filename
@@ -702,7 +712,7 @@ def read_sofa(filename, update_api=True, version="latest"):
 
 def write_sofa(filename: str, sofa: Sofa, version="latest"):
     """
-    Write a SOFA dictionary to disk as a SOFA file.
+    Write a SOFA object to disk as a SOFA file.
 
     Parameters
     ----------
@@ -710,14 +720,19 @@ def write_sofa(filename: str, sofa: Sofa, version="latest"):
         The filename. '.sofa' is appended to the filename, if it is not
         explicitly given.
     sofa : dict
-        The SOFA dictionairy that is written to disk
+        The SOFA object that is written to disk
+    version : str
+        The SOFA API is updated with :py:func:`~Sofa.update_api` before writing
+        to disk. Version specifies, which version of the convention is used.
 
-    Returns
-    -------
-    This function calls :py:func:`~sofar.update_api` before writing to disk.
-    The API is updated in `sofa` without the need for returning it. This
-    is because Python dictionaries are mutable objects, i.e., changes inside
-    this function also change the object outside.
+        ``'latest'``
+            Use the latest API and upgrade the SOFA file if required.
+        ``'match'``
+            Match the version of the sofa file.
+        str
+            Version string, e.g., ``'1.0'``.
+
+        The default is ``'latest'``.
     """
 
     # check the filename
@@ -754,7 +769,8 @@ def write_sofa(filename: str, sofa: Sofa, version="latest"):
 
             # get the data and type and shape
             value, dtype = _format_value_for_netcdf(
-                getattr(sofa, key), key, sofa._dimensions[key], sofa._api["S"])
+                getattr(sofa, key), key, sofa._convention[key]["type"],
+                sofa._dimensions[key], sofa._api["S"])
 
             # create variable and write data
             shape = tuple([dim for dim in sofa._dimensions[key]])
@@ -769,7 +785,7 @@ def write_sofa(filename: str, sofa: Sofa, version="latest"):
                         dim + "=" + str(sofa._api[dim]))
 
                 raise ValueError((
-                    f"Error writing sofa['{key}']: {value} of "
+                    f"Error writing sofa.{key}: {value} of "
                     f"intended type '{dtype}' and shape {shape_verbose}"))
 
             # write variable attributes
@@ -781,16 +797,16 @@ def write_sofa(filename: str, sofa: Sofa, version="latest"):
 
 def compare_sofa(sofa_a, sofa_b, verbose=True, exclude=None):
     """
-    Compare two sofa files against each other
+    Compare two SOFA objects against each other.
 
     Parameters
     ----------
-    sofa_a : dict
-        SOFA dictionairy
-    sofa_b : dict
-        SOFA dictionairy
+    sofa_a : Sofa
+        SOFA object
+    sofa_b : Sofa
+        SOFA object
     verbose : bool, optional
-        Print to console if differences were found. The default is True.
+        Print differences to the console. The default is True.
     exclude : str, optional
         Specify what fields should be excluded from the comparison
 
@@ -806,7 +822,7 @@ def compare_sofa(sofa_a, sofa_b, verbose=True, exclude=None):
     Returns
     -------
     is_identical : bool
-        True if sofa_a and sofa_b are identical, False otherwise.
+        ``True`` if sofa_a and sofa_b are identical, ``False`` otherwise.
     """
 
     is_identical = True
@@ -835,8 +851,9 @@ def compare_sofa(sofa_a, sofa_b, verbose=True, exclude=None):
     if len(keys_a) != len(keys_b):
         is_identical = False
         if verbose:
-            warnings.warn((f"not identical: sofa_a has {len(keys_a)} entries "
-                           f"and sofa_b {len(keys_b)}."))
+            warnings.warn((
+                f"not identical: sofa_a has {len(keys_a)} attributes for "
+                f"comparison and sofa_b has {len(keys_b)}."))
 
         return is_identical
 
@@ -844,8 +861,8 @@ def compare_sofa(sofa_a, sofa_b, verbose=True, exclude=None):
     if set(keys_a) != set(keys_b):
         is_identical = False
         if verbose:
-            warnings.warn(
-                "not identical: sofa_a and sofa_b do not have the same keys")
+            warnings.warn(("not identical: sofa_a and sofa_b do not have the "
+                           "same attributes"))
 
         return is_identical
 
@@ -1033,115 +1050,20 @@ def _convention_csv2dict(file: str):
     return convention
 
 
-def _load_convention(convention, version):
+def _format_value_for_netcdf(value, key, dtype, dimensions, S):
     """
-    Load SOFA convention from json file.
-
-    Parameters
-    ----------
-    convention : str
-        The name of the convention from which the SOFA file is created. See
-        :py:func:`~sofar.list_conventions`.
-
-    Returns
-    -------
-    convention : dict
-        The SOFA convention as a dictionary object
-    """
-    # check input
-    if not isinstance(convention, str):
-        raise TypeError(
-            f"Convention must be a string but is of type {type(convention)}")
-
-    # get and check path to json file
-    paths = list_conventions(False, "path")
-    path = [path for path in paths
-            if os.path.basename(path).startswith(convention + "_")]
-
-    if not len(path):
-        raise ValueError(
-            (f"Convention '{convention}' not found. See "
-             "sofar.list_conventions() for available conventions."))
-
-    # select the correct version
-    if version == "latest":
-        path = path[-1]
-    else:
-        versions = [p.split('_')[1][:-5] for p in path]
-        if version not in versions:
-            raise ValueError((
-                f"Version {version} not found. "
-                f"Available versions are {versions}"))
-        path = path[versions.index(version)]
-
-    # read convention from json file
-    with open(path, "r") as file:
-        convention = json.load(file)
-
-    return convention
-
-
-def _convention2sofa(convention, mandatory):
-    """
-    Convert a SOFA convention to a SOFA file filled with the default values.
-
-    Parameters
-    ----------
-    convention : dict
-        The SOFA convention
-    mandatory : bool
-        Flag to indicate if only mandatory fields are included in the SOFA file
-
-    Returns
-    -------
-    sofa : dict
-        The SOFA file with default values
-    """
-
-    # initialize SOFA file
-    sofa = {}
-
-    # populate the SOFA file
-    for key in convention.keys():
-
-        # skip optional fields if requested
-        if not _is_mandatory(convention[key]["flags"]) and mandatory:
-            continue
-
-        # set the default value
-        default = convention[key]["default"]
-        if isinstance(default, list):
-            ndim = len(convention[key]["dimensions"].split(", ")[0])
-            default = _nd_array(default, ndim)
-        sofa[key] = default
-
-    # write API and date specific read only fields
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    defaults = (["GLOBAL:DateCreated", now],
-                ["GLOBAL:DateModified", now],
-                ["GLOBAL:APIName", "sofar SOFA API for Python (pyfar.org)"],
-                ["GLOBAL:APIVersion", sf.__version__],
-                ["GLOBAL:ApplicationName", "Python"],
-                ["GLOBAL:ApplicationVersion", platform.python_version()])
-    for default in defaults:
-        if default[0] in sofa:
-            sofa[default[0]] = default[1]
-
-    return sofa
-
-
-def _format_value_for_netcdf(value, key, dimensions, S):
-    """
-    Format value from SOFA dictionary for saving in a NETCDF4 file.
+    Format value from SOFA object for saving in a NETCDF4 file.
 
     Parameters
     ----------
     value : str, array like
         The value to be formatted
     key : str
-        The variable name of the current value. Needed for verbose errors.
+        The name of the current attribute. Needed for verbose errors.
+    dtype : str
+        The the data type of value
     dimensions : str
-        The intended dimensions from sofa['API']['Dimensions']
+        The intended dimensions from ``sofa._dimensions``
     S : int
         Length of the string array.
 
@@ -1150,7 +1072,8 @@ def _format_value_for_netcdf(value, key, dimensions, S):
     value : str, numpy array
         The formatted value.
     netcdf_dtype : str
-        The data type as a string for writing to a NETCDF4 file.
+        The data type as a string for writing to a NETCDF4 file ('attribute',
+        'f8', or 'S1').
     """
     # copy value
     try:
@@ -1159,34 +1082,27 @@ def _format_value_for_netcdf(value, key, dimensions, S):
         pass
 
     # parse data
-    if ":" in key:
+    if dtype == "attribute":
         value = str(value)
         netcdf_dtype = "attribute"
-    elif "S" in dimensions:
+    elif dtype == "double":
+        value = _nd_array(value, len(dimensions))
+        netcdf_dtype = "f8"
+    elif dtype == "string":
         value = np.array(value, dtype="S" + str(S))
         value = _nd_array(value, len(dimensions))
         netcdf_dtype = 'S1'
-    elif "S" not in dimensions:
-        value = _nd_array(value, len(dimensions))
-        netcdf_dtype = "f8"
     else:
         raise ValueError((
-            f"Something went wrong in sofa['{key}']. This is either a bug or "
-            "an error in the convention. 'value' is an attribute if the key "
-            "contains ':'. In this case the input value must be convertible "
-            "to a string. 'value' is a string variable if the dimensions "
-            "contain 'S'. In this case the input value must be a string, a "
-            "list of strings or a numpy fixed length byte array, e.g., "
-            "np.array(data, dtype='S10'). 'vale is a float variable if "
-            "dimensions does not contain 'S'. In this case it must be "
-            "convertible to a numpy array."))
+            f"Something went wrong in sofa.{key}. This is either a bug or an"
+            "error in the convention."))
 
     return value, netcdf_dtype
 
 
 def _format_value_from_netcdf(value, key):
     """
-    Format value from NETCDF4 file for saving in a SOFA dictionairy
+    Format value from NETCDF4 file for saving in a SOFA object
 
     Parameters
     ----------
