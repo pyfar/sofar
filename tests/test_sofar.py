@@ -32,7 +32,7 @@ def test_list_conventions(capfd):
     assert isinstance(paths[0], tuple)
 
 
-def test_create_sofa_object():
+def test_create_sofa_object(capfd):
     # test assertion for type of convention parameter
     with pytest.raises(TypeError, match="Convention must be a string"):
         sf.Sofa(1)
@@ -47,6 +47,11 @@ def test_create_sofa_object():
     assert hasattr(sofa, '_convention')
     assert hasattr(sofa, '_dimensions')
     assert hasattr(sofa, '_api')
+
+    # assert __repr__
+    print(sofa)
+    out, _ = capfd.readouterr()
+    assert out == "sofar.SOFA object: GeneralTF 2.0\n"
 
     # test returning only mandatory fields
     sofa_all = sf.Sofa("GeneralTF")
@@ -90,6 +95,10 @@ def test_delete_attributes_os_sofa_object():
     # delete mandatory attribute
     with pytest.raises(TypeError, match="GLOBAL_Version is a mandatory"):
         delattr(sofa, "GLOBAL_Version")
+
+    # delete not existing attribute
+    with pytest.raises(TypeError, match="new is not an attribute"):
+        delattr(sofa, "new")
 
 
 def test_update_api_in_sofa_object():
@@ -211,7 +220,7 @@ def test_compare_sofa():
     with pytest.raises(ValueError, match="exclude is"):
         sf.compare_sofa(sofa_a, sofa_a, exclude="wrong")
 
-    # check identical dictionaries
+    # check identical objects
     assert sf.compare_sofa(sofa_a, sofa_a)
 
     # check different number of keys
@@ -394,13 +403,13 @@ def test_is_readonly():
 
 def test_nd_array():
     # test with single dimension array
-    for ndim in range(6, 1):
-        array = _nd_array(1)
+    for ndim in range(1, 6):
+        array = _nd_array(1, ndim)
         assert array.ndim == ndim
-        assert array.flatten == np.array([1])
+        assert array.flatten() == np.array([1])
 
     # test with two-dimensional array
-    for ndim in range(6, 1):
-        array = _nd_array(np.atleast_2d(1))
-        assert array.ndim == ndim
-        assert array.flatten == np.array([1])
+    for ndim in range(1, 6):
+        array = _nd_array(np.atleast_2d(1), ndim)
+        assert array.ndim == max(2, ndim)
+        assert array.flatten() == np.array([1])
