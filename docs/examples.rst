@@ -109,10 +109,10 @@ Data can simply be obtained and entered
     sofa.SourcePosition = [90, 0, 1.5]
 
 Now, the SOFA dictionary contains one HRIR - which is ``1`` for the left ear
-and ``1`` for the right ear - for a source at ``0`` degree azimuth, 90 degree
-elevation and a radius of ``1.5`` meter. Note that you just entered a list for
-`Data_IR` although it has to be a three-dimensional double variable. Don't
-worry about this, sofar will convert this for you in the next step.
+and ``1`` for the right ear - for a source at ``0`` degree azimuth, ``90``
+degree elevation and a radius of ``1.5`` meter. Note that you just entered a
+list for `Data_IR` although it has to be a three-dimensional double variable.
+Don't worry about this, sofar will convert this for you in the next step.
 
 You should now fill all mandatory entries of the SOFA dictionary if you were
 for real. For this is example we'll cut it here for the sake of brevity.
