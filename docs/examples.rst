@@ -117,7 +117,19 @@ Don't worry about this, sofar will convert this for you in the next step.
 You should now fill all mandatory entries of the SOFA dictionary if you were
 for real. For this is example we'll cut it here for the sake of brevity.
 
-To write your SOFA dictionary to disk type
+A SOFA object can be verified using
+
+.. code-block:: python
+
+    sofa.verify()
+
+This will check if all mandatory attributes are contained `sofa` and if all
+attributes have the correct data type and shape. This is a good try to make
+sure that your data can be read by other applications.
+
+Note that you usually do not need to call ``sofa.verify()``separately  because
+it is by default called if you create write or read a SOFA object. To write
+your SOFA dictionary to disk type
 
 .. code-block:: python
 

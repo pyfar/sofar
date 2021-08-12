@@ -329,7 +329,7 @@ class Sofa():
                         raise ValueError((
                             f"Elements of {key} can be of type int, float, "
                             f"complex but not {str(type(value))}"))
-            else:  # dtype == "string"
+            elif dtype == "string":
                 if not isinstance(value, (str, list, np.ndarray)):
                     raise ValueError((
                         f"{key} can be of type str, list, or but numpy array"
@@ -346,7 +346,11 @@ class Sofa():
                         raise ValueError((
                             f"Elements of {key} can be of str"
                             f"but not {str(type(value))}"))
-
+            else:
+                # Could only be tested by manipulating JSON convention files
+                raise ValueError((
+                    "Error in SOFA API. type must be attribute, double, or "
+                    f"string but is {dtype}"))
 
         # third run: Get the dimensions for E, R, M, N, and S
         keys = [key for key in self.__dict__.keys() if not key.startswith("_")
