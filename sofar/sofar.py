@@ -28,11 +28,11 @@ class Sofa():
         The version of the convention as a string, e.g., ``' 2.0'``. The
         default is ``'latest'``. Also see
         :py:func:`~sofar.list_conventions`.
-    update_api : bool, optional
-        Update the API by calling :py:func:`~Sofa.update_api`. This helps
-        to find potential errors in the default values and is thus recommended.
-        If reading a file does not work, try to call `Sofa` with
-        ``update=False``. The default is ``True``.
+    verify : bool, optional
+        Verify and update the SOFA object by calling :py:func:`~Sofa.verify`.
+        This helps to find potential errors in the default values and is thus
+        recommended. If reading a file does not work, try to call `Sofa` with
+        ``verify=False``. The default is ``True``.
 
     Returns
     -------
@@ -58,7 +58,7 @@ class Sofa():
     _read_only = []  # list of read only attributes
 
     def __init__(self, convention, mandatory=False, version="latest",
-                 update_api=True):
+                 verify=True):
         """See class docstring"""
 
         # get convention
@@ -74,8 +74,8 @@ class Sofa():
 
         # add and update the API
         # TODO class style
-        if update_api:
-            self.update_api(version)
+        if verify:
+            self.verify(version)
 
         self._frozen = True
 
@@ -144,13 +144,13 @@ class Sofa():
 
         Notes
         -----
-        ``self.update_api(version='match')`` is called to make sure that the
+        ``self.verify(version='match')`` is called to make sure that the
         required meta data is available.
 
         """
 
         # update the API to make sure all meta data is in place
-        self.update_api(version="match")
+        self.verify(version="match")
 
         # list of all attributes
         keys = [k for k in self.__dict__.keys() if not k.startswith("_")]
@@ -229,17 +229,9 @@ class Sofa():
 
         print(info_str)
 
-    def update_api(self, version="latest"):
+    def verify(self, version="latest"):
         """
-        Update the API of a SOFA object.
-
-        The API contains meta data about the SOFA object, such as the type and
-        default values of its attributes. It is required to show information
-        about the SOFA object and to write a SOFA file to disk.
-
-        .. note::
-            ``update_api`` is automatically called when you create a new SOFA
-            object or read a SOFA file disk using the default parameters.
+        Verify a SOFA object.
 
         This function updates the API, checks if all mandatory fields are
         contained and if the dimensions of the data inside the SOFA object are
@@ -247,9 +239,14 @@ class Sofa():
         is added to the SOFA object with its default value and a warning is
         raised.
 
-        The API of a SOFA object contains of three parts, that are stored
-        as private attributes. They should usually not be manipulated outside
-        of `update_api`
+        .. note::
+            ``verify`` is automatically called when you create a new SOFA
+            object or read a SOFA file disk using the default parameters.
+
+        The API of a SOFA object consists of three parts, that are stored
+        as private attributes. This is required for writing data with
+        :py:func:`~sofs.write_sofa` and should usually not be manipulated
+        outside of `verify`
 
         self._convention
             The SOFA convention with default values, variable dimensions, flags
@@ -622,7 +619,7 @@ def list_conventions(verbose=True, return_type=None):
         raise ValueError(f"return_type {return_type} is invalid")
 
 
-def read_sofa(filename, update_api=True, version="latest"):
+def read_sofa(filename, verify=True, version="latest"):
     """
     Read SOFA file from disk and convert it to SOFA object.
 
@@ -634,11 +631,11 @@ def read_sofa(filename, update_api=True, version="latest"):
     filename : str
         The filename. '.sofa' is appended to the filename, if it is not
         explicitly given.
-    update_api : bool, optional
-        Update the API by calling :py:func:`~Sofa.update_api`. This helps
-        to find potential errors in the data and is thus recommended. If
-        reading a file fails, try to call `read_sofa` with ``update=False``.
-        The default is ``True``.
+    verify : bool, optional
+        Verify and update the SOFA object by calling :py:func:`~Sofa.verify`.
+        This helps to find potential errors in the default values and is thus
+        recommended. If reading a file does not work, try to call `Sofa` with
+        ``verify=False``. The default is ``True``.
     version : str, optional
         The version to which the API is updated.
 
@@ -682,7 +679,7 @@ def read_sofa(filename, update_api=True, version="latest"):
                 raise ValueError("Version not found. Try version=latest")
 
         # get SOFA object with default values
-        sofa = sf.Sofa(convention, version=version_out, update_api=update_api)
+        sofa = sf.Sofa(convention, version=version_out, verify=verify)
 
         # allow writing read only attributes
         sofa._frozen = False
@@ -706,15 +703,15 @@ def read_sofa(filename, update_api=True, version="latest"):
         sofa._frozen = True
 
     # update api
-    if update_api:
+    if verify:
         try:
-            sofa.update_api(version)
+            sofa.verify(version)
         except: # noqa (No error handling - just improved verbosity)
             raise ValueError((
-                "The API could not be updated, maybe do to errornous data in "
-                "the SOFA file. Tr to call sofa=sofar.read_sofa(filename, "
-                "update=False) and than call sofar.update_api(sofa) to get "
-                "more informations"))
+                "The SOFA object could not be verified, maybe do to errornous "
+                "data in. Try to call sofa=sofar.read_sofa(filename, "
+                "verify=False) and than call sofa.verify() to get "
+                "more information"))
 
     return sofa
 
@@ -728,16 +725,17 @@ def write_sofa(filename: str, sofa: Sofa, version="latest"):
     filename : str
         The filename. '.sofa' is appended to the filename, if it is not
         explicitly given.
-    sofa : dict
+    sofa : object
         The SOFA object that is written to disk
     version : str
-        The SOFA API is updated with :py:func:`~Sofa.update_api` before writing
-        to disk. Version specifies, which version of the convention is used.
+        The SOFA object is verified and updated with :py:func:`~Sofa.verify`
+        before writing to disk. Version specifies, which version of the
+        convention is used:
 
         ``'latest'``
-            Use the latest API and upgrade the SOFA file if required.
+            Use the latest version upgrade the SOFA file if required.
         ``'match'``
-            Match the version of the sofa file.
+            Match the version of the SOFA object.
         str
             Version string, e.g., ``'1.0'``.
 
@@ -749,7 +747,7 @@ def write_sofa(filename: str, sofa: Sofa, version="latest"):
         filename += ".sofa"
 
     # update the dimensions
-    sofa.update_api(version)
+    sofa.verify(version)
 
     # list of all attribute names
     all_keys = [key for key in sofa.__dict__.keys() if not key.startswith("_")]

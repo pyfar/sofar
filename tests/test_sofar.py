@@ -77,7 +77,7 @@ def test_create_sofa_object(capfd):
         sf.Sofa("GeneralTF", version="0.25")
 
     # test without updating the api
-    sofa = sf.Sofa("GeneralTF", update_api=False)
+    sofa = sf.Sofa("GeneralTF", verify=False)
     assert hasattr(sofa, '_convention')
     assert not hasattr(sofa, '_dimensions')
     assert not hasattr(sofa, '_api')
@@ -115,26 +115,26 @@ def test_delete_attributes_os_sofa_object():
         delattr(sofa, "new")
 
 
-def test_update_api_in_sofa_object():
+def test_verify_in_sofa_object():
 
     # test the default "latest"
     sofa = sf.Sofa("GeneralTF", version="1.0")
     assert str(sofa.GLOBAL_SOFAConventionsVersion) == "1.0"
     with pytest.warns(UserWarning, match="Upgraded"):
-        sofa.update_api()
+        sofa.verify()
     assert str(sofa.GLOBAL_SOFAConventionsVersion) == "2.0"
 
     # test "match"
     sofa = sf.Sofa("GeneralTF", version="1.0")
     assert str(sofa.GLOBAL_SOFAConventionsVersion) == "1.0"
-    sofa.update_api(version="match")
+    sofa.verify(version="match")
     assert str(sofa.GLOBAL_SOFAConventionsVersion) == "1.0"
 
     # test downgrading
     sofa = sf.Sofa("GeneralTF")
     assert str(sofa.GLOBAL_SOFAConventionsVersion) == "2.0"
     with pytest.warns(UserWarning, match="Downgraded"):
-        sofa.update_api(version="1.0")
+        sofa.verify(version="1.0")
     assert str(sofa.GLOBAL_SOFAConventionsVersion) == "1.0"
 
     # test missing default attribute
@@ -143,14 +143,14 @@ def test_update_api_in_sofa_object():
     delattr(sofa, "GLOBAL_Conventions")
     sofa._frozen = True
     with pytest.warns(UserWarning, match="Mandatory attribute GLOBAL_Conv"):
-        sofa.update_api()
+        sofa.verify()
     assert sofa.GLOBAL_Conventions == "SOFA"
 
     # test attribute with wrong shape
     sofa = sf.Sofa("GeneralTF")
     sofa.ListenerPosition = 1
     with pytest.raises(ValueError, match=("The shape of ListenerPosition")):
-        sofa.update_api()
+        sofa.verify()
 
 
 def test_info(capfd):
@@ -230,7 +230,7 @@ def test_read_sofa():
     assert hasattr(sofa, "_api")
 
     # reading without updating API
-    sofa = sf.read_sofa(filename, update_api=False)
+    sofa = sf.read_sofa(filename, verify=False)
     assert not hasattr(sofa, "_api")
 
     # read non-existing file
@@ -260,10 +260,10 @@ def test_read_sofa():
         var = file.createVariable("Data_IR", "f8", ('I', 'A'))
         var[:] = np.zeros((1, 10)).astype("double")
     # reading data with update API generates an error
-    with pytest.raises(ValueError, match="The API could not be updated"):
+    with pytest.raises(ValueError, match="The SOFA object could not be"):
         sf.read_sofa(filename)
     # data can be read without updating API
-    sf.read_sofa(filename, update_api=False)
+    sf.read_sofa(filename, verify=False)
 
 
 def test_roundtrip():
