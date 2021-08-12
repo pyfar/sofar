@@ -123,12 +123,12 @@ To write your SOFA dictionary to disk type
 
     sf.write_sofa("your/path/to/SingleHRIR.sofa", sofa)
 
-Before writing the data to disk the function `sofa.update_api` is called,
-which checks if the data you entered is consistent. Update API would for
-example tell you that you are in trouble if you entered only one HRIR but two
-source positions. If the check passed the file will be written to disk. It is
-good to know that SOFA files are essentially netCDF4 files which is based
-on HDF5. The can thus be viewed with `HDF View`_.
+Before writing the data to disk the function `Sofa.verify` is called,
+which checks if the data you entered is consistent and updates the SOFA object.
+This would for example tell you that you are in trouble if you entered only one
+HRIR but two source positions. If the check passed the file will be written to
+disk. It is good to know that SOFA files are essentially netCDF4 files which is
+based on HDF5. The can thus be viewed with `HDF View`_.
 
 To read your sofa file you can use
 
