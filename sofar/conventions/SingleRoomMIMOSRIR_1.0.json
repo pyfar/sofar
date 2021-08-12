@@ -7,7 +7,7 @@
         "comment": ""
     },
     "GLOBAL:Version": {
-        "default": 2,
+        "default": "2.0",
         "flags": "rm",
         "dimensions": null,
         "type": "attribute",
@@ -21,7 +21,7 @@
         "comment": "Single-room multiple-input multiple-output spatial room impulse responses, depending on Emitters"
     },
     "GLOBAL:SOFAConventionsVersion": {
-        "default": 1,
+        "default": "1.0",
         "flags": "rm",
         "dimensions": null,
         "type": "attribute",

@@ -7,7 +7,7 @@
         "comment": ""
     },
     "GLOBAL:Version": {
-        "default": 2,
+        "default": "2.0",
         "flags": "rm",
         "dimensions": null,
         "type": "attribute",
@@ -21,7 +21,7 @@
         "comment": "This conventions stores IRs for general purposes, i.e., only the mandatory, SOFA general metadata are pre-defined"
     },
     "GLOBAL:SOFAConventionsVersion": {
-        "default": 2,
+        "default": "2.0",
         "flags": "rm",
         "dimensions": null,
         "type": "attribute",

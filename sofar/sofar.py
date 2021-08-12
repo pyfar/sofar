@@ -295,7 +295,60 @@ class Sofa():
                     f"Mandatory attribute {key} was missing and added to the "
                     "SOFA object with its default value"))
 
-        # second run: Get the dimensions for E, R, M, N, and S
+        # second run: verify data type
+        for key in keys:
+
+            # handle dimensions
+            dimensions = self._convention[key]["dimensions"]
+            dtype = self._convention[key]["type"]
+
+            # check data type
+            value = getattr(self, key)
+
+            if dtype == "attribute":
+                if not isinstance(value, str):
+                    raise ValueError((f"{key} must be a string but "
+                                      f"is of type {type(key)}"))
+            elif dtype == "double":
+                if not isinstance(value,
+                                  (int, float, complex, list, np.ndarray)):
+                    raise ValueError((
+                        f"{key} can be of type int, float, complex, list, or "
+                        f"numpy array but not {type(value)}"))
+                if isinstance(value, np.ndarray):
+                    if not (str(value.dtype).startswith('int') or
+                            str(value.dtype).startswith('float') or
+                            str(value.dtype).startswith('complex')):
+                        raise ValueError((
+                            f"{key} can be of dtype int, float, complex"
+                            f"but not {str(value.dtype)}"))
+                elif isinstance(value, list):
+                    dtype_ok = [
+                        type(v) in [int, float, complex] for v in value]
+                    if not all(dtype_ok):
+                        raise ValueError((
+                            f"Elements of {key} can be of type int, float, "
+                            f"complex but not {str(type(value))}"))
+            else:  # dtype == "string"
+                if not isinstance(value, (str, list, np.ndarray)):
+                    raise ValueError((
+                        f"{key} can be of type str, list, or but numpy array"
+                        f"but not type {type(key)}"))
+                if isinstance(value, np.ndarray):
+                    if not (str(value.dtype).startswith('<U') or
+                            str(value.dtype).startswith('<S')):
+                        raise ValueError((
+                            f"{key} can be of dtype U or S "
+                            f"but not {str(value.dtype)}"))
+                elif isinstance(value, list):
+                    dtype_ok = [type(v) == str for v in value]
+                    if not all(dtype_ok):
+                        raise ValueError((
+                            f"Elements of {key} can be of str"
+                            f"but not {str(type(value))}"))
+
+
+        # third run: Get the dimensions for E, R, M, N, and S
         keys = [key for key in self.__dict__.keys() if not key.startswith("_")
                 and self._convention[key]["dimensions"] is not None]
 
@@ -318,11 +371,12 @@ class Sofa():
         self._api["I"] = 1
         self._api["S"] = S
 
-        # third run: verify dimensions of data
+        # forth run: verify data type and dimensions of data
         for key in keys:
 
             # handle dimensions
             dimensions = self._convention[key]["dimensions"]
+            dtype = self._convention[key]["type"]
 
             # get value and actual shape
             try:
@@ -330,7 +384,7 @@ class Sofa():
             except AttributeError:
                 value = getattr(self, key)
 
-            if "S" in dimensions:
+            if dtype in ["attribute", "string"]:
                 # string or string array like data
                 shape_act = _get_size_and_shape_of_string_var(value, key)[1]
             else:
@@ -1008,6 +1062,9 @@ def _convention_csv2dict(file: str):
                 line[1] = [[[0, 0, 0, 1, 0, 0], [0, 0, 0, 1, 0, 0]]]
             if line[1] == "{''}":
                 line[1] = ['']
+            # convert versions to strings
+            if "Version" in line[0] and not isinstance(line[1], str):
+                line[1] = str(float(line[1]))
 
             # write second to last line
             convention[line[0]] = {}

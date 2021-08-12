@@ -7,7 +7,7 @@
         "comment": ""
     },
     "GLOBAL:Version": {
-        "default": 1,
+        "default": "1.0",
         "flags": "rm",
         "dimensions": null,
         "type": "attribute",
@@ -21,7 +21,7 @@
         "comment": "This convention stores arbitrary number of receivers while providing an information about the room. The main application is to store DRIRs for a single room."
     },
     "GLOBAL:SOFAConventionsVersion": {
-        "default": 0.3,
+        "default": "0.3",
         "flags": "rm",
         "dimensions": null,
         "type": "attribute",
@@ -312,7 +312,9 @@
         "comment": ""
     },
     "Data.IR": {
-        "default": [0],
+        "default": [
+            0
+        ],
         "flags": "m",
         "dimensions": "mrn",
         "type": "double",
@@ -333,7 +335,9 @@
         "comment": ""
     },
     "Data.Delay": {
-        "default": [0],
+        "default": [
+            0
+        ],
         "flags": "m",
         "dimensions": "IR, MR",
         "type": "double",

@@ -115,7 +115,7 @@ def test_delete_attributes_os_sofa_object():
         delattr(sofa, "new")
 
 
-def test_verify_in_sofa_object():
+def test_verify_sofa_object():
 
     # test the default "latest"
     sofa = sf.Sofa("GeneralTF", version="1.0")
@@ -151,6 +151,52 @@ def test_verify_in_sofa_object():
     sofa.ListenerPosition = 1
     with pytest.raises(ValueError, match=("The shape of ListenerPosition")):
         sofa.verify()
+
+    # test invalid data for netCDF attribute
+    sofa = sf.Sofa("GeneralTF")
+    sofa.GLOBAL_History = 1
+    with pytest.raises(ValueError, match="GLOBAL_History must be a string"):
+        sofa.verify()
+
+    # test invalid data for netCDF double variable
+    sofa = sf.Sofa("GeneralTF")
+    sofa.Data_Real = (1, )
+    with pytest.raises(ValueError, match="Data_Real can be of type"):
+        sofa.verify()
+
+    sofa.Data_Real = np.array("test")
+    with pytest.raises(ValueError, match="Data_Real can be of dtype"):
+        sofa.verify()
+
+    sofa.Data_Real = [1, 1., 1+1j, "1"]
+    with pytest.raises(ValueError, match="Elements of Data_Real can be"):
+        sofa.verify()
+
+    # test valid data
+    sofa.Data_Real = np.array([1])
+    sofa.verify()
+    sofa.Data_Real = [1]
+    sofa.verify()
+
+    # test invalid data for netCDF string variable
+    sofa = sf.Sofa("SimpleHeadphoneIR")
+    sofa.SourceModel = 1
+    with pytest.raises(ValueError, match="SourceModel can be of type"):
+        sofa.verify()
+
+    sofa.SourceModel = np.array(1)
+    with pytest.raises(ValueError, match="SourceModel can be of dtype"):
+        sofa.verify()
+
+    sofa.SourceModel = [1, "1"]
+    with pytest.raises(ValueError, match="Elements of SourceModel can be"):
+        sofa.verify()
+
+    # test valid data
+    sofa.SourceModel = ["test"]
+    sofa.verify()
+    sofa.SourceModel = np.array(["test"])
+    sofa.verify()
 
 
 def test_info(capfd):

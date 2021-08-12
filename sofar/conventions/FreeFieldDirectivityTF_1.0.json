@@ -7,7 +7,7 @@
         "comment": ""
     },
     "GLOBAL:Version": {
-        "default": 2,
+        "default": "2.0",
         "flags": "rm",
         "dimensions": null,
         "type": "attribute",
@@ -21,7 +21,7 @@
         "comment": "This conventions stores directivities of acoustic sources (instruments, loudspeakers, singers, talkers, etc) in the frequency domain for multiple musical notes in free field."
     },
     "GLOBAL:SOFAConventionsVersion": {
-        "default": 1,
+        "default": "1.0",
         "flags": "rm",
         "dimensions": null,
         "type": "attribute",
