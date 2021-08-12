@@ -289,7 +289,7 @@ def test_roundtrip():
         assert identical
 
 
-def test_compare_sofa():
+def test_compare_sofa_global_parameters():
 
     sofa_a = sf.Sofa("SimpleFreeFieldHRIR")
 
@@ -319,17 +319,12 @@ def test_compare_sofa():
         is_identical = sf.compare_sofa(sofa_a, sofa_b)
         assert not is_identical
 
-    # check different value for attribute
+    # check mismatching data types
     sofa_b = deepcopy(sofa_a)
-    sofa_b.Data_SamplingRate_Units = "kW"
-    with pytest.warns(UserWarning, match="not identical: different values for"):
-        is_identical = sf.compare_sofa(sofa_a, sofa_b)
-        assert not is_identical
-
-    # check different value for variable
-    sofa_b = deepcopy(sofa_a)
-    sofa_b.Data_SamplingRate = 96e3
-    with pytest.warns(UserWarning, match="not identical: different values for"):
+    sofa_b._frozen = False
+    sofa_b._convention["ReceiverPosition"]["type"] = "int"
+    sofa_b._frozen = True
+    with pytest.warns(UserWarning, match="not identical: ReceiverPosition"):
         is_identical = sf.compare_sofa(sofa_a, sofa_b)
         assert not is_identical
 
@@ -358,6 +353,39 @@ def test_compare_sofa():
     assert is_identical
 
 
+@pytest.mark.parametrize("value_a, value_b, attribute, fails", [
+    (1, "1", "GLOBAL_SOFAConventionsVersion", False),
+    (1, "1.0", "GLOBAL_SOFAConventionsVersion", False),
+    (1., "1", "GLOBAL_SOFAConventionsVersion", False),
+    ("1", "2", "GLOBAL_SOFAConventionsVersion", True),
+    ([[1, 2]], [1, 2], "Data_IR", False),
+    ([[1, 2]], [1, 3], "Data_IR", True),
+    ("HD 650", ["HD 650"], "SourceModel", False),
+    ("HD 650", np.array(["HD 650"], dtype="U"), "SourceModel", False),
+    ("HD 650", np.array(["HD 650"], dtype="S"), "SourceModel", False),
+    ("HD 650", "HD-650", "SourceModel", True)
+])
+def test_compare_sofa_attribute_values(value_a, value_b, attribute, fails):
+
+    # generate SOFA objects (SimpleHeadphoneIR has string variables)
+    sofa_a = sf.Sofa("SimpleHeadphoneIR")
+    sofa_a._frozen = False
+    sofa_b = deepcopy(sofa_a)
+
+    # set parameters
+    setattr(sofa_a, attribute, value_a)
+    sofa_a._frozen = True
+    setattr(sofa_b, attribute, value_b)
+    sofa_b._frozen = True
+
+    # compare
+    if fails:
+        with pytest.warns(UserWarning):
+            assert not sf.compare_sofa(sofa_a, sofa_b)
+    else:
+        assert sf.compare_sofa(sofa_a, sofa_b)
+
+
 def test_get_size_and_shape_of_string_var():
 
     # test with string
@@ -380,6 +408,10 @@ def test_get_size_and_shape_of_string_var():
         np.array(["four", "fivee"], dtype="S256"), "key")
     assert S == 5
     assert shape == (2, )
+
+    # test with wrong type
+    with pytest.raises(TypeError, match="key must be a string"):
+        _get_size_and_shape_of_string_var(1, "key")
 
 
 def test_format_value_for_netcdf():
@@ -437,33 +469,43 @@ def test_format_value_for_netcdf():
     assert dtype == "f8"
     assert value.ndim == 2
 
+    # unkonw data type
+    with pytest.raises(ValueError, match="Unknown type int for TestVar"):
+        value, dtype = _format_value_for_netcdf(1, "TestVar", "int", "MR", 12)
+
 
 def test_format_value_from_netcdf():
 
     # single string
     value = _format_value_from_netcdf(
-        np.array(["string"], dtype="S6"), "Some:Attribute")
+        np.array(["string"], dtype="S6"), "Some_Attribute")
     assert value == "string"
 
     # array of strings
     value = _format_value_from_netcdf(
-        np.array(["string1", "string2"], dtype="S7"), "Some:Attribute")
+        np.array(["string1", "string2"], dtype="S7"), "Some_Attribute")
     assert all(value == np.array(["string1", "string2"], dtype="U"))
 
     # numerical array that can be scalar
     value = _format_value_from_netcdf(
-        np.array([44100], dtype="float"), "Data.SamplingRate")
+        np.array([44100], dtype="float"), "Data_SamplingRate")
     assert value == 44100.
 
     # numerical array that can not be scalar
     value = _format_value_from_netcdf(
-        np.array([44100], dtype="float"), "Data.IR")
+        np.array([44100], dtype="float"), "Data_IR")
     assert value == np.array(44100., dtype="float")
 
-    # test with invalid data dyte
+    # masked array with missing data
+    array = np.ma.masked_array([1, 2], mask=[0, 1], dtype="float")
+    with pytest.warns(UserWarning, match="Entry Data_IR contains missing"):
+        value = _format_value_from_netcdf(array, "Data_IR")
+    npt.assert_allclose(value, array)
+
+    # test with invalid data dtype
     with pytest.raises(TypeError, match="Data.IR: value.dtype is int32 but"):
         _format_value_from_netcdf(
-            np.array([44100], dtype="int"), "Data.IR")
+            np.array([44100], dtype="int"), "Data_IR")
 
 
 def test_is_mandatory():
