@@ -846,84 +846,71 @@ def compare_sofa(sofa_a, sofa_b, verbose=True, exclude=None):
 
     # check for equal length
     if len(keys_a) != len(keys_b):
-        is_identical = False
-        if verbose:
-            warnings.warn((
-                f"not identical: sofa_a has {len(keys_a)} attributes for "
-                f"comparison and sofa_b has {len(keys_b)}."))
+        is_identical = _compare_sofa_warning((
+            f"not identical: sofa_a has {len(keys_a)} attributes for "
+            f"comparison and sofa_b has {len(keys_b)}."), verbose)
 
         return is_identical
 
     # check if the keys match
     if set(keys_a) != set(keys_b):
-        is_identical = False
-        if verbose:
-            warnings.warn(("not identical: sofa_a and sofa_b do not have the "
-                           "same attributes"))
+        is_identical = _compare_sofa_warning(
+            "not identical: sofa_a and sofa_b do not have the ame attributes",
+            verbose)
 
         return is_identical
 
-    # compare attributes
-    for key in [k for k in keys_a if
-                sofa_a._convention[k]["type"] == "attribute"]:
+    # compare the data inside the SOFA object
+    for key in keys_a:
 
-        if str(getattr(sofa_a, key)) != str(getattr(sofa_b, key)):
-            is_identical = False
-            if verbose:
-                warnings.warn(
-                    f"not identical: different values for {key}")
-
-    # compare data
-    for key in [k for k in keys_a if
-                sofa_a._convention[k]["type"] != "attribute"]:
-
-        # get the values and copy them to avoid changing mutable objects
+        # get data and types
         a = getattr(sofa_a, key)
         b = getattr(sofa_b, key)
-        try:
-            a = a.copy()
-            b = b.copy()
-        except AttributeError:
-            pass
+        type_a = sofa_a._convention[key]["type"]
+        type_b = sofa_b._convention[key]["type"]
 
-        currently_identical = True
+        # compare attributes
+        if type_a == "attribute" and type_b == "attribute":
 
-        # This is a bit messy because the comparison depends on the data type.
-        # Does anyone have a better idea?
-        if isinstance(a, (int, float, complex, str)) \
-                and isinstance(b, (int, float, complex, str)):
+            # handling versions (might be integer, float, or string)
+            if not isinstance(a, str) or not isinstance(a, str):
+                a = str(float(a))
+                b = str(float(b))
+
+            # compare
             if a != b:
-                currently_identical = False
-        elif isinstance(a, np.ndarray) and isinstance(b, np.ndarray):
-            if str(a.dtype).startswith("<U") or str(b.dtype).startswith("<U"):
-                if not np.all(np.squeeze(a) == np.squeeze(b)):
-                    currently_identical = False
-            else:
-                if npt.assert_allclose(np.squeeze(a), np.squeeze(b)):
-                    currently_identical = False
-        elif isinstance(a, (list, tuple, np.ndarray)) \
-                and isinstance(b, (list, tuple, np.ndarray)):
-            if npt.assert_allclose(np.squeeze(a), np.squeeze(b)):
-                currently_identical = False
-        elif isinstance(a, str) or isinstance(b, str):
-            if not np.all(np.squeeze(a) == np.squeeze(b)):
-                currently_identical = False
-        else:
-            try:
-                if not np.all(np.squeeze(a) == np.squeeze(b)):
-                    currently_identical = False
-            except: # noqa (not a real exception, only more verbose feedback)
-                is_identical = False
-                warnings.warn(
-                    f"not identical: data types of {key} could not be matched")
+                is_identical = _compare_sofa_warning(
+                    f"not identical: different values for {key}", verbose)
 
-        if not currently_identical:
-            is_identical = False
-            if verbose:
-                warnings.warn(
-                    f"not identical: different values for {key}")
+        # compare double variables
+        elif type_a == "double" and type_b == "double":
+
+            try:
+                npt.assert_allclose(np.squeeze(a), np.squeeze(b))
+            except AssertionError:
+                is_identical = _compare_sofa_warning(
+                    "not identical: different values for {key}", verbose)
+
+        # compare string variables
+        elif type_a == "string" and type_b == "string":
+            try:
+                assert np.all(
+                    np.squeeze(a).astype("S") == np.squeeze(b).astype("S"))
+            except AssertionError:
+                is_identical = _compare_sofa_warning(
+                    "not identical: different values for {key}", verbose)
+        else:
+            is_identical = _compare_sofa_warning(
+                (f"not identical: {key} has different data types "
+                 f"({type_a}, {type_b})"), verbose)
 
     return is_identical
+
+
+def _compare_sofa_warning(message, verbose):
+    if verbose:
+        warnings.warn(message)
+    return False
 
 
 def _convention_csv2dict(file: str):
@@ -1090,9 +1077,7 @@ def _format_value_for_netcdf(value, key, dtype, dimensions, S):
         value = _nd_array(value, len(dimensions))
         netcdf_dtype = 'S1'
     else:
-        raise ValueError((
-            f"Something went wrong in sofa.{key}. This is either a bug or an"
-            "error in the convention."))
+        raise ValueError(f"Unknown type {dtype} for {key}")
 
     return value, netcdf_dtype
 
@@ -1132,7 +1117,7 @@ def _format_value_from_netcdf(value, key):
 
     # convert arrays to scalars if they do not store data that is usually used
     # as scalar metadata, e.g., the SamplingRate
-    data_keys = ["Data.IR", "Data.Real", "Data.Imag", "Data.SOS" "Data.Delay"]
+    data_keys = ["Data_IR", "Data_Real", "Data_Imag", "Data_SOS" "Data_Delay"]
     if value.size == 1 and key not in data_keys:
         value = value[0]
 
@@ -1206,9 +1191,8 @@ def _get_size_and_shape_of_string_var(value, key):
         S = max(np.vectorize(len)(value))
         shape = value.shape
     else:
-        raise ValueError(
-            (f"sofa['{key}'] must be a string, numpy string "
-                "array, or list of strings"))
+        raise TypeError(
+            f"{key} must be a string, numpy string array, or list of strings")
 
     return S, shape
 
