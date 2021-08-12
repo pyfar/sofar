@@ -139,9 +139,9 @@ def test_verify_sofa_object():
 
     # test missing default attribute
     sofa = sf.Sofa("GeneralTF")
-    sofa._frozen = False
+    sofa._protected = False
     delattr(sofa, "GLOBAL_Conventions")
-    sofa._frozen = True
+    sofa._protected = True
     with pytest.warns(UserWarning, match="Mandatory attribute GLOBAL_Conv"):
         sofa.verify()
     assert sofa.GLOBAL_Conventions == "SOFA"
@@ -348,53 +348,53 @@ def test_compare_sofa_global_parameters():
 
     # check different number of keys
     sofa_b = deepcopy(sofa_a)
-    sofa_b._frozen = False
+    sofa_b._protected = False
     delattr(sofa_b, "ReceiverPosition")
-    sofa_b._frozen = True
+    sofa_b._protected = True
     with pytest.warns(UserWarning, match="not identical: sofa_a has"):
         is_identical = sf.compare_sofa(sofa_a, sofa_b)
         assert not is_identical
 
     # check different keys
     sofa_b = deepcopy(sofa_a)
-    sofa_b._frozen = False
+    sofa_b._protected = False
     sofa_b.PositionReceiver = sofa_b.ReceiverPosition
     delattr(sofa_b, "ReceiverPosition")
-    sofa_b._frozen = True
+    sofa_b._protected = True
     with pytest.warns(UserWarning, match="not identical: sofa_a and sofa_b"):
         is_identical = sf.compare_sofa(sofa_a, sofa_b)
         assert not is_identical
 
     # check mismatching data types
     sofa_b = deepcopy(sofa_a)
-    sofa_b._frozen = False
+    sofa_b._protected = False
     sofa_b._convention["ReceiverPosition"]["type"] = "int"
-    sofa_b._frozen = True
+    sofa_b._protected = True
     with pytest.warns(UserWarning, match="not identical: ReceiverPosition"):
         is_identical = sf.compare_sofa(sofa_a, sofa_b)
         assert not is_identical
 
     # check exclude GLOBAL attributes
     sofa_b = deepcopy(sofa_a)
-    sofa_b._frozen = False
+    sofa_b._protected = False
     delattr(sofa_b, "GLOBAL_Version")
-    sofa_b._frozen = True
+    sofa_b._protected = True
     is_identical = sf.compare_sofa(sofa_a, sofa_b, exclude="GLOBAL")
     assert is_identical
 
     # check exclude Date attributes
     sofa_b = deepcopy(sofa_a)
-    sofa_b._frozen = False
+    sofa_b._protected = False
     delattr(sofa_b, "GLOBAL_DateModified")
-    sofa_b._frozen = True
+    sofa_b._protected = True
     is_identical = sf.compare_sofa(sofa_a, sofa_b, exclude="DATE")
     assert is_identical
 
     # check exclude Date attributes
     sofa_b = deepcopy(sofa_a)
-    sofa_b._frozen = False
+    sofa_b._protected = False
     delattr(sofa_b, "GLOBAL_DateModified")
-    sofa_b._frozen = True
+    sofa_b._protected = True
     is_identical = sf.compare_sofa(sofa_a, sofa_b, exclude="ATTR")
     assert is_identical
 
@@ -415,14 +415,14 @@ def test_compare_sofa_attribute_values(value_a, value_b, attribute, fails):
 
     # generate SOFA objects (SimpleHeadphoneIR has string variables)
     sofa_a = sf.Sofa("SimpleHeadphoneIR")
-    sofa_a._frozen = False
+    sofa_a._protected = False
     sofa_b = deepcopy(sofa_a)
 
     # set parameters
     setattr(sofa_a, attribute, value_a)
-    sofa_a._frozen = True
+    sofa_a._protected = True
     setattr(sofa_b, attribute, value_b)
-    sofa_b._frozen = True
+    sofa_b._protected = True
 
     # compare
     if fails:

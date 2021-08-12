@@ -54,8 +54,11 @@ class Sofa():
 
     # these have to be set here, because they are used in __setattr__ and
     # Python checks if they exist upon class creation
-    _frozen = False  # do not allow to add attributes if True
-    _read_only = []  # list of read only attributes
+
+    # don't allow adding attributes and deleting/writing read only attributes
+    _protected = False
+    # list of read only attributes (filled upon init)
+    _read_only = []
 
     def __init__(self, convention, mandatory=False, version="latest",
                  verify=True):
@@ -77,14 +80,14 @@ class Sofa():
         if verify:
             self.verify(version)
 
-        self._frozen = True
+        self._protected = True
 
     def __setattr__(self, name: str, value):
         # don't allow new attributes to be added outside the class
-        if self._frozen and not hasattr(self, name):
+        if self._protected and not hasattr(self, name):
             raise TypeError(f"{name} is an invalid attribute")
         # don't allow setting read only attributes
-        if name in self._read_only and self._frozen:
+        if name in self._read_only and self._protected:
             raise TypeError(f"{name} is a read only attribute")
         super.__setattr__(self, name, value)
 
@@ -93,7 +96,7 @@ class Sofa():
         if not hasattr(self, name):
             raise TypeError(f"{name} is not an attribute")
         # delete anything if not frozen
-        if not self._frozen:
+        if not self._protected:
             super().__delattr__(name)
         # don't allow deleting mandatory attributes
         elif not _is_mandatory(self._convention[name]["flags"]):
@@ -277,10 +280,10 @@ class Sofa():
 
         # initialize the API
         self._add_api(version)
-        self._frozen = False
+        self._protected = False
         self._dimensions = {}
         self._api = {}
-        self._frozen = True
+        self._protected = True
 
         # first run: check if the mandatory attributes are contained
         keys = [key for key in self.__dict__.keys() if not key.startswith("_")]
@@ -288,9 +291,9 @@ class Sofa():
         for key in self._convention.keys():
             if _is_mandatory(self._convention[key]["flags"]) \
                     and key not in keys:
-                self._frozen = False
+                self._protected = False
                 setattr(self, key, self._convention[key]["default"])
-                self._frozen = True
+                self._protected = True
                 warnings.warn((
                     f"Mandatory attribute {key} was missing and added to the "
                     "SOFA object with its default value"))
@@ -453,9 +456,9 @@ class Sofa():
 
         # let the user know
         if v_current != v_new:
-            self._frozen = False
+            self._protected = False
             self.GLOBAL_SOFAConventionsVersion = v_new
-            self._frozen = True
+            self._protected = True
 
         if float(v_current) < float(v_new):
             warnings.warn(("Upgraded SOFA object from "
@@ -550,14 +553,14 @@ class Sofa():
 
         # write API and date specific fields (some read only)
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self._frozen = False
+        self._protected = False
         self.GLOBAL_DateCreated = now
         self.GLOBAL_DateModified = now
         self.GLOBAL_APIName = "sofar SOFA API for Python (pyfar.org)"
         self.GLOBAL_APIVersion = sf.__version__
         self.GLOBAL_ApplicationName = "Python"
         self.GLOBAL_ApplicationVersion = platform.python_version()
-        self._frozen = True
+        self._protected = True
 
 
 def update_conventions():
@@ -740,7 +743,7 @@ def read_sofa(filename, verify=True, version="latest"):
         sofa = sf.Sofa(convention, version=version_out, verify=verify)
 
         # allow writing read only attributes
-        sofa._frozen = False
+        sofa._protected = False
 
         # load global attributes
         for attr in file.ncattrs():
@@ -758,7 +761,7 @@ def read_sofa(filename, verify=True, version="latest"):
                         getattr(file[var], attr))
 
         # do not allow writing read only attributes any more
-        sofa._frozen = True
+        sofa._protected = True
 
     # update api
     if verify:
