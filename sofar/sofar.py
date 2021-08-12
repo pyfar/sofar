@@ -894,7 +894,7 @@ def compare_sofa(sofa_a, sofa_b, verbose=True, exclude=None):
                 and isinstance(b, (int, float, complex, str)):
             if a != b:
                 currently_identical = False
-        elif isinstance(a, np.ndarray) and isinstance(a, np.ndarray):
+        elif isinstance(a, np.ndarray) and isinstance(b, np.ndarray):
             if str(a.dtype).startswith("<U") or str(b.dtype).startswith("<U"):
                 if not np.all(np.squeeze(a) == np.squeeze(b)):
                     currently_identical = False
