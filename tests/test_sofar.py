@@ -447,8 +447,8 @@ def test_add_entry():
     assert sofa._convention["Temperature"] == entry
 
     # test adding string variable, global and local attributes
-    # sofa.add_entry("Mood", "good", "string", "MS")
-    # assert sofa.Mood == "good"
+    sofa.add_entry("Mood", "good", "string", "MS")
+    assert sofa.Mood == "good"
     sofa.add_entry("GLOBAL_Mood", "good", "attribute", None)
     assert sofa.GLOBAL_Mood == "good"
     sofa.add_entry("Temperature_Units", "degree Celsius", "attribute", None)

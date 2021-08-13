@@ -8,7 +8,7 @@ import numpy as np
 import numpy.testing as npt
 import warnings
 from bs4 import BeautifulSoup
-from netCDF4 import Dataset
+from netCDF4 import Dataset, stringtochar
 import sofar as sf
 
 
@@ -760,7 +760,7 @@ def read_sofa(filename, verify=True, version="latest"):
         raise ValueError(f"{filename} does not exist")
 
     # open new NETCDF4 file for reading
-    with Dataset(filename, "r", format="NETCDF4") as file:
+    with Dataset(filename, "r+", format="NETCDF4") as file:
 
         # get convention name and version
         convention = getattr(file, "SOFAConventions")
@@ -795,6 +795,9 @@ def read_sofa(filename, verify=True, version="latest"):
 
         # load data
         for var in file.variables.keys():
+
+            if str(file[var].dtype) == "|S1":
+                file[var]._Encoding = "ascii"
 
             value = _format_value_from_netcdf(file[var][:], var)
 
@@ -901,7 +904,11 @@ def write_sofa(filename: str, sofa: Sofa, version="latest"):
             shape = tuple([dim for dim in sofa._dimensions[key]])
             tmp_var = file.createVariable(
                 key.replace("Data_", "Data."), dtype, shape)
-            tmp_var[:] = value
+            if dtype == "f8":
+                tmp_var[:] = value
+            else:
+                tmp_var[:] = stringtochar(value)
+                tmp_var._Encoding = "ascii"
 
             # write variable attributes
             sub_keys = [k for k in all_keys if k.startswith(key + "_")]
@@ -943,8 +950,11 @@ def compare_sofa(sofa_a, sofa_b, verbose=True, exclude=None):
     is_identical = True
 
     # get and filter keys
-    keys_a = [k for k in sofa_a.__dict__.keys() if not k.startswith("_")]
-    keys_b = [k for k in sofa_b.__dict__.keys() if not k.startswith("_")]
+    # ('_*' are SOFA object private variables, '__' are netCDF attributes)
+    keys_a = [k for k in sofa_a.__dict__.keys()
+              if not k.startswith("_") and "__" not in k]
+    keys_b = [k for k in sofa_b.__dict__.keys()
+              if not k.startswith("_") and "__" not in k]
 
     if exclude is not None:
         if exclude.upper() == "GLOBAL":
@@ -1226,15 +1236,13 @@ def _format_value_from_netcdf(value, key):
         else:
             # Convert to numpy array or scalar
             value = np.asarray(value)
-    elif str(value.dtype).startswith("|S"):
+    elif str(value.dtype)[1] == "S" or str(value.dtype)[1] == "U":
         # string arrays are stored in masked arrays with empty strings '' being
         # masked. Convert to regular arrays with unmasked empty strings
-        value = np.asarray(value)
-        # decode binary format
-        value = value.astype("U")
+        value = np.asarray(value).astype("U")
     else:
         raise TypeError(
-            f"{key}: value.dtype is {value.dtype} but must be float or S")
+            f"{key}: value.dtype is {value.dtype} but must be S or U")
 
     # convert arrays to scalars if they do not store data that is usually used
     # as scalar metadata, e.g., the SamplingRate
