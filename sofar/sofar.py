@@ -95,12 +95,15 @@ class Sofa():
         # can't delete non existing attributes
         if not hasattr(self, name):
             raise TypeError(f"{name} is not an attribute")
-        # delete anything if not frozen
-        if not self._protected:
+        # delete anything if not frozen, delete non mandatory
+        if not self._protected or \
+                not _is_mandatory(self._convention[name]["flags"]):
             super().__delattr__(name)
-        # don't allow deleting mandatory attributes
-        elif not _is_mandatory(self._convention[name]["flags"]):
-            super().__delattr__(name)
+
+            # check if custom field as to be deleted
+            if hasattr(self, "_custom"):
+                if name in self._custom:
+                    self._custom.pop(name)
         else:
             raise TypeError(
                 f"{name} is a mandatory attribute that can not be deleted")
@@ -231,6 +234,30 @@ class Sofa():
             raise ValueError(f"info='{info}' is invalid")
 
         print(info_str)
+
+    def add_entry(self, name, value, dtype, dimensions):
+
+        # check input
+        if hasattr(self, name):
+            raise ValueError(f"Entry {name} already exists")
+        if "_" in name and dtype != "attribute":
+            raise ValueError(
+                "underscores '_' in the name are only allowed for attributes")
+        if dtype not in ["attribute", "double", "string"]:
+            raise ValueError(
+                f"dtype is {dtype} but must be attribute, double, or string")
+        if dimensions is None and dtype != "attribute":
+            raise ValueError(("dimensions must be provided for entries of "
+                              "dtype double and string"))
+        if dimensions is not None:
+            for dimension in dimensions:
+                if dimension not in "ERMNCIS":
+                    raise ValueError(("Dimension must be a string consisting "
+                                      "of E, R, M, N, C, I, or S"))
+
+        # add attribute to class
+        _add_custom_api_entry(
+            self, name, value, None, dimensions, dtype, False)
 
     def verify(self, version="latest"):
         """
@@ -449,23 +476,33 @@ class Sofa():
         v_new = _verify_convention_and_version(
                 version, v_current, c_current)
 
-        # load and add convention
+        # load and add convention and version
         convention = self._load_convention(
             c_current, v_new)
         self._convention = convention
 
-        # let the user know
         if v_current != v_new:
             self._protected = False
             self.GLOBAL_SOFAConventionsVersion = v_new
             self._protected = True
 
+        # feedback in case of up/downgrade
         if float(v_current) < float(v_new):
             warnings.warn(("Upgraded SOFA object from "
                            f"version {v_current} to {v_new}"))
         elif float(v_current) > float(v_new):
             warnings.warn(("Downgraded SOFA object from "
                            f"version {v_current} to {v_new}"))
+
+        # check if custom fields can be added
+        if hasattr(self, "_custom"):
+            for key in self._custom:
+                if key in self._convention:
+                    self._custom.pop(key)
+                    raise ValueError((
+                        f"Custom entry {key} can not be added. It is already "
+                        "contained in {self.GLOBAL_SOFAConventions}"))
+                self._convention[key] = self._custom[key]
 
     def _load_convention(self, convention, version):
         """
@@ -747,18 +784,40 @@ def read_sofa(filename, verify=True, version="latest"):
 
         # load global attributes
         for attr in file.ncattrs():
-            setattr(sofa, "GLOBAL_" + attr, getattr(file, attr))
+
+            value = getattr(file, attr)
+
+            if not hasattr(sofa, "GLOBAL_" + attr):
+                _add_custom_api_entry(sofa, "GLOBAL_" + attr, value, None,
+                                      None, "attribute", True)
+            else:
+                setattr(sofa, "GLOBAL_" + attr, value)
 
         # load data
         for var in file.variables.keys():
-            # format and write value
+
             value = _format_value_from_netcdf(file[var][:], var)
-            setattr(sofa, var.replace(".", "_"), value)
+
+            if not hasattr(sofa, var.replace(".", "_")):
+                dimensions = "".join([d for d in file[var].dimensions])
+                dtype = "double" if str(file[var].datatype).startswith(
+                    "float") else "string"
+                _add_custom_api_entry(sofa, var.replace(".", "_"), value, None,
+                                      dimensions, dtype, True)
+            else:
+                setattr(sofa, var.replace(".", "_"), value)
 
             # load variable attributes
             for attr in file[var].ncattrs():
-                setattr(sofa, var.replace(".", "_") + "_" + attr,
-                        getattr(file[var], attr))
+
+                value = getattr(file[var], attr)
+
+                if not hasattr(sofa, var.replace(".", "_") + "_" + attr):
+                    _add_custom_api_entry(
+                        sofa, var.replace(".", "_") + "_" + attr, value, None,
+                        None, "attribute", True)
+                else:
+                    setattr(sofa, var.replace(".", "_") + "_" + attr, value)
 
         # do not allow writing read only attributes any more
         sofa._protected = True
@@ -1184,6 +1243,43 @@ def _format_value_from_netcdf(value, key):
         value = value[0]
 
     return value
+
+
+def _add_custom_api_entry(sofa, key, value, flags, dimensions, dtype, warn):
+    """
+    Add custom entry to the sofa._convention and permanently save it in
+    sofa._custom
+
+    Parameters
+    ----------
+    sofa : Sofa
+    key : str
+        name of the entry
+    flags, dimensions, dtype : any
+        as in sofa._convention
+    warn : bool
+        Make a user warning that a custom entry was added
+    """
+    # create custom API if it not exists
+    sofa._protected = False
+    if not hasattr(sofa, "_custom"):
+        sofa._custom = {}
+
+    # add user entry to custom API
+    sofa._custom[key] = {
+        "flags": flags,
+        "dimensions": dimensions,
+        "type": dtype,
+        "default": None,
+        "comment": ""}
+    sofa._add_api(version="match")
+
+    # add attribute to object
+    setattr(sofa, key, value)
+    sofa._protected = True
+
+    if warn:
+        warnings.warn(f"Added custom attribute {key}")
 
 
 def _is_mandatory(flags):

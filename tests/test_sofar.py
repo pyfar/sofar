@@ -432,6 +432,39 @@ def test_compare_sofa_attribute_values(value_a, value_b, attribute, fails):
         assert sf.compare_sofa(sofa_a, sofa_b)
 
 
+def test_add_entry():
+
+    sofa = sf.Sofa("GeneralTF")
+
+    tmp_dir = TemporaryDirectory()
+
+    # test adding a single variable entry
+    sofa.add_entry("Temperature", 25.1, "double", "MI")
+    entry = {"flags": None, "dimensions": "MI", "type": "double",
+             "default": None, "comment": ""}
+    assert sofa.Temperature == 25.1
+    assert sofa._custom["Temperature"] == entry
+    assert sofa._convention["Temperature"] == entry
+
+    # test adding string variable, global and local attributes
+    # sofa.add_entry("Mood", "good", "string", "MS")
+    # assert sofa.Mood == "good"
+    sofa.add_entry("GLOBAL_Mood", "good", "attribute", None)
+    assert sofa.GLOBAL_Mood == "good"
+    sofa.add_entry("Temperature_Units", "degree Celsius", "attribute", None)
+    assert sofa.Temperature_Units == "degree Celsius"
+
+    # check if everything can be verified and written, and read correctly
+    sf.write_sofa(os.path.join(tmp_dir.name, "tmp"), sofa)
+    sofa_read = sf.read_sofa(os.path.join(tmp_dir.name, "tmp"))
+    assert sf.compare_sofa(sofa, sofa_read)
+
+    # test deleting an entry
+    delattr(sofa, "Temperature_Units")
+    assert not hasattr(sofa, "Temperature_Units")
+    assert "Temperature_Units" not in sofa._custom
+
+
 def test_get_size_and_shape_of_string_var():
 
     # test with string
