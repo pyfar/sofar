@@ -142,7 +142,7 @@ This will check if all mandatory attributes are contained `sofa` and if all
 attributes have the correct data type and shape. This is a good try to make
 sure that your data can be read by other applications.
 
-Note that you usually do not need to call ``sofa.verify()``separately  because
+Note that you usually do not need to call ``sofa.verify()`` separately  because
 it is by default called if you create write or read a SOFA object. To write
 your SOFA dictionary to disk type
 

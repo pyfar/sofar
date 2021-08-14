@@ -236,6 +236,54 @@ class Sofa():
         print(info_str)
 
     def add_entry(self, name, value, dtype, dimensions):
+        """
+        Add custom entry to the SOFA object.
+
+        Parameters
+        ----------
+        name : str
+            Name of the new entry.
+        value : any
+            value to be added (see `dtype` for restrictions).
+        dtype : str
+            Type of the entry to be added in netCDF style:
+
+            ''`attribute`''
+                An attribute stores meta data as string. Attributes must
+                contain a ``'_'`` in there name and can either be
+                ``'GLOBAL_AttributeName'`` or add meta data to an
+                ``ExistinEntryName_AttributeName'``.
+            ``'double'``
+                Use this to store numeric data that can be provided as number
+                list or numpy array.
+            ``'string'``
+                Use this to store string variables as numpy string arrays of
+                type ``'U'`` or ``'S'``.
+
+        dimensions : str
+            The shape of the new entry as a string. See
+            ``self.info('dimensions')``.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            import sofar as sf
+            sofa = sf.Sofa("GeneralTF")
+
+            # add numeric data
+            sofa.add_entry("Temperature", 25.1, "double", "MI")
+
+            # add GLOBAL and Variable attribtue
+            sofa.add_entry(
+                "GLOBAL_DateMeasured", "8.08.2021", "attribute", None)
+            sofa.add_entry(
+                "Temperature_Units", "degree Celsius", "attribute", None)
+
+            # add a string data
+            sofa.add_entry(
+                "Comment", "Measured with wind screen", "string", "MS")
+        """
 
         # check input
         if hasattr(self, name):
