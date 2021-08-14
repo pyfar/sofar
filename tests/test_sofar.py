@@ -100,7 +100,7 @@ def test_set_attributes_of_sofa_object():
         sofa.new = 1
 
 
-def test_delete_attributes_os_sofa_object():
+def test_sofa_delete_attribute():
     sofa = sf.Sofa("GeneralTF")
 
     # delete optional attribute
@@ -115,7 +115,7 @@ def test_delete_attributes_os_sofa_object():
         delattr(sofa, "new")
 
 
-def test_verify_sofa_object():
+def test_sofa_verify():
 
     # test the default "latest"
     sofa = sf.Sofa("GeneralTF", version="1.0")
@@ -463,6 +463,23 @@ def test_add_entry():
     delattr(sofa, "Temperature_Units")
     assert not hasattr(sofa, "Temperature_Units")
     assert "Temperature_Units" not in sofa._custom
+
+    # test assertions
+    # add existing entry
+    with pytest.raises(ValueError, match="Entry Temperature already exists"):
+        sofa.add_entry("Temperature", 25.1, "double", "MI")
+    # entry violating the naming convention
+    with pytest.raises(ValueError, match="underscores '_' in the name"):
+        sofa.add_entry("Temperature_Celsius", 25.1, "double", "MI")
+    # entry with wrong type
+    with pytest.raises(ValueError, match="dtype is float but must be"):
+        sofa.add_entry("TemperatureCelsius", 25.1, "float", "MI")
+    # variable without dimensions
+    with pytest.raises(ValueError, match="dimensions must be provided"):
+        sofa.add_entry("TemperatureCelsius", 25.1, "double", None)
+    # invalid dimensins
+    with pytest.raises(ValueError, match="dimensions must be"):
+        sofa.add_entry("TemperatureCelsius", 25.1, "double", "UPS")
 
 
 def test_get_size_and_shape_of_string_var():

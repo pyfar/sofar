@@ -252,7 +252,7 @@ class Sofa():
         if dimensions is not None:
             for dimension in dimensions:
                 if dimension not in "ERMNCIS":
-                    raise ValueError(("Dimension must be a string consisting "
+                    raise ValueError(("dimensions must be a string consisting "
                                       "of E, R, M, N, C, I, or S"))
 
         # add attribute to class
@@ -497,11 +497,6 @@ class Sofa():
         # check if custom fields can be added
         if hasattr(self, "_custom"):
             for key in self._custom:
-                if key in self._convention:
-                    self._custom.pop(key)
-                    raise ValueError((
-                        f"Custom entry {key} can not be added. It is already "
-                        "contained in {self.GLOBAL_SOFAConventions}"))
                 self._convention[key] = self._custom[key]
 
     def _load_convention(self, convention, version):
