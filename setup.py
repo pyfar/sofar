@@ -45,7 +45,7 @@ setup(
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9'
     ],
-    description="Maybe the most intuitive python package for SOFA files so far.",
+    description="Maybe the most complete python package for SOFA files so far",
     install_requires=requirements,
     license="MIT license",
     long_description=readme,
