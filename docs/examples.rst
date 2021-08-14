@@ -115,7 +115,22 @@ list for `Data_IR` although it has to be a three-dimensional double variable.
 Don't worry about this, sofar will convert this for you in the next step.
 
 You should now fill all mandatory entries of the SOFA dictionary if you were
-for real. For this is example we'll cut it here for the sake of brevity.
+for real. For this is example we'll cut it here for the sake of brevity. Let
+us, however, delete an optional entry
+
+.. code-block:: python
+
+    delattr(sofa, "SourceUp")
+
+In some cases you might want to add a custom data - although third party
+applications most likely won't make use of non-standardized data. Try this
+to add a Temperature value and unit
+
+.. code-block:: python
+
+    sofa.add_entry("Temperature", 25.1, "double", "MI")
+    sofa.add_entry("Temperature_Units", "degree Celsius", "attribute", None)
+
 
 A SOFA object can be verified using
 
