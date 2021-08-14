@@ -58,7 +58,7 @@ class Sofa():
     # don't allow adding attributes and deleting/writing read only attributes
     _protected = False
     # list of read only attributes (filled upon init)
-    _read_only = []
+    _read_only_attr = []
 
     def __init__(self, convention, mandatory=False, version="latest",
                  verify=True):
@@ -68,9 +68,9 @@ class Sofa():
         self._convention = self._load_convention(convention, version)
 
         # update read only attributes
-        self._read_only = [
+        self._read_only_attr = [
             key for key in self._convention.keys()
-            if _is_read_only(self._convention[key]["flags"])]
+            if self._read_only(self._convention[key]["flags"])]
 
         # add attributes with default values
         self._convention2sofa(mandatory)
@@ -87,7 +87,7 @@ class Sofa():
         if self._protected and not hasattr(self, name):
             raise TypeError(f"{name} is an invalid attribute")
         # don't allow setting read only attributes
-        if name in self._read_only and self._protected:
+        if name in self._read_only_attr and self._protected:
             raise TypeError(f"{name} is a read only attribute")
         super.__setattr__(self, name, value)
 
@@ -97,7 +97,7 @@ class Sofa():
             raise TypeError(f"{name} is not an attribute")
         # delete anything if not frozen, delete non mandatory
         if not self._protected or \
-                not _is_mandatory(self._convention[name]["flags"]):
+                not self._mandatory(self._convention[name]["flags"]):
             super().__delattr__(name)
 
             # check if custom field as to be deleted
@@ -191,11 +191,11 @@ class Sofa():
 
                 # check if field should be skipped
                 flags = self._convention[key]["flags"]
-                if (not _is_mandatory(flags) and info == "mandatory") \
+                if (not self._mandatory(flags) and info == "mandatory") \
                         or \
-                        (_is_mandatory(flags) and info == "optional") \
+                        (self._mandatory(flags) and info == "optional") \
                         or \
-                        (not _is_read_only(flags) and info == "read only"):
+                        (not self._read_only(flags) and info == "read only"):
                     continue
 
                 info_str += key + "\n"
@@ -223,9 +223,9 @@ class Sofa():
                     f"{key}\n"
                     f"\ttype: {self._convention[key]['type']}\n"
                     f"\tmandatory: "
-                    f"{_is_mandatory(self._convention[key]['flags'])}\n"
+                    f"{self._mandatory(self._convention[key]['flags'])}\n"
                     f"\tread only: "
-                    f"{_is_read_only(self._convention[key]['flags'])}\n"
+                    f"{self._read_only(self._convention[key]['flags'])}\n"
                     f"\tdefault: {self._convention[key]['default']}\n"
                     f"\tshape: "
                     f"{str(self._convention[key]['dimensions']).upper()}\n"
@@ -306,7 +306,7 @@ class Sofa():
         """
 
         # initialize the API
-        self._add_api(version)
+        self._update_convention(version)
         self._protected = False
         self._dimensions = {}
         self._api = {}
@@ -316,7 +316,7 @@ class Sofa():
         keys = [key for key in self.__dict__.keys() if not key.startswith("_")]
 
         for key in self._convention.keys():
-            if _is_mandatory(self._convention[key]["flags"]) \
+            if self._mandatory(self._convention[key]["flags"]) \
                     and key not in keys:
                 self._protected = False
                 setattr(self, key, self._convention[key]["default"])
@@ -397,8 +397,8 @@ class Sofa():
                     self._api[dim.upper()] = \
                         _nd_array(value, 4).shape[id]
                 if dim == "S":
-                    S = max(S,
-                            _get_size_and_shape_of_string_var(value, key)[0])
+                    S = max(S, self._get_size_and_shape_of_string_var(
+                        value, key)[0])
 
         # add fixed sizes
         self._api["C"] = 3
@@ -420,7 +420,8 @@ class Sofa():
 
             if dtype in ["attribute", "string"]:
                 # string or string array like data
-                shape_act = _get_size_and_shape_of_string_var(value, key)[1]
+                shape_act = self._get_size_and_shape_of_string_var(
+                    value, key)[1]
             else:
                 # array like data
                 shape_act = _nd_array(value, 4).shape
@@ -453,7 +454,7 @@ class Sofa():
                      "(see ``self.info('dimensions')`` and "
                      "``self.info('shape')``"))
 
-    def _add_api(self, version):
+    def _update_convention(self, version):
         """
         Add API to SOFA object. If The SOFA files contains an API it is
         overwritten.
@@ -521,8 +522,8 @@ class Sofa():
         """
         # check input
         if not isinstance(convention, str):
-            raise TypeError(
-                f"Convention must be a string but is of type {type(convention)}")
+            raise TypeError(("Convention must be a string "
+                             f"but is of type {type(convention)}"))
 
         # get and check path to json file
         paths = list_conventions(False, "path")
@@ -571,7 +572,7 @@ class Sofa():
         for key in self._convention.keys():
 
             # skip optional fields if requested
-            if not _is_mandatory(self._convention[key]["flags"]) and mandatory:
+            if not self._mandatory(self._convention[key]["flags"]) and mandatory:
                 continue
 
             # get the default value
@@ -593,6 +594,80 @@ class Sofa():
         self.GLOBAL_ApplicationName = "Python"
         self.GLOBAL_ApplicationVersion = platform.python_version()
         self._protected = True
+
+    @staticmethod
+    def _get_size_and_shape_of_string_var(value, key):
+        """
+        String variables can be strings, list of strings, or numpy arrays of
+        strings. This functions returns the length of the longest string S
+        inside the string variable and the shape of the string variable as
+        required by the SOFA definition. Note that the shape is the shape of
+        the array that holds the strings. NETCDF stores all string variables in
+        arrays.
+        """
+
+        if isinstance(value, str):
+            S = len(value)
+            shape = (1, 1)
+        elif isinstance(value, list):
+            S = len(max(value, key=len))
+            shape = np.array(value).shape
+        elif isinstance(value, np.ndarray):
+            S = max(np.vectorize(len)(value))
+            shape = value.shape
+        else:
+            raise TypeError((f"{key} must be a string, numpy string array, "
+                             "or list of strings"))
+
+        return S, shape
+
+    @staticmethod
+    def _mandatory(flags):
+        """
+        Check if a field is mandatory
+
+        Parameters
+        ----------
+        flags : None, str
+            The flags from convention[key]["flags"]
+
+        Returns
+        -------
+        is_mandatory : bool
+        """
+        # skip optional fields if requested
+        if flags is None:
+            is_mandatory = False
+        elif "m" not in flags:
+            is_mandatory = False
+        else:
+            is_mandatory = True
+
+        return is_mandatory
+
+    @staticmethod
+    def _read_only(flags):
+        """
+        Check if a field is read only
+
+        Parameters
+        ----------
+        flags : None, str
+            The flags from convention[key]["flags"]
+
+        Returns
+        -------
+        is_read_only : bool
+        """
+        # skip optional fields if requested
+        if flags is None:
+            is_read_only = False
+        elif "r" not in flags:
+            is_read_only = False
+        else:
+            is_read_only = True
+
+        return is_read_only
 
 
 def update_conventions():
@@ -1275,7 +1350,7 @@ def _add_custom_api_entry(sofa, key, value, flags, dimensions, dtype, warn):
         "type": dtype,
         "default": None,
         "comment": ""}
-    sofa._add_api(version="match")
+    sofa._update_convention(version="match")
 
     # add attribute to object
     setattr(sofa, key, value)
@@ -1283,79 +1358,6 @@ def _add_custom_api_entry(sofa, key, value, flags, dimensions, dtype, warn):
 
     if warn:
         warnings.warn(f"Added custom attribute {key}")
-
-
-def _is_mandatory(flags):
-    """
-    Check if a field is mandatory
-
-    Parameters
-    ----------
-    flags : None, str
-        The flags from convention[key]["flags"]
-
-    Returns
-    -------
-    is_mandatory : bool
-    """
-    # skip optional fields if requested
-    if flags is None:
-        is_mandatory = False
-    elif "m" not in flags:
-        is_mandatory = False
-    else:
-        is_mandatory = True
-
-    return is_mandatory
-
-
-def _is_read_only(flags):
-    """
-    Check if a field is read only
-
-    Parameters
-    ----------
-    flags : None, str
-        The flags from convention[key]["flags"]
-
-    Returns
-    -------
-    is_read_only : bool
-    """
-    # skip optional fields if requested
-    if flags is None:
-        is_read_only = False
-    elif "r" not in flags:
-        is_read_only = False
-    else:
-        is_read_only = True
-
-    return is_read_only
-
-
-def _get_size_and_shape_of_string_var(value, key):
-    """
-    String variables can be strings, list of strings, or numpy arrays of
-    strings. This functions returns the length of the longest string S inside
-    the string variable and the shape of the string variable as required by
-    the SOFA definition. Note that the shape is the shape of the array that
-    holds the strings. NETCDF stores all string variables in arrays.
-    """
-
-    if isinstance(value, str):
-        S = len(value)
-        shape = (1, 1)
-    elif isinstance(value, list):
-        S = len(max(value, key=len))
-        shape = np.array(value).shape
-    elif isinstance(value, np.ndarray):
-        S = max(np.vectorize(len)(value))
-        shape = value.shape
-    else:
-        raise TypeError(
-            f"{key} must be a string, numpy string array, or list of strings")
-
-    return S, shape
 
 
 def _verify_convention_and_version(version, version_in, convention):

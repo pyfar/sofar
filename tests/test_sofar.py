@@ -1,8 +1,7 @@
 import sofar as sf
-from sofar.sofar import (_get_size_and_shape_of_string_var,
-                         _format_value_for_netcdf,
+from sofar.sofar import (_format_value_for_netcdf,
                          _format_value_from_netcdf,
-                         _is_mandatory, _is_read_only, _nd_array,
+                         _nd_array,
                          _verify_convention_and_version)
 import os
 from tempfile import TemporaryDirectory
@@ -485,29 +484,29 @@ def test_add_entry():
 def test_get_size_and_shape_of_string_var():
 
     # test with string
-    S, shape = _get_size_and_shape_of_string_var("four", "key")
+    S, shape = sf.Sofa._get_size_and_shape_of_string_var("four", "key")
     assert S == 4
     assert shape == (1, 1)
 
     # test with single string list
-    S, shape = _get_size_and_shape_of_string_var(["four"], "key")
+    S, shape = sf.Sofa._get_size_and_shape_of_string_var(["four"], "key")
     assert S == 4
     assert shape == (1, )
 
     # test with list of strings
-    S, shape = _get_size_and_shape_of_string_var(["four", "fivee"], "key")
+    S, shape = sf.Sofa._get_size_and_shape_of_string_var(["four", "fivee"], "key")
     assert S == 5
     assert shape == (2, )
 
     # test with numpy strings array
-    S, shape = _get_size_and_shape_of_string_var(
+    S, shape = sf.Sofa._get_size_and_shape_of_string_var(
         np.array(["four", "fivee"], dtype="S256"), "key")
     assert S == 5
     assert shape == (2, )
 
     # test with wrong type
     with pytest.raises(TypeError, match="key must be a string"):
-        _get_size_and_shape_of_string_var(1, "key")
+        sf.Sofa._get_size_and_shape_of_string_var(1, "key")
 
 
 def test_format_value_for_netcdf():
@@ -605,15 +604,15 @@ def test_format_value_from_netcdf():
 
 
 def test_is_mandatory():
-    assert _is_mandatory("rm")
-    assert not _is_mandatory("r")
-    assert not _is_mandatory(None)
+    assert sf.Sofa._mandatory("rm")
+    assert not sf.Sofa._mandatory("r")
+    assert not sf.Sofa._mandatory(None)
 
 
 def test_is_readonly():
-    assert _is_read_only("rm")
-    assert not _is_read_only("m")
-    assert not _is_read_only(None)
+    assert sf.Sofa._read_only("rm")
+    assert not sf.Sofa._read_only("m")
+    assert not sf.Sofa._read_only(None)
 
 
 def test_verify_convention_and_version():
