@@ -877,6 +877,9 @@ def read_sofa(filename, verify=True, version="latest"):
     if not os.path.isfile(filename):
         raise ValueError(f"{filename} does not exist")
 
+    # attributes that are skipped
+    skip = ["_Encoding"]
+
     # open new NETCDF4 file for reading
     with Dataset(filename, "r+", format="NETCDF4") as file:
 
@@ -929,7 +932,7 @@ def read_sofa(filename, verify=True, version="latest"):
                 setattr(sofa, var.replace(".", "_"), value)
 
             # load variable attributes
-            for attr in file[var].ncattrs():
+            for attr in [a for a in file[var].ncattrs() if a not in skip]:
 
                 value = getattr(file[var], attr)
 
@@ -1069,10 +1072,8 @@ def compare_sofa(sofa_a, sofa_b, verbose=True, exclude=None):
 
     # get and filter keys
     # ('_*' are SOFA object private variables, '__' are netCDF attributes)
-    keys_a = [k for k in sofa_a.__dict__.keys()
-              if not k.startswith("_") and "__" not in k]
-    keys_b = [k for k in sofa_b.__dict__.keys()
-              if not k.startswith("_") and "__" not in k]
+    keys_a = [k for k in sofa_a.__dict__.keys() if not k.startswith("_")]
+    keys_b = [k for k in sofa_b.__dict__.keys() if not k.startswith("_")]
 
     if exclude is not None:
         if exclude.upper() == "GLOBAL":
