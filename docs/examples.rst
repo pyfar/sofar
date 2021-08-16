@@ -28,7 +28,7 @@ an empty SOFA object use
 
 The return value `sofa` is a sofar.Sofa object filled with the default values
 of the `SimpleFreeFieldHRIR` convention. Note that ``sf.Sofa()`` can return
-return a sofa object that has only the mandatory attributes. However, it is
+a sofa object that has only the mandatory attributes. However, it is
 recommended to start with all attributes and discard empty optional attributes
 before saving the data.
 
@@ -39,8 +39,7 @@ To list all attributes inside a SOFA object, try the following
     sofa.info("all")
 
 Note that this function can also be used to list only the mandatory or
-optional fields, and to list different kinds of information such as the
-data types, default values, or shapes.
+optional fields.
 
 Three different kinds of data can be stored in SOFA files. Use
 ``sofa.info("type")`` to list them:
@@ -59,9 +58,9 @@ Three different kinds of data can be stored in SOFA files. Use
     Variables of type *string* store strings and can be entered as strings,
     lists of string, or numpy string arrays.
 
-Lets take a look and list all informations for only one attribute of the SOFA
+Lets take a look and list all information for only one attribute of the SOFA
 object (note that all data in Python classes is called attribute - regardless
-of the data type explaned above):
+of the data types introduced above):
 
 .. code-block:: python
 
