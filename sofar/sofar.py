@@ -180,7 +180,7 @@ class Sofa():
                         or \
                         (not self._read_only(flags) and info == "read only") \
                         or \
-                        (self._convention[key]['type'] == "attribute" and \
+                        (self._convention[key]['type'] == "attribute" and
                          info == "data"):
                     continue
 
