@@ -197,9 +197,9 @@ class Sofa():
                     info_str += ", read only"
 
                 if self._convention[key]['comment']:
-                    info_str += f"\n\t{self._convention[key]['comment']}\n\n"
+                    info_str += f"\n\t{self._convention[key]['comment']}\n"
                 else:
-                    info_str += "\n\n"
+                    info_str += "\n"
 
         elif info in ["read only", "type", "shape", "comment", "default"]:
 
