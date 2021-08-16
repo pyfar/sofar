@@ -121,29 +121,12 @@ class Sofa():
         info : str
             Specifies the kind of information that is printed:
 
-            ``'all'``
-                Print the name of all object attributes.
-            ``'mandatory'``
-                Print names of mandatory object attributes.
-            ``'optional'``
-                Print names of optional object attributes.
-            ``'read only'``
-                Print names of read only object attributes.
+            ``'all'`` ``'mandatory'`` ``'optional'`` ``'read only'`` ``'data'``
+                Print the name, type, shape, and flags and comment for all or
+                selected entries of the SOFA object. ``'data'`` does not show
+                attributes.
             ``'dimensions'``
                 Print dimensions of the SOFA object.
-            ``'type'``
-                Print the data types of the object attributes
-            ``'shape'``
-                Print the shape object attributes if they are not None. The
-                shape is given in the form of letters, e.g., `MRN`. These
-                letters denote the dimensions of the SOFA object (see
-                `dimensions` above).
-            ``'comment'``
-                Print the explanatory comments for the object attributes if
-                they are not empty.
-            ``'default'``
-                Print the default values of the object attributes except for
-                empty strings.
             key
                 If key is the name of an object attribute, all information for
                 attribute will be printed.
@@ -183,9 +166,9 @@ class Sofa():
             for key, value in dimensions.items():
                 info_str += f"\t{key} = {self._api[key]} ({value}))\n"
 
-        elif info in ["all", "mandatory", "optional", "read only"]:
+        elif info in ["all", "mandatory", "optional", "read only", "data"]:
 
-            info_str += f"{info} entries:\n"
+            info_str += f"showing {info} entries : type (shape), flags\n\n"
 
             for key in keys:
 
@@ -195,10 +178,28 @@ class Sofa():
                         or \
                         (self._mandatory(flags) and info == "optional") \
                         or \
-                        (not self._read_only(flags) and info == "read only"):
+                        (not self._read_only(flags) and info == "read only") \
+                        or \
+                        (self._convention[key]['type'] == "attribute" and \
+                         info == "data"):
                     continue
 
-                info_str += key + "\n"
+                info_str += f"{key} : {self._convention[key]['type']}"
+
+                if self._convention[key]['dimensions']:
+                    info_str += f" ({self._convention[key]['dimensions']})"
+
+                if self._mandatory(flags):
+                    info_str += ", mandatory"
+                else:
+                    info_str += ", optional"
+                if self._read_only(flags):
+                    info_str += ", read only"
+
+                if self._convention[key]['comment']:
+                    info_str += f"\n\t{self._convention[key]['comment']}\n\n"
+                else:
+                    info_str += "\n\n"
 
         elif info in ["read only", "type", "shape", "comment", "default"]:
 

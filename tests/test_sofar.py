@@ -208,52 +208,16 @@ def test_info(capfd):
         sofa.info("invalid")
 
     # test listing all entry names
-    sofa.info("all")
-    out, _ = capfd.readouterr()
-    assert "all entries:" in out
-    assert "SourceUp" in out and "Data_IR" in out
-
-    # test listing only mandatory entries
-    sofa.info("mandatory")
-    out, _ = capfd.readouterr()
-    assert "mandatory entries:" in out
-    assert "SourceUp" not in out
-
-    # test listing only optional entries
-    sofa.info("optional")
-    out, _ = capfd.readouterr()
-    assert "optional entries:" in out
-    assert "Data_IR" not in out
-
-    # test listing read only entries
-    sofa.info("read only")
-    out, _ = capfd.readouterr()
-    assert "read only entries:" in out
-    assert out.endswith("GLOBAL_DataType\n\n")
+    for info in ["all", "mandatory", "optional", "read only", "data"]:
+        sofa.info(info)
+        out, _ = capfd.readouterr()
+        assert f"showing {info} entries" in out
 
     # test dimensions
     sofa.info("dimensions")
     out, _ = capfd.readouterr()
     assert out.startswith("SimpleFreeFieldHRIR 1.0 (SOFA version 2.0")
     assert "M = 1 (measurements)" in out
-
-    # test listing default values
-    sofa.info("default")
-    out, _ = capfd.readouterr()
-    assert "showing default:" in out
-    assert "ListenerPosition\n\t[0, 0, 0]"
-
-    # test listing default shapes
-    sofa.info("shape")
-    out, _ = capfd.readouterr()
-    assert "showing shape:" in out
-    assert "ListenerPosition\n\tIC, MC"
-
-    # test listing comments values
-    sofa.info("comment")
-    out, _ = capfd.readouterr()
-    assert "showing comment:" in out
-    assert "GLOBAL_SOFAConventions\n\tThis convention set is for HRIRs"
 
     # list information for specific entry
     sofa.info("ListenerPosition")
