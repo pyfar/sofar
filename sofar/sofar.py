@@ -187,7 +187,8 @@ class Sofa():
                 info_str += f"{key} : {self._convention[key]['type']}"
 
                 if self._convention[key]['dimensions']:
-                    info_str += f" ({self._convention[key]['dimensions']})"
+                    info_str += \
+                        f" ({self._convention[key]['dimensions'].upper()})"
 
                 if self._mandatory(flags):
                     info_str += ", mandatory"

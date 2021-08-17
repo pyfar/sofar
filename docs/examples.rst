@@ -20,15 +20,15 @@ Using sofar, a list of possible conventions can be obtained Using
 
 Let us assume, that you want to store head-related impulse responses (HRIRs).
 In this case the most specific convention is `SimpleFreeFieldHRIR`. To create
-an empty SOFA object use
+a SOFA object use
 
 .. code-block:: python
 
     sofa = sf.Sofa("SimpleFreeFieldHRIR")
 
 The return value `sofa` is a sofar.Sofa object filled with the default values
-of the `SimpleFreeFieldHRIR` convention. Note that ``sf.Sofa()`` can return
-a sofa object that has only the mandatory attributes. However, it is
+of the `SimpleFreeFieldHRIR` convention. Note that ``sf.Sofa()`` can also
+return a sofa object that has only the mandatory attributes. However, it is
 recommended to start with all attributes and discard empty optional attributes
 before saving the data.
 
@@ -41,16 +41,15 @@ To list all attributes inside a SOFA object, try the following
 Note that this function can also be used to list only the mandatory or
 optional fields.
 
-Three different kinds of data can be stored in SOFA files. Use
-``sofa.info("type")`` to list them:
+You might have noted from ``sofa.info()`` that three different kinds of data
+can be stored in SOFA files:
 
 * **Attributes:**
     Attributes are meta data that is stored as strings. There are two kinds of
     attributes. Global attributes give information about the entire data stored
     in a SOFA file. All entires starting with *GLOBAL* are such attributes.
-    Variable attributes hold meta data only for a specific variable. These
-    attributes thus start with the name of the variable, e.g.,
-    *ListenerPosition_Units*
+    Specific attributes hold meta data for specific data. These attributes
+    thus start with the name of the variable, e.g., *ListenerPosition_Units*
 * **Double Variables:**
     Variables of type *double* store numeric data and can be entered as
     numbers, lists, or numpy arrays.
@@ -59,8 +58,8 @@ Three different kinds of data can be stored in SOFA files. Use
     lists of string, or numpy string arrays.
 
 Lets take a look and list all information for only one attribute of the SOFA
-object (note that all data in Python classes is called attribute - regardless
-of the data types introduced above):
+object (note that all data in Python classes are called attribute - in contrast
+to the data types introduced above):
 
 .. code-block:: python
 
@@ -76,7 +75,7 @@ of the data types introduced above):
 
 `Data_IR` is a mandatory double variable of shape `MRN` in which the actual
 HRIRs are stored. The letters M, R, and N are the `dimensions` of the SOFA
-dictionary. They can be seen via
+object. They can be seen via
 
 .. code-block:: python
 
@@ -99,7 +98,9 @@ the convention does not have any string variables. `C` is always three, because
 coordinates are either given by x, y, and z values or by their azimuth,
 elevation and radius in degree.
 
-Data can simply be obtained and entered
+It is important to be aware of the dimensions and enter data as determined by
+the `shape` shown in the example above (see ``sofa.verify()`` below). Data can
+simply be obtained and entered
 
 .. code-block:: python
 
@@ -107,21 +108,22 @@ Data can simply be obtained and entered
     sofa.Data_IR = [1, 1]
     sofa.SourcePosition = [90, 0, 1.5]
 
-Now, the SOFA dictionary contains one HRIR - which is ``1`` for the left ear
-and ``1`` for the right ear - for a source at ``0`` degree azimuth, ``90``
+Now, the SOFA dictionary contains a single HRIR - which is ``1`` for the left
+ear and ``1`` for the right ear - for a source at ``0`` degree azimuth, ``90``
 degree elevation and a radius of ``1.5`` meter. Note that you just entered a
 list for `Data_IR` although it has to be a three-dimensional double variable.
-Don't worry about this, sofar will convert this for you in the next step.
+Don't worry about this, sofar will convert this for when writing the data to
+disk.
 
 You should now fill all mandatory entries of the SOFA dictionary if you were
 for real. For this is example we'll cut it here for the sake of brevity. Let
-us, however, delete an optional entry
+us, however, delete an optional entry that we do not need at this point
 
 .. code-block:: python
 
     delattr(sofa, "SourceUp")
 
-In some cases you might want to add a custom data - although third party
+In some cases you might want to add custom data - although third party
 applications most likely won't make use of non-standardized data. Try this
 to add a Temperature value and unit
 
@@ -137,23 +139,20 @@ A SOFA object can be verified using
 
     sofa.verify()
 
-This will check if all mandatory attributes are contained `sofa` and if all
-attributes have the correct data type and shape. This is a good try to make
-sure that your data can be read by other applications.
+This will check if all mandatory data are contained `sofa` and if all data have
+the correct data type and shape. This is a good try to make sure that your data
+can be read by other applications.
 
 Note that you usually do not need to call ``sofa.verify()`` separately  because
-it is by default called if you create write or read a SOFA object. To write
-your SOFA dictionary to disk type
+it is by default called if you create write or read a SOFA object. This would
+for example tell you that you are in trouble if you entered only one HRIR but
+two source positions.To write your SOFA dictionary to disk type
 
 .. code-block:: python
 
     sf.write_sofa("your/path/to/SingleHRIR.sofa", sofa)
 
-Before writing the data to disk the function `Sofa.verify` is called,
-which checks if the data you entered is consistent and updates the SOFA object.
-This would for example tell you that you are in trouble if you entered only one
-HRIR but two source positions. If the check passed the file will be written to
-disk. It is good to know that SOFA files are essentially netCDF4 files which is
+It is good to know that SOFA files are essentially netCDF4 files which is
 based on HDF5. The can thus be viewed with `HDF View`_.
 
 To read your sofa file you can use
