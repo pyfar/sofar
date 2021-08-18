@@ -198,6 +198,17 @@ def test_sofa_verify():
     sofa.verify()
 
 
+def test_dimensions(capfd):
+
+    sofa = sf.Sofa("SimpleFreeFieldHRIR")
+
+    # test dimensions
+    sofa.info("dimensions")
+    out, _ = capfd.readouterr()
+    assert out.startswith("SimpleFreeFieldHRIR 1.0 (SOFA version 2.0")
+    assert "M = 1 (measurements)" in out
+
+
 def test_info(capfd):
 
     sofa = sf.Sofa("SimpleFreeFieldHRIR")
@@ -212,12 +223,6 @@ def test_info(capfd):
         sofa.info(info)
         out, _ = capfd.readouterr()
         assert f"showing {info} entries" in out
-
-    # test dimensions
-    sofa.info("dimensions")
-    out, _ = capfd.readouterr()
-    assert out.startswith("SimpleFreeFieldHRIR 1.0 (SOFA version 2.0")
-    assert "M = 1 (measurements)" in out
 
     # list information for specific entry
     sofa.info("ListenerPosition")

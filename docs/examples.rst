@@ -79,7 +79,7 @@ object. They can be seen via
 
 .. code-block:: python
 
-    sofa.info("dimensions")
+    sofa.dimensions
     >>> SimpleFreeFieldHRIR 1.0 (SOFA version 2.0)
     >>> ------------------------------------------
     >>> Dimensions
@@ -99,8 +99,7 @@ coordinates are either given by x, y, and z values or by their azimuth,
 elevation and radius in degree.
 
 It is important to be aware of the dimensions and enter data as determined by
-the `shape` shown in the example above (see ``sofa.verify()`` below). Data can
-simply be obtained and entered
+the `shape` printed by ``sofa.info()``. Data can simply be obtained and entered
 
 .. code-block:: python
 

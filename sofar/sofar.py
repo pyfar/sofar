@@ -112,6 +112,41 @@ class Sofa():
         return (f"sofar.SOFA object: {self.GLOBAL_SOFAConventions} "
                 f"{self.GLOBAL_SOFAConventionsVersion}")
 
+    @property
+    def dimensions(self):
+        """
+        Print the dimensions of the SOFA object
+
+        The SOFA file standard defines the following dimensions:
+
+        M
+            number of measurements
+        N
+            number of samles, frequencies, SOS coefficients, SH coefficients
+            (depending on self.GLOBAL_DataType)
+        R
+            Number of receivers
+        E
+            Number of emitters
+        S
+            Maximum length of a string in a string array
+        C
+            Size of the coordinate dimension. This is always three.
+        I
+            Single dimension. This is always one.
+
+        see :py:func:`~Sofa.info` to see the shapes of the data inside the SOFA
+        object.
+
+        Notes
+        -----
+        ``self.verify(version='match')`` is called to make sure that the
+        required meta data is available.
+
+        """
+
+        self.info("dimensions")
+
     def info(self, info):
         """
         Print information about a SOFA object
@@ -124,9 +159,7 @@ class Sofa():
             ``'all'`` ``'mandatory'`` ``'optional'`` ``'read only'`` ``'data'``
                 Print the name, type, shape, and flags and comment for all or
                 selected entries of the SOFA object. ``'data'`` does not show
-                attributes.
-            ``'dimensions'``
-                Print dimensions of the SOFA object.
+                entries of type attribute.
             key
                 If key is the name of an object attribute, all information for
                 attribute will be printed.
@@ -135,7 +168,6 @@ class Sofa():
         -----
         ``self.verify(version='match')`` is called to make sure that the
         required meta data is available.
-
         """
 
         # update the API to make sure all meta data is in place
@@ -164,7 +196,7 @@ class Sofa():
 
             info_str += "Dimensions\n"
             for key, value in dimensions.items():
-                info_str += f"\t{key} = {self._api[key]} ({value}))\n"
+                info_str += f"\t{key} = {self._api[key]} ({value})\n"
 
         elif info in ["all", "mandatory", "optional", "read only", "data"]:
 
