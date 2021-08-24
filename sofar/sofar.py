@@ -1403,7 +1403,7 @@ def _format_value_from_netcdf(value, key):
         value = np.asarray(value).astype("U")
     else:
         raise TypeError(
-            f"{key}: value.dtype is {value.dtype} but must be S or U")
+            f"{key}: value.dtype is {value.dtype} but must be float, S or, U")
 
     # convert arrays to scalars if they do not store data that is usually used
     # as scalar metadata, e.g., the SamplingRate
