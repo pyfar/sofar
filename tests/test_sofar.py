@@ -592,7 +592,7 @@ def test_format_value_from_netcdf():
     npt.assert_allclose(value, array)
 
     # test with invalid data dtype
-    with pytest.raises(TypeError, match="Data_IR: value.dtype is int32 but"):
+    with pytest.raises(TypeError, match="Data_IR: value.dtype is int"):
         _format_value_from_netcdf(
             np.array([44100], dtype="int"), "Data_IR")
 
