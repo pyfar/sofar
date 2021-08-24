@@ -13,7 +13,7 @@ import sofar as sf
 
 
 class Sofa():
-    """Create a SOFA file with default values.
+    """Create a new SOFA object.
 
     Parameters
     ----------
@@ -994,7 +994,7 @@ def read_sofa(filename, verify=True, version="latest"):
     return sofa
 
 
-def write_sofa(filename: str, sofa: Sofa, version="latest"):
+def write_sofa(filename: str, sofa: Sofa, version="latest", compression=9):
     """
     Write a SOFA object to disk as a SOFA file.
 
@@ -1018,11 +1018,18 @@ def write_sofa(filename: str, sofa: Sofa, version="latest"):
             Version string, e.g., ``'1.0'``.
 
         The default is ``'latest'``.
+    compression : int
+        The level of compression with ``0`` being no compression and ``9``
+        being the best compression. The default of ``9`` optimizes the file
+        size but increases the time for writing files to disk.
     """
 
     # check the filename
     if not filename.lower().endswith('.sofa'):
         filename += ".sofa"
+
+    # setting the netCDF compression parameter
+    zlib = False if compression == 0 else True
 
     # update the dimensions
     sofa.verify(version)
@@ -1058,7 +1065,8 @@ def write_sofa(filename: str, sofa: Sofa, version="latest"):
             # create variable and write data
             shape = tuple([dim for dim in sofa._dimensions[key]])
             tmp_var = file.createVariable(
-                key.replace("Data_", "Data."), dtype, shape)
+                key.replace("Data_", "Data."), dtype, shape,
+                zlib=zlib, complevel=compression)
             if dtype == "f8":
                 tmp_var[:] = value
             else:

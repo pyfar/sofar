@@ -280,6 +280,31 @@ def test_read_sofa():
     sf.read_sofa(filename, verify=False)
 
 
+def test_write_sofa_compression():
+    """Test writing SOFA files with compression"""
+
+    # create temporary directory
+    temp_dir = TemporaryDirectory()
+
+    # create test data
+    sofa = sf.Sofa('SimpleFreeFieldHRIR')
+    sofa.Data_IR = np.zeros((1, 2, 2048))
+    sofa.Data_IR[0, 0] = np.array([1, 0, -1, 0] * 512)
+
+    filesize = None
+
+    for compression in range(10):
+        # write with current compression level
+        filename = os.path.join(temp_dir.name, f"test_{0}.sofa")
+        sf.write_sofa(filename, sofa, compression=compression)
+
+        # get and compare the file sizes
+        print(f"Assessing compression level {compression}")
+        if compression > 0:
+            assert os.stat(filename).st_size <= filesize
+        filesize = os.stat(filename).st_size
+
+
 def test_roundtrip():
     """"
     Cyclic test of create, write, read functions
