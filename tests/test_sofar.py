@@ -592,9 +592,9 @@ def test_format_value_from_netcdf():
     npt.assert_allclose(value, array)
 
     # test with invalid data dtype
-    with pytest.raises(TypeError, match="Data_IR: value.dtype is int"):
+    with pytest.raises(TypeError, match="Data_IR: value.dtype is complex"):
         _format_value_from_netcdf(
-            np.array([44100], dtype="int"), "Data_IR")
+            np.array([44100], dtype="complex"), "Data_IR")
 
 
 def test_is_mandatory():

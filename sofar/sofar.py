@@ -170,8 +170,17 @@ class Sofa():
         required meta data is available.
         """
 
-        # update the API to make sure all meta data is in place
-        self.verify(version="match")
+        try:
+            # update the API to make sure all meta data is in place
+            self.verify(version="match")
+        except ValueError:
+            # This is hard to test automatically. It was tested manually once.
+            keys = [k for k in self.__dict__.keys() if k[0] != '_']
+            keys = "\n".join(keys)
+            warnings.warn((
+                "SOFA object could not be verified maybe due to invalid data."
+                "Call self.verify() for more detailed information. These "
+                f"are the Attributes contained in the sofa object:\n{keys}"))
 
         # list of all attributes
         keys = [k for k in self.__dict__.keys() if not k.startswith("_")]
@@ -1391,7 +1400,7 @@ def _format_value_from_netcdf(value, key):
         The formatted value.
     """
 
-    if str(value.dtype).startswith("float"):
+    if "float" in str(value.dtype) or "int" in str(value.dtype):
         if np.ma.is_masked(value):
             warnings.warn(f"Entry {key} contains missing data")
         else:
