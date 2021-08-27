@@ -244,22 +244,6 @@ class Sofa():
                 else:
                     info_str += "\n"
 
-        elif info in ["read only", "type", "shape", "comment", "default"]:
-
-            info_str += f"showing {info}:\n"
-
-            if info == "shape":
-                info = "dimensions"
-
-            for key in keys:
-
-                meta_data = self._convention[key][info]
-
-                if meta_data is not None and meta_data != "":
-                    if info == "dimensions":
-                        meta_data = meta_data.upper()
-                    info_str += f"{key}\n\t{meta_data}\n"
-
         elif info in keys:
 
             for key in [k for k in keys if info in k]:
