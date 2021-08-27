@@ -416,6 +416,8 @@ class Sofa():
                     raise ValueError((f"{key} must be a string but "
                                       f"is of type {type(key)}"))
             elif dtype == "double":
+                # multiple checks needed because sofar does not force the user
+                # to initally pass data as numpy arrays
                 if not isinstance(
                     value, (int, float, complex, list, np.int_, np.float_,
                             np.double, np.ndarray)):
@@ -437,6 +439,8 @@ class Sofa():
                             f"Elements of {key} can be of type int, float, "
                             f"complex but not {str(type(value))}"))
             elif dtype == "string":
+                # multiple checks needed because sofar does not force the user
+                # to initally pass data as numpy arrays
                 if not isinstance(value, (str, list, np.ndarray)):
                     raise ValueError((
                         f"{key} can be of type str, list, or numpy array"
@@ -474,11 +478,15 @@ class Sofa():
             value = getattr(self, key)
             dimensions = self._convention[key]["dimensions"]
 
+            # - dimensions are given as string, e.g., 'mRN', or 'IC, MC'
+            # - defined by lower case letters in `dimensions`
             for id, dim in enumerate(dimensions.split(", ")[0]):
-                if dim not in "ICS":
+                if dim not in "ICS" and dim.islower():
+                    # numeric data
                     self._api[dim.upper()] = \
                         _nd_newaxis(value, 4).shape[id]
                 if dim == "S":
+                    # string data
                     S = max(S, self._get_size_and_shape_of_string_var(
                         value, key)[0])
 
