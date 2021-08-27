@@ -472,8 +472,8 @@ def test_add_entry():
     with pytest.raises(ValueError, match="dimensions must be provided"):
         sofa.add_entry("TemperatureCelsius", 25.1, "double", None)
     # invalid dimensins
-    with pytest.raises(ValueError, match="dimensions must be"):
-        sofa.add_entry("TemperatureCelsius", 25.1, "double", "UPS")
+    with pytest.warns(UserWarning, match="Added custom dimension T"):
+        sofa.add_entry("TemperatureCelsius", [25.1, 25.2], "double", "T")
 
 
 def test_get_size_and_shape_of_string_var():

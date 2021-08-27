@@ -328,8 +328,8 @@ class Sofa():
         if dimensions is not None:
             for dimension in dimensions:
                 if dimension not in "ERMNCIS":
-                    raise ValueError(("dimensions must be a string consisting "
-                                      "of E, R, M, N, C, I, or S"))
+                    warnings.warn(
+                        f"Added custom dimension {dimensions} to SOFA object")
 
         # add attribute to class
         _add_custom_api_entry(
@@ -459,7 +459,7 @@ class Sofa():
                     "Error in SOFA API. type must be attribute, double, or "
                     f"string but is {dtype}"))
 
-        # third run: Get the dimensions for E, R, M, N, S and custom dimensions
+        # third run: Get dimensions (E, R, M, N, S, c, I, and custom)
         keys = [key for key in self.__dict__.keys() if not key.startswith("_")
                 and self._convention[key]["dimensions"] is not None]
         if hasattr(self, "_custom"):
@@ -487,8 +487,16 @@ class Sofa():
         self._api["I"] = 1
         self._api["S"] = S
 
-        # forth run: verify data type and dimensions of data
+        # forth run: verify data type, dimensions, and names of data
         for key in keys:
+
+            # check the name
+            if "_" in key.replace("Data_", ""):
+                warnings.warn((
+                    f"{key} contains '.' or '_' in its name. In SOFA files, "
+                    "this is only allowed for Data_* and SOFA attributes."
+                    "Trying to write this file using sofar.write_sofa() might"
+                    "not work as expected."))
 
             # handle dimensions
             dimensions = self._convention[key]["dimensions"]
