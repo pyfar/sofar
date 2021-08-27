@@ -76,7 +76,6 @@ class Sofa():
         self._convention2sofa(mandatory)
 
         # add and update the API
-        # TODO class style
         if verify:
             self.verify(version)
 
@@ -204,8 +203,10 @@ class Sofa():
                 "I": "single dimension, fixed"}
 
             info_str += "Dimensions\n"
-            for key, value in dimensions.items():
-                info_str += f"\t{key} = {self._api[key]} ({value})\n"
+            for key, value in self._api.items():
+                dim_info = dimensions[key] if key in dimensions \
+                    else "custom dimension"
+                info_str += f"\t{key} = {value} ({dim_info})\n"
 
         elif info in ["all", "mandatory", "optional", "read only", "data"]:
 
@@ -431,8 +432,9 @@ class Sofa():
                     raise ValueError((f"{key} must be a string but "
                                       f"is of type {type(key)}"))
             elif dtype == "double":
-                if not isinstance(value,
-                                  (int, float, complex, list, np.ndarray)):
+                if not isinstance(
+                    value, (int, float, complex, list, np.int_, np.float_,
+                            np.double, np.ndarray)):
                     raise ValueError((
                         f"{key} can be of type int, float, complex, list, or "
                         f"numpy array but not {type(value)}"))
@@ -453,7 +455,7 @@ class Sofa():
             elif dtype == "string":
                 if not isinstance(value, (str, list, np.ndarray)):
                     raise ValueError((
-                        f"{key} can be of type str, list, or but numpy array"
+                        f"{key} can be of type str, list, or numpy array"
                         f"but not type {type(key)}"))
                 if isinstance(value, np.ndarray):
                     if not (str(value.dtype).startswith('<U') or
@@ -473,9 +475,14 @@ class Sofa():
                     "Error in SOFA API. type must be attribute, double, or "
                     f"string but is {dtype}"))
 
-        # third run: Get the dimensions for E, R, M, N, and S
+        # third run: Get the dimensions for E, R, M, N, S and custom dimensions
         keys = [key for key in self.__dict__.keys() if not key.startswith("_")
                 and self._convention[key]["dimensions"] is not None]
+        if hasattr(self, "_custom"):
+            keys_custom = [key for key in self._custom.keys()
+                           if not key.startswith("_")
+                           and self._custom[key]["dimensions"] is not None]
+            keys += keys_custom
 
         S = 0
         for key in keys:
@@ -484,9 +491,9 @@ class Sofa():
             dimensions = self._convention[key]["dimensions"]
 
             for id, dim in enumerate(dimensions.split(", ")[0]):
-                if dim in "ermn":
+                if dim not in "ICS":
                     self._api[dim.upper()] = \
-                        _nd_array(value, 4).shape[id]
+                        _nd_newaxis(value, 4).shape[id]
                 if dim == "S":
                     S = max(S, self._get_size_and_shape_of_string_var(
                         value, key)[0])
@@ -513,9 +520,12 @@ class Sofa():
                 # string or string array like data
                 shape_act = self._get_size_and_shape_of_string_var(
                     value, key)[1]
-            else:
-                # array like data
+            elif len(dimensions.split(",")[0]) > 1:
+                # multidimensional array like data
                 shape_act = _nd_array(value, 4).shape
+            else:
+                # scalar of single dimensional array like data
+                shape_act = (np.array(value).size, )
 
             shape_matched = False
             for dim in dimensions.split(", "):
@@ -539,11 +549,15 @@ class Sofa():
                     break
 
             if not shape_matched:
+                # get possible dimensions in verbose form, i.e., "(M=2, C=3)""
+                dimensions_verbose = []
+                for dim in dimensions.upper().replace(" ", "").split(","):
+                    dimensions_verbose.append(
+                        f"({', '.join([f'{d}={self._api[d]}' for d in dim])})")
+
                 raise ValueError(
                     (f"The shape of {key} is {shape_compare} but has "
-                     f"to be {dimensions.upper()} "
-                     "(see ``self.info('dimensions')`` and "
-                     "``self.info('shape')``"))
+                     f"to be {', '.join(dimensions_verbose)}"))
 
     def _update_convention(self, version):
         """
@@ -960,19 +974,20 @@ def read_sofa(filename, verify=True, version="latest"):
         # load data
         for var in file.variables.keys():
 
-            if str(file[var].dtype) == "|S1":
+            # for automatic conversion of string variables
+            if file[var].dtype == "S1":
                 file[var]._Encoding = "ascii"
 
             value = _format_value_from_netcdf(file[var][:], var)
 
-            if not hasattr(sofa, var.replace(".", "_")):
+            if hasattr(sofa, var.replace(".", "_")):
+                setattr(sofa, var.replace(".", "_"), value)
+            else:
                 dimensions = "".join([d for d in file[var].dimensions])
-                dtype = "double" if str(file[var].datatype).startswith(
-                    "float") else "string"
+                # SOFA only uses dtypes 'double' and 'S1' but netCDF has more
+                dtype = "string" if file[var].datatype == "S1" else "double"
                 _add_custom_api_entry(sofa, var.replace(".", "_"), value, None,
                                       dimensions, dtype, True)
-            else:
-                setattr(sofa, var.replace(".", "_"), value)
 
             # load variable attributes
             for attr in [a for a in file[var].ncattrs() if a not in skip]:
@@ -996,9 +1011,8 @@ def read_sofa(filename, verify=True, version="latest"):
         except: # noqa (No error handling - just improved verbosity)
             raise ValueError((
                 "The SOFA object could not be verified, maybe do to errornous "
-                "data in. Try to call sofa=sofar.read_sofa(filename, "
-                "verify=False) and than call sofa.verify() to get "
-                "more information"))
+                "data. Call sofa=sofar.read_sofa(filename, verify=False) and "
+                "than sofa.verify() to get more information"))
 
     return sofa
 
@@ -1443,6 +1457,12 @@ def _add_custom_api_entry(sofa, key, value, flags, dimensions, dtype, warn):
     if not hasattr(sofa, "_custom"):
         sofa._custom = {}
 
+    # lower case letters to indicate custom dimensions
+    if dimensions is not None:
+        dimensions = [d.upper() if d.upper() in "ERMNCIS" else d.lower()
+                      for d in dimensions]
+        dimensions = "".join(dimensions)
+
     # add user entry to custom API
     sofa._custom[key] = {
         "flags": flags,
@@ -1515,7 +1535,7 @@ def _verify_convention_and_version(version, version_in, convention):
 def _nd_array(array, ndim):
     """
     Get numpy array with specified number of dimensions. Dimensions are
-    appended at the end if the input array has less dimensions.
+    appended at the end if ndim > 3.
     """
     try:
         array = array.copy()
@@ -1528,6 +1548,15 @@ def _nd_array(array, ndim):
         array = np.atleast_2d(array)
     if ndim >= 3:
         array = np.atleast_3d(array)
+    for _ in range(ndim - array.ndim):
+        array = array[..., np.newaxis]
+    return array
+
+
+def _nd_newaxis(array, ndim):
+    """Append dimensions to the end of an array until array.ndim == ndim"""
+    array = np.array(array)
+
     for _ in range(ndim - array.ndim):
         array = array[..., np.newaxis]
     return array

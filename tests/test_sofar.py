@@ -2,6 +2,7 @@ import sofar as sf
 from sofar.sofar import (_format_value_for_netcdf,
                          _format_value_from_netcdf,
                          _nd_array,
+                         _nd_newaxis,
                          _verify_convention_and_version)
 import os
 from tempfile import TemporaryDirectory
@@ -203,7 +204,7 @@ def test_dimensions(capfd):
     sofa = sf.Sofa("SimpleFreeFieldHRIR")
 
     # test dimensions
-    sofa.info("dimensions")
+    sofa.dimensions
     out, _ = capfd.readouterr()
     assert out.startswith("SimpleFreeFieldHRIR 1.0 (SOFA version 2.0")
     assert "M = 1 (measurements)" in out
@@ -642,3 +643,7 @@ def test_nd_array():
         array = _nd_array(np.atleast_2d(1), ndim)
         assert array.ndim == max(2, ndim)
         assert array.flatten() == np.array([1])
+
+
+def test_nd_newaxis():
+    assert _nd_newaxis([1, 2, 3, 4, 5, 6], 2).shape == (6, 1)
