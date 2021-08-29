@@ -427,8 +427,8 @@ class Sofa():
             elif dtype == "double":
                 # multiple checks needed because sofar does not force the user
                 # to initally pass data as numpy arrays
-                if not isinstance(
-                    value, (np.int_, np.float_, np.double, np.ndarray)):
+                if not isinstance(value,
+                                  (np.int_, np.float_, np.double, np.ndarray)):
                     raise ValueError((
                         f"{key} can be of type int, float, complex, or "
                         f"numpy array but not {type(value)}"))
