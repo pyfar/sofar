@@ -160,16 +160,12 @@ def test_sofa_verify():
 
     # test invalid data for netCDF double variable
     sofa = sf.Sofa("GeneralTF")
-    sofa.Data_Real = (1, )
-    with pytest.raises(ValueError, match="Data_Real can be of type"):
-        sofa.verify()
-
     sofa.Data_Real = np.array("test")
     with pytest.raises(ValueError, match="Data_Real can be of dtype"):
         sofa.verify()
 
     sofa.Data_Real = [1, 1., 1+1j, "1"]
-    with pytest.raises(ValueError, match="Elements of Data_Real can be"):
+    with pytest.raises(ValueError, match="Data_Real can be of dtype int"):
         sofa.verify()
 
     # test valid data
@@ -186,10 +182,6 @@ def test_sofa_verify():
 
     sofa.SourceModel = np.array(1)
     with pytest.raises(ValueError, match="SourceModel can be of dtype"):
-        sofa.verify()
-
-    sofa.SourceModel = [1, "1"]
-    with pytest.raises(ValueError, match="Elements of SourceModel can be"):
         sofa.verify()
 
     # test valid data

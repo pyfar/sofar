@@ -85,9 +85,17 @@ class Sofa():
         # don't allow new attributes to be added outside the class
         if self._protected and not hasattr(self, name):
             raise TypeError(f"{name} is an invalid attribute")
+
         # don't allow setting read only attributes
         if name in self._read_only_attr and self._protected:
             raise TypeError(f"{name} is a read only attribute")
+
+        # convert to numpy array or scalar
+        if not isinstance(value, (str, dict, np.ndarray)):
+            value = np.atleast_2d(value)
+            if value.size == 1:
+                value = value.flatten()[0]
+
         super.__setattr__(self, name, value)
 
     def __delattr__(self, name: str):
@@ -326,6 +334,7 @@ class Sofa():
             raise ValueError(("dimensions must be provided for entries of "
                               "dtype double and string"))
         if dimensions is not None:
+            dimensions = dimensions.upper()
             for dimension in dimensions:
                 if dimension not in "ERMNCIS":
                     warnings.warn(
@@ -419,10 +428,9 @@ class Sofa():
                 # multiple checks needed because sofar does not force the user
                 # to initally pass data as numpy arrays
                 if not isinstance(
-                    value, (int, float, complex, list, np.int_, np.float_,
-                            np.double, np.ndarray)):
+                    value, (np.int_, np.float_, np.double, np.ndarray)):
                     raise ValueError((
-                        f"{key} can be of type int, float, complex, list, or "
+                        f"{key} can be of type int, float, complex, or "
                         f"numpy array but not {type(value)}"))
                 if isinstance(value, np.ndarray):
                     if not (str(value.dtype).startswith('int') or
@@ -431,19 +439,12 @@ class Sofa():
                         raise ValueError((
                             f"{key} can be of dtype int, float, complex"
                             f"but not {str(value.dtype)}"))
-                elif isinstance(value, list):
-                    dtype_ok = [
-                        type(v) in [int, float, complex] for v in value]
-                    if not all(dtype_ok):
-                        raise ValueError((
-                            f"Elements of {key} can be of type int, float, "
-                            f"complex but not {str(type(value))}"))
             elif dtype == "string":
                 # multiple checks needed because sofar does not force the user
                 # to initally pass data as numpy arrays
-                if not isinstance(value, (str, list, np.ndarray)):
+                if not isinstance(value, (str, np.ndarray)):
                     raise ValueError((
-                        f"{key} can be of type str, list, or numpy array"
+                        f"{key} can be of type str, or numpy array"
                         f"but not type {type(key)}"))
                 if isinstance(value, np.ndarray):
                     if not (str(value.dtype).startswith('<U') or
@@ -451,12 +452,6 @@ class Sofa():
                         raise ValueError((
                             f"{key} can be of dtype U or S "
                             f"but not {str(value.dtype)}"))
-                elif isinstance(value, list):
-                    dtype_ok = [type(v) == str for v in value]
-                    if not all(dtype_ok):
-                        raise ValueError((
-                            f"Elements of {key} can be of str"
-                            f"but not {str(type(value))}"))
             else:
                 # Could only be tested by manipulating JSON convention files
                 raise ValueError((
@@ -487,8 +482,8 @@ class Sofa():
                         _nd_newaxis(value, 4).shape[id]
                 if dim == "S":
                     # string data
-                    S = max(S, self._get_size_and_shape_of_string_var(
-                        value, key)[0])
+                    S = max(S, np.max(self._get_size_and_shape_of_string_var(
+                        value, key)[0]))
 
         # add fixed sizes
         self._api["C"] = 3
@@ -503,8 +498,7 @@ class Sofa():
                 warnings.warn((
                     f"{key} contains '.' or '_' in its name. In SOFA files, "
                     "this is only allowed for Data_* and SOFA attributes."
-                    "Trying to write this file using sofar.write_sofa() might"
-                    "not work as expected."))
+                    "Writing with sofar.write_sofa() might not work."))
 
             # handle dimensions
             dimensions = self._convention[key]["dimensions"]
