@@ -107,14 +107,16 @@ the `shape` printed by ``sofa.info()``. Data can simply be obtained and entered
     sofa.Data_IR = [1, 1]
     sofa.SourcePosition = [90, 0, 1.5]
 
-Now, the SOFA dictionary contains a single HRIR - which is ``1`` for the left
+Now, the SOFA object contains a single HRIR - which is ``1`` for the left
 ear and ``1`` for the right ear - for a source at ``0`` degree azimuth, ``90``
 degree elevation and a radius of ``1.5`` meter. Note that you just entered a
 list for `Data_IR` although it has to be a three-dimensional double variable.
-Don't worry about this, sofar will convert this for when writing the data to
-disk.
+Sofar handles this in two steps.
 
-You should now fill all mandatory entries of the SOFA dictionary if you were
+1. When entering data as lists it is converted to a numpy array with at least two dimensions.
+2. Missing dimensions are appended when writing the SOFA object to disk.
+
+You should now fill all mandatory entries of the SOFA object if you were
 for real. For this is example we'll cut it here for the sake of brevity. Let
 us, however, delete an optional entry that we do not need at this point
 
@@ -138,14 +140,15 @@ A SOFA object can be verified using
 
     sofa.verify()
 
-This will check if all mandatory data are contained `sofa` and if all data have
-the correct data type and shape. This is a good try to make sure that your data
-can be read by other applications.
+This will check if all mandatory data are contained, if the names of the data
+are complient with the SOFA standard, and if all data have the correct data
+type and shape. This is a good try to make sure that your data can be read by
+other applications.
 
 Note that you usually do not need to call ``sofa.verify()`` separately  because
 it is by default called if you create write or read a SOFA object. This would
 for example tell you that you are in trouble if you entered only one HRIR but
-two source positions.To write your SOFA dictionary to disk type
+two source positions.To write your SOFA object to disk type
 
 .. code-block:: python
 
