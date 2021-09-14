@@ -193,13 +193,26 @@ def test_sofa_verify():
 
 def test_dimensions(capfd):
 
-    sofa = sf.Sofa("SimpleFreeFieldHRIR")
-
-    # test dimensions
+    # test FIR Data
+    sofa = sf.Sofa("GeneralFIR")
     sofa.dimensions
     out, _ = capfd.readouterr()
-    assert out.startswith("SimpleFreeFieldHRIR 1.0 (SOFA version 2.0")
-    assert "M = 1 (measurements)" in out
+    assert out.startswith("GeneralFIR 2.0 (SOFA version 2.0")
+    assert "N = 1 (samples)" in out
+
+    # test TF Data
+    sofa = sf.Sofa("GeneralTF")
+    sofa.dimensions
+    out, _ = capfd.readouterr()
+    assert out.startswith("GeneralTF 2.0 (SOFA version 1.0")
+    assert "N = 1 (frequencies)" in out
+
+    # test SOS Data
+    sofa = sf.Sofa("SimpleFreeFieldSOS")
+    sofa.dimensions
+    out, _ = capfd.readouterr()
+    assert out.startswith("SimpleFreeFieldSOS 1.0 (SOFA version 1.0")
+    assert "N = 6 (SOS coefficients)" in out
 
 
 def test_info(capfd):

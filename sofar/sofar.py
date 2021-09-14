@@ -201,9 +201,21 @@ class Sofa():
 
         if info == "dimensions":
 
+            # get verbose name for dimesion N
+            if self.GLOBAL_DataType.startswith("FIR"):
+                N_verbose = "samples"
+            elif self.GLOBAL_DataType.startswith("TF"):
+                N_verbose = "frequencies"
+            elif self.GLOBAL_DataType.startswith("SOS"):
+                N_verbose = "SOS coefficients"
+            else:
+                raise ValueError((
+                    "GLOBAL_DataType start with 'FIR', 'TF', "
+                    f"or 'SOS' but not with {self.GLOBAL_DataType}"))
+
             dimensions = {
                 "M": "measurements",
-                "N": "samples/frequencies/SOS coefficients/SH coefficients",
+                "N": N_verbose,
                 "R": "receiver",
                 "E": "emitter",
                 "S": "maximum string length",
