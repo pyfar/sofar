@@ -130,8 +130,8 @@ to add a Temperature value and unit
 
 .. code-block:: python
 
-    sofa.add_entry("Temperature", 25.1, "double", "MI")
-    sofa.add_entry("Temperature_Units", "degree Celsius", "attribute", None)
+    sofa.add_variable("Temperature", 25.1, "double", "MI")
+    sofa.add_attribute("Temperature_Units", "degree Celsius")
 
 
 A SOFA object can be verified using

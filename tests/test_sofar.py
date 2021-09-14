@@ -425,7 +425,7 @@ def test_add_entry():
     tmp_dir = TemporaryDirectory()
 
     # test adding a single variable entry
-    sofa.add_entry("Temperature", 25.1, "double", "MI")
+    sofa.add_variable("Temperature", 25.1, "double", "MI")
     entry = {"flags": None, "dimensions": "MI", "type": "double",
              "default": None, "comment": ""}
     assert sofa.Temperature == 25.1
@@ -433,11 +433,11 @@ def test_add_entry():
     assert sofa._convention["Temperature"] == entry
 
     # test adding string variable, global and local attributes
-    sofa.add_entry("Mood", "good", "string", "MS")
+    sofa.add_variable("Mood", "good", "string", "MS")
     assert sofa.Mood == "good"
-    sofa.add_entry("GLOBAL_Mood", "good", "attribute", None)
+    sofa.add_attribute("GLOBAL_Mood", "good")
     assert sofa.GLOBAL_Mood == "good"
-    sofa.add_entry("Temperature_Units", "degree Celsius", "attribute", None)
+    sofa.add_attribute("Temperature_Units", "degree Celsius")
     assert sofa.Temperature_Units == "degree Celsius"
 
     # check if everything can be verified and written, and read correctly
@@ -453,19 +453,19 @@ def test_add_entry():
     # test assertions
     # add existing entry
     with pytest.raises(ValueError, match="Entry Temperature already exists"):
-        sofa.add_entry("Temperature", 25.1, "double", "MI")
+        sofa.add_variable("Temperature", 25.1, "double", "MI")
     # entry violating the naming convention
     with pytest.raises(ValueError, match="underscores '_' in the name"):
-        sofa.add_entry("Temperature_Celsius", 25.1, "double", "MI")
+        sofa.add_variable("Temperature_Celsius", 25.1, "double", "MI")
     # entry with wrong type
     with pytest.raises(ValueError, match="dtype is float but must be"):
-        sofa.add_entry("TemperatureCelsius", 25.1, "float", "MI")
+        sofa.add_variable("TemperatureCelsius", 25.1, "float", "MI")
     # variable without dimensions
     with pytest.raises(ValueError, match="dimensions must be provided"):
-        sofa.add_entry("TemperatureCelsius", 25.1, "double", None)
+        sofa.add_variable("TemperatureCelsius", 25.1, "double", None)
     # invalid dimensins
     with pytest.warns(UserWarning, match="Added custom dimension T"):
-        sofa.add_entry("TemperatureCelsius", [25.1, 25.2], "double", "T")
+        sofa.add_variable("TemperatureCelsius", [25.1, 25.2], "double", "T")
 
 
 def test_get_size_and_shape_of_string_var():

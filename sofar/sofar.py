@@ -271,24 +271,19 @@ class Sofa():
 
         print(info_str)
 
-    def add_entry(self, name, value, dtype, dimensions):
+    def add_variable(self, name, value, dtype, dimensions):
         """
-        Add custom entry to the SOFA object.
+        Add custom variable to the SOFA object, i.e., numeric or string arrays.
 
         Parameters
         ----------
         name : str
-            Name of the new entry.
+            Name of the new variable.
         value : any
             value to be added (see `dtype` for restrictions).
         dtype : str
             Type of the entry to be added in netCDF style:
 
-            ''`attribute`''
-                An attribute stores meta data as string. Attributes must
-                contain a ``'_'`` in there name and can either be
-                ``'GLOBAL_AttributeName'`` or add meta data to an
-                ``ExistinEntryName_AttributeName'``.
             ``'double'``
                 Use this to store numeric data that can be provided as number
                 list or numpy array.
@@ -308,7 +303,7 @@ class Sofa():
             sofa = sf.Sofa("GeneralTF")
 
             # add numeric data
-            sofa.add_entry("Temperature", 25.1, "double", "MI")
+            sofa.add_variable("Temperature", 25.1, "double", "MI")
 
             # add GLOBAL and Variable attribtue
             sofa.add_entry(
@@ -317,8 +312,42 @@ class Sofa():
                 "Temperature_Units", "degree Celsius", "attribute", None)
 
             # add a string data
-            sofa.add_entry(
+            sofa.add_variable(
                 "Comment", "Measured with wind screen", "string", "MS")
+        """
+
+        self._add_entry(name, value, dtype, dimensions)
+
+    def add_attribute(self, name, value):
+        """
+        Add custom attribute to the SOFA object.
+
+        Parameters
+        ----------
+        name : str
+            Name of the new attribute.
+        value : str
+            value to be added.
+
+        Examples
+        --------
+        .. code-block:: python
+
+            import sofar as sf
+            sofa = sf.Sofa("GeneralTF")
+
+            # add GLOBAL and Variable attribtue
+            sofa.add_attribute("GLOBAL_DateMeasured", "8.08.2021")
+            sofa.add_attribute("Data_Real_Units", "Pascal")
+
+        """
+
+        self._add_entry(name, value, 'attribute', None)
+
+    def _add_entry(self, name, value, dtype, dimensions):
+        """
+        Add custom data to a SOFA object. See add_variable and add_attribute
+        for more information.
         """
 
         # check input
@@ -437,15 +466,15 @@ class Sofa():
                             str(value.dtype).startswith('float') or
                             str(value.dtype).startswith('complex')):
                         raise ValueError((
-                            f"{key} can be of dtype int, float, complex"
+                            f"{key} can be of dtype int, float, complex "
                             f"but not {str(value.dtype)}"))
             elif dtype == "string":
                 # multiple checks needed because sofar does not force the user
                 # to initally pass data as numpy arrays
                 if not isinstance(value, (str, np.ndarray)):
                     raise ValueError((
-                        f"{key} can be of type str, or numpy array"
-                        f"but not type {type(key)}"))
+                        f"{key} can be of type str, or numpy array "
+                        f"but not {type(value)}"))
                 if isinstance(value, np.ndarray):
                     if not (str(value.dtype).startswith('<U') or
                             str(value.dtype).startswith('<S')):
