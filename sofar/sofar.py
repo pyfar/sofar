@@ -389,7 +389,7 @@ class Sofa():
 
         The API of a SOFA object consists of three parts, that are stored
         as private attributes. This is required for writing data with
-        :py:func:`~sofs.write_sofa` and should usually not be manipulated
+        :py:func:`~sofa.write_sofa` and should usually not be manipulated
         outside of `verify`
 
         self._convention
