@@ -16,3 +16,5 @@ deepdiff
 insipid-sphinx-theme
 tox-wheel
 autodocsumm
+netCDF4
+beautifulsoup4
