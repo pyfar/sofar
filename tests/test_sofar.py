@@ -197,22 +197,33 @@ def test_dimensions(capfd):
     sofa = sf.Sofa("GeneralFIR")
     sofa.dimensions
     out, _ = capfd.readouterr()
-    assert out.startswith("GeneralFIR 2.0 (SOFA version 2.0")
     assert "N = 1 (samples)" in out
 
     # test TF Data
     sofa = sf.Sofa("GeneralTF")
     sofa.dimensions
     out, _ = capfd.readouterr()
-    assert out.startswith("GeneralTF 2.0 (SOFA version 1.0")
     assert "N = 1 (frequencies)" in out
 
     # test SOS Data
     sofa = sf.Sofa("SimpleFreeFieldSOS")
     sofa.dimensions
     out, _ = capfd.readouterr()
-    assert out.startswith("SimpleFreeFieldSOS 1.0 (SOFA version 1.0")
     assert "N = 6 (SOS coefficients)" in out
+
+    # test non spherical harmonics data
+    sofa = sf.Sofa("GeneralFIR")
+    sofa.dimensions
+    out, _ = capfd.readouterr()
+    assert "E = 1 (emitter)" in out
+    assert "R = 1 (receiver)" in out
+
+    sofa.EmitterPosition_Type = "spherical harmonics"
+    sofa.ReceiverPosition_Type = "spherical harmonics"
+    sofa.dimensions
+    out, _ = capfd.readouterr()
+    assert "E = 1 (emitter spherical harmonics coefficients)" in out
+    assert "R = 1 (receiver spherical harmonics coefficients)" in out
 
 
 def test_info(capfd):

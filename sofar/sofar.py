@@ -152,7 +152,41 @@ class Sofa():
 
         """
 
-        self.info("dimensions")
+        # get verbose description for dimesion N
+        if self.GLOBAL_DataType.startswith("FIR"):
+            N_verbose = "samples"
+        elif self.GLOBAL_DataType.startswith("TF"):
+            N_verbose = "frequencies"
+        elif self.GLOBAL_DataType.startswith("SOS"):
+            N_verbose = "SOS coefficients"
+        else:
+            raise ValueError((
+                "GLOBAL_DataType start with 'FIR', 'TF', "
+                f"or 'SOS' but not with {self.GLOBAL_DataType}"))
+
+        # get verbose description for dimensions R and E
+        R_verbose = "receiver spherical harmonics coefficients" if \
+            'harmonic' in self.ReceiverPosition_Type else "receiver"
+        E_verbose = "emitter spherical harmonics coefficients" if \
+            'harmonic' in self.EmitterPosition_Type else "emitter"
+
+        dimensions = {
+            "M": "measurements",
+            "N": N_verbose,
+            "R": R_verbose,
+            "E": E_verbose,
+            "S": "maximum string length",
+            "C": "coordinate dimensions, fixed",
+            "I": "single dimension, fixed"}
+
+        info_str = ""
+        for key, value in self._api.items():
+            dim_info = dimensions[key] if key in dimensions \
+                else "custom dimension"
+
+            info_str += f"{key} = {value} ({dim_info})\n"
+
+        print(info_str)
 
     def info(self, info):
         """
@@ -199,36 +233,7 @@ class Sofa():
             f"(SOFA version {self.GLOBAL_Version})\n")
         info_str += "-" * len(info_str) + "\n"
 
-        if info == "dimensions":
-
-            # get verbose name for dimesion N
-            if self.GLOBAL_DataType.startswith("FIR"):
-                N_verbose = "samples"
-            elif self.GLOBAL_DataType.startswith("TF"):
-                N_verbose = "frequencies"
-            elif self.GLOBAL_DataType.startswith("SOS"):
-                N_verbose = "SOS coefficients"
-            else:
-                raise ValueError((
-                    "GLOBAL_DataType start with 'FIR', 'TF', "
-                    f"or 'SOS' but not with {self.GLOBAL_DataType}"))
-
-            dimensions = {
-                "M": "measurements",
-                "N": N_verbose,
-                "R": "receiver",
-                "E": "emitter",
-                "S": "maximum string length",
-                "C": "coordinate dimensions, fixed",
-                "I": "single dimension, fixed"}
-
-            info_str += "Dimensions\n"
-            for key, value in self._api.items():
-                dim_info = dimensions[key] if key in dimensions \
-                    else "custom dimension"
-                info_str += f"\t{key} = {value} ({dim_info})\n"
-
-        elif info in ["all", "mandatory", "optional", "read only", "data"]:
+        if info in ["all", "mandatory", "optional", "read only", "data"]:
 
             info_str += f"showing {info} entries : type (shape), flags\n\n"
 
