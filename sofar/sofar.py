@@ -152,6 +152,14 @@ class Sofa():
 
         """
 
+        try:
+            # update the API to make sure all meta data is in place
+            self.verify(version="match")
+        except ValueError:
+            raise ValueError((
+                "SOFA object could not be verified maybe due to invalid data."
+                "Call self.verify() for more detailed information."))
+
         # get verbose description for dimesion N
         if self.GLOBAL_DataType.startswith("FIR"):
             N_verbose = "samples"
@@ -184,7 +192,17 @@ class Sofa():
             dim_info = dimensions[key] if key in dimensions \
                 else "custom dimension"
 
-            info_str += f"{key} = {value} ({dim_info})\n"
+            info_str += f"{key} = {value} {dim_info}"
+
+            if dim_info != "custom ":
+                for key2, value2 in self._convention.items():
+                    dim = value2["dimensions"]
+                    if dim is not None and key.lower() in dim:
+                        info_str += \
+                            f" (set by {key2} of dimension {dim.upper()})"
+                        break
+
+            info_str += "\n"
 
         print(info_str)
 
