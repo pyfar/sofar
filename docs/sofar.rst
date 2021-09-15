@@ -1,4 +1,4 @@
-.. _documentation:
+.. _sofar_documentation:
 
 sofar documentation
 ===================

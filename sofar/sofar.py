@@ -21,17 +21,16 @@ class Sofa():
         The name of the convention from which the SOFA file is created. See
         :py:func:`~sofar.list_conventions`.
     mandatory : bool, optional
-        If ``True``, only the mandatory fields of the convention will be
+        If ``True``, only the mandatory data of the convention will be
         returned. The default is ``False``, which returns mandatory and
-        optional fields.
+        optional data.
     version : str, optional
         The version of the convention as a string, e.g., ``' 2.0'``. The
-        default is ``'latest'``. Also see
-        :py:func:`~sofar.list_conventions`.
+        default is ``'latest'``. Also see :py:func:`~sofar.list_conventions`.
     verify : bool, optional
-        Verify and update the SOFA object by calling :py:func:`~Sofa.verify`.
-        This helps to find potential errors in the default values and is thus
-        recommended. If reading a file does not work, try to call `Sofa` with
+        Verify the SOFA object by calling :py:func:`~Sofa.verify`. This helps
+        to find potential errors in the default values and is thus recommended
+        If creating a file does not work, try to call `Sofa` with
         ``verify=False``. The default is ``True``.
 
     Returns
@@ -41,6 +40,8 @@ class Sofa():
 
     Examples
     --------
+    Create a new SOFA object with default values
+
     .. code-block:: python
 
         import sofar as sf
@@ -48,8 +49,20 @@ class Sofa():
         # create SOFA object
         sofa = sf.Sofa("SimpleFreeFieldHRIR")
 
-    For more examples refer to the documentation at
-    https://pyfar.readthedocs.io/en/latest/
+    Add data
+
+    .. code-block:: python
+
+        sofa.Data_IR = [1, 1]
+
+    Data can be entered as numbers, numpy arrays or lists. Note the following
+    if entering a list
+
+    1. Lists are converted to a numpy array with at least two dimensions.
+    2. Missing dimensions are appended when writing the SOFA object to disk.
+
+    For more examples refer to the `Quick tour of SOFA and sofar` at
+    https://sofar.readthedocs.io/en/latest/
     """
 
     # these have to be set here, because they are used in __setattr__ and
