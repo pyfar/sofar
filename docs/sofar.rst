@@ -1,5 +1,7 @@
-sofar
-=====
+.. _documentation:
+
+sofar documentation
+===================
 
 .. automodule:: sofar.sofar
    :members:

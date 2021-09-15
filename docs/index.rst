@@ -12,6 +12,7 @@ Getting Started
    :maxdepth: 2
 
    readme
+   examples
 
 
 Documentation
@@ -20,7 +21,6 @@ Documentation
 .. toctree::
    :maxdepth: 2
 
-   examples
    sofar
 
 Contributing
