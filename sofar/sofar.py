@@ -283,24 +283,27 @@ class Sofa():
                     info_str += ", read only"
 
                 if self._convention[key]['comment']:
-                    info_str += f"\n\t{self._convention[key]['comment']}\n"
+                    info_str += f"\n    {self._convention[key]['comment']}\n"
                 else:
                     info_str += "\n"
 
         elif info in keys:
 
             for key in [k for k in keys if info in k]:
+                comment = str(self._convention[key]['comment'])
+                if not comment:
+                    comment = "None"
                 info_str += (
                     f"{key}\n"
-                    f"\ttype: {self._convention[key]['type']}\n"
-                    f"\tmandatory: "
+                    f"    type: {self._convention[key]['type']}\n"
+                    f"    mandatory: "
                     f"{self._mandatory(self._convention[key]['flags'])}\n"
-                    f"\tread only: "
+                    f"    read only: "
                     f"{self._read_only(self._convention[key]['flags'])}\n"
-                    f"\tdefault: {self._convention[key]['default']}\n"
-                    f"\tshape: "
+                    f"    default: {self._convention[key]['default']}\n"
+                    f"    shape: "
                     f"{str(self._convention[key]['dimensions']).upper()}\n"
-                    f"\tcomment: {self._convention[key]['comment']}\n")
+                    f"    comment: {comment}\n")
         else:
             raise ValueError(f"info='{info}' is invalid")
 

@@ -244,9 +244,9 @@ def test_info(capfd):
     # list information for specific entry
     sofa.info("ListenerPosition")
     out, _ = capfd.readouterr()
-    assert "ListenerPosition\n\ttype: double" in out
-    assert "ListenerPosition_Type\n\ttype: attribute" in out
-    assert "ListenerPosition_Units\n\ttype: attribute" in out
+    assert "ListenerPosition\n    type: double" in out
+    assert "ListenerPosition_Type\n    type: attribute" in out
+    assert "ListenerPosition_Units\n    type: attribute" in out
 
 
 def test_read_sofa():
