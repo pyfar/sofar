@@ -1,15 +1,15 @@
-.. |pyfar_logo| image:: resources/sofar.png
+.. |sofar_logo| image:: resources/sofar.png
    :width: 150
-   :alt: Alternative text
+   :alt: sofar
 
-|pyfar_logo|
+|sofar_logo|
 
 
 Getting Started
 ===============
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    readme
    examples
