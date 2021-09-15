@@ -175,7 +175,7 @@ And to see that the written and read files contain the same data you can check
     >>> True
 
 This is it for the short tour of SOFA and sofar. For detailed information
-refer to the :ref:`documentation` documentation.
+refer to the :ref:`sofar_documentation`.
 
 
 .. _sofaconventions.org: https://sofaconventions.org
