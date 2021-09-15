@@ -1,3 +1,5 @@
+.. _quick_tour:
+
 Quick tour of SOFA and sofar
 ----------------------------
 
@@ -6,6 +8,9 @@ short for *Spatially Oriented Format for Acoustics* and is an open file format
 for saving acoustic data, as for example head-related impulse responses
 (HRIRs). A good places to get more information about SOFA is
 `sofaconventions.org`_.
+
+Creating SOFA objects
+=====================
 
 To cover a variety of data, SOFA offers different `conventions`. A convention
 defines, what data can be saved and how it is saved. You should always find the
@@ -31,6 +36,9 @@ values of the `SimpleFreeFieldHRIR` convention. Note that ``sf.Sofa()`` can
 also return a sofa object that has only the mandatory attributes. However, it
 is recommended to start with all attributes and discard empty optional
 attributes before saving the data.
+
+Getting information about SOFA objects
+======================================
 
 To list all attributes inside a SOFA object, type the following
 
@@ -103,6 +111,9 @@ indicated by the output of :code:`sofa.dimensions` above (set by...). In some
 cases, variables can have different shapes. An example for this is the
 `ReceiverPosition` which can be of shape RCI or RCM.
 
+Adding data to SOFA objects
+===========================
+
 Data can simply be obtained and entered
 
 .. code-block:: python
@@ -150,6 +161,9 @@ are compliant with the SOFA standard, and if all data have the correct data
 type and shape. This would for example tell you that you are in trouble if you
 entered only one HRIR but two source positions.
 
+Reading and writing SOFA objects
+================================
+
 Note that you usually do not need to call ``sofa.verify()`` separately  because
 it is by default called if you create write or read a SOFA object. To write
 your SOFA object to disk type
@@ -174,8 +188,12 @@ And to see that the written and read files contain the same data you can check
     sf.compare_sofa(sofa, sofa_read)
     >>> True
 
-This is it for the short tour of SOFA and sofar. For detailed information
-refer to the :ref:`sofar_documentation`.
+Next steps
+==========
+
+This is it for the short tour of SOFA and sofar. For detailed information about
+sofar refer to the :ref:`sofar_documentation`. The next step introduces
+possible ways for :ref:`working_with_sofa_files`.
 
 
 .. _sofaconventions.org: https://sofaconventions.org
