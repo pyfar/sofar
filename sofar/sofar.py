@@ -1634,3 +1634,187 @@ def _nd_newaxis(array, ndim):
     for _ in range(ndim - array.ndim):
         array = array[..., np.newaxis]
     return array
+
+
+def _sofa_restrictions():
+    """
+    Return dictionaries to check restrictions on the data posed by SOFA
+
+    Returns:
+    data : dict
+        General restrictions on the data of any SOFA convention
+    data_type : dict
+        Restriction depending on GLOBAL_DataType
+    api : dict
+        Restrictions on the API depending on specific fields of a SOFA file
+    """
+
+    # definition of valid coordinate systems and units
+    coords_min = ["carthesian", "spherical"]
+    coords_full = coords_min + ["spherical harmonics"]
+    units_min = ["metre", "degree, degree, metre"]
+    units_full = units_min + [units_min[1]]
+
+    # restrictions on the data
+    data = {
+        # Global --------------------------------------------------------------
+        # GLOBAL_SOFAConventions?
+        # Check value of GLOBAL_DataType
+        "GLOBAL_DataType": {
+            "value": ["FIR", "FIR-E", "TF", "TF-E", "SOS"]},
+        # Listener ------------------------------------------------------------
+        # Check values and consistency of if ListenerPosition Type and Unit
+        "ListenerPosition_Type": {
+            "value": coords_min,
+            "dependency": {
+                "ListenerPosition_Units": units_min}},
+        # Check if dependencies of ListenerView are contained
+        "ListenerView": {
+            "value": None,
+            "dependency": {
+                "ListenerUp": None,
+                "ListenerView_Type": None,
+                "ListenerView_Units": None}},
+        # Check if dependencies of ListenerUp are contained
+        # (better save than sorry)
+        "ListenerUp": {
+            "value": None,
+            "dependency": {
+                "ListenerView": None,
+                "ListenerView_Type": None,
+                "ListenerView_Units": None}},
+        # Check values and consitency of ListenerView Type and Units
+        "ListenerView_Type": {
+            "value": coords_min,
+            "dependency": {
+                "ListenerView_Units": units_min}},
+        # Receiver ------------------------------------------------------------
+        # Check values and consistency of if ReceiverPosition Type and Unit
+        "ReceiverPosition_Type": {
+            "value": coords_full,
+            "dependency": {
+                "ReceiverPosition_Units": units_full}},
+        # Check if dependencies of ReceiverView are contained
+        "ReceiverView": {
+            "value": None,
+            "dependency": {
+                "ReceiverUp": None,
+                "ReceiverView_Type": None,
+                "ReceiverView_Units": None}},
+        # Check if dependencies of ReceiverUp are contained
+        # (better save than sorry)
+        "ReceiverUp": {
+            "value": None,
+            "dependency": {
+                "ReceiverView": None,
+                "ReceiverView_Type": None,
+                "ReceiverView_Units": None}},
+        # Check values and consistency of if ReceiverView Type and Unit
+        "ReceiverView_Type": {
+            "value": coords_min,
+            "dependency": {
+                "ReceiverView_Units": units_min}},
+        # Source ------------------------------------------------------------
+        # Check values and consistency of if SourcePosition Type and Unit
+        "SourcePosition_Type": {
+            "value": coords_min,
+            "dependency": {
+                "SourcePosition_Units": units_min}},
+        # Check if dependencies of SourceView are contained
+        "SourceView": {
+            "value": None,
+            "dependency": {
+                "SourceUp": None,
+                "SourceView_Type": None,
+                "SourceView_Units": None}},
+        # Check if dependencies of SourceUp are contained
+        # (better save than sorry)
+        "SourceUp": {
+            "value": None,
+            "dependency": {
+                "SourceView": None,
+                "SourceView_Type": None,
+                "SourceView_Units": None}},
+        # Check values and consitency of SourceView Type and Units
+        "SourceView_Type": {
+            "value": coords_min,
+            "dependency": {
+                "SourceView_Units": units_min}},
+        # Emitter ------------------------------------------------------------
+        # Check values and consistency of if EmitterPosition Type and Unit
+        "EmitterPosition_Type": {
+            "value": coords_full,
+            "dependency": {
+                "EmitterPosition_Units": units_full}},
+        # Check if dependencies of EmitterView are contained
+        "EmitterView": {
+            "value": None,
+            "dependency": {
+                "EmitterUp": None,
+                "EmitterView_Type": None,
+                "EmitterView_Units": None}},
+        # Check if dependencies of EmitterUp are contained
+        # (better save than sorry)
+        "EmitterUp": {
+            "value": None,
+            "dependency": {
+                "EmitterView": None,
+                "EmitterView_Type": None,
+                "EmitterView_Units": None}},
+        # Check values and consistency of if EmitterView Type and Unit
+        "EmitterView_Type": {
+            "value": coords_min,
+            "dependency": {
+                "EmitterView_Units": units_min}},
+        # Room meta data
+        "RoomType":
+            ["free field", "reverberant", "shoebox", "dae"],
+        "RoomVolume":
+            ["cubic metre"],
+        "RoomTemperature_Units":
+            ["Kelvin"]
+    }
+
+    # restrictions arising from GLOBAL_DataType
+    # This checks also if all mandatory fields consist, redundant but better
+    # save than sorry for future conventions
+    data_type = {
+        "FIR": {
+            "Data_IR": None,
+            "Data_Delay": None,
+            "Data_SamplingRate": None,
+            "Data_SamplingRate_Units": ["hertz"]},
+        "TF": {
+            "Data_Real": None,
+            "Data_Imag": None,
+            "Data_N": None,
+            "Data_N_LongName": ["frequency"],
+            "Data_N_Units": ["hertz"]},
+        "SOS": {
+            "Data_SOS": None,
+            "Data_N": [6 * (N + 1) for N in range(1000)],
+            "Data_Delay": None,
+            "Data_SamplingRate": None,
+            "Data_SamplingRate_Units": ["hertz"]}
+    }
+
+    # restrictions on the API
+    api = {
+        # Check dimension R if using spherical harmonics for the Receiver
+        # (assuming SH orders < 200)
+        "ReceiverPosition_Type": {
+            "value": "spherical harmonics",
+            "R": [(N+1)**2 for N in range(200)]},
+        # Check dimension E if using spherical harmonics for the Emitter
+        # (assuming SH orders < 200)
+        "EmitterPosition_Type": {
+            "value": "spherical harmonics",
+            "E": [(N+1)**2 for N in range(200)]},
+        # Checking the dimension of N if having SOS data
+        # (assuming up to 1000 second order sections)
+        "GLOBAL_DataType": {
+            "value": "SOS",
+            "N": [6 * (N + 1) for N in range(1000)]}
+    }
+
+    return data, data_type, api
