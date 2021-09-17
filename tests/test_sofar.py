@@ -7,6 +7,7 @@ from sofar.sofar import (_format_value_for_netcdf,
 import os
 from tempfile import TemporaryDirectory
 import pytest
+from pytest import raises
 import numpy as np
 import numpy.testing as npt
 from copy import deepcopy
@@ -38,16 +39,16 @@ def test_list_conventions(capfd):
     assert isinstance(names_versions, list)
     assert isinstance(names_versions[0], tuple)
 
-    with pytest.raises(ValueError, match="return_type None is invalid"):
+    with raises(ValueError, match="return_type None is invalid"):
         sf.list_conventions(verbose=False, return_type="None")
 
 
 def test_create_sofa_object(capfd):
     # test assertion for type of convention parameter
-    with pytest.raises(TypeError, match="Convention must be a string"):
+    with raises(TypeError, match="Convention must be a string"):
         sf.Sofa(1)
     # test assertion for invalid conventions
-    with pytest.raises(ValueError, match="Convention 'invalid' not found"):
+    with raises(ValueError, match="Convention 'invalid' not found"):
         sf.Sofa("invalid")
 
     # test creation with defaults
@@ -73,7 +74,7 @@ def test_create_sofa_object(capfd):
     assert str(sofa.GLOBAL_SOFAConventionsVersion) == "1.0"
 
     # test invalid version
-    with pytest.raises(ValueError, match="Version 0.25 not found. Available"):
+    with raises(ValueError, match="Version 0.25 not found. Available"):
         sf.Sofa("GeneralTF", version="0.25")
 
     # test without updating the api
@@ -92,11 +93,11 @@ def test_set_attributes_of_sofa_object():
     assert (sofa.ListenerPosition == [1, 1, 1]).all()
 
     # set read only attribute
-    with pytest.raises(TypeError, match="GLOBAL_Version is a read only"):
+    with raises(TypeError, match="GLOBAL_Version is a read only"):
         sofa.GLOBAL_Version = 1
 
     # set non-existing attribute
-    with pytest.raises(TypeError, match="new is an invalid attribute"):
+    with raises(TypeError, match="new is an invalid attribute"):
         sofa.new = 1
 
 
@@ -107,11 +108,11 @@ def test_sofa_delete_attribute():
     delattr(sofa, "GLOBAL_ApplicationName")
 
     # delete mandatory attribute
-    with pytest.raises(TypeError, match="GLOBAL_Version is a mandatory"):
+    with raises(TypeError, match="GLOBAL_Version is a mandatory"):
         delattr(sofa, "GLOBAL_Version")
 
     # delete not existing attribute
-    with pytest.raises(TypeError, match="new is not an attribute"):
+    with raises(TypeError, match="new is not an attribute"):
         delattr(sofa, "new")
 
 
@@ -149,23 +150,23 @@ def test_sofa_verify():
     # test attribute with wrong shape
     sofa = sf.Sofa("GeneralTF")
     sofa.ListenerPosition = 1
-    with pytest.raises(ValueError, match=("The shape of ListenerPosition")):
+    with raises(ValueError, match=("The shape of ListenerPosition")):
         sofa.verify()
 
     # test invalid data for netCDF attribute
     sofa = sf.Sofa("GeneralTF")
     sofa.GLOBAL_History = 1
-    with pytest.raises(ValueError, match="GLOBAL_History must be a string"):
+    with raises(ValueError, match="GLOBAL_History must be a string"):
         sofa.verify()
 
     # test invalid data for netCDF double variable
     sofa = sf.Sofa("GeneralTF")
     sofa.Data_Real = np.array("test")
-    with pytest.raises(ValueError, match="Data_Real can be of dtype"):
+    with raises(ValueError, match="Data_Real can be of dtype"):
         sofa.verify()
 
     sofa.Data_Real = [1, 1., 1+1j, "1"]
-    with pytest.raises(ValueError, match="Data_Real can be of dtype int"):
+    with raises(ValueError, match="Data_Real can be of dtype int"):
         sofa.verify()
 
     # test valid data
@@ -177,11 +178,11 @@ def test_sofa_verify():
     # test invalid data for netCDF string variable
     sofa = sf.Sofa("SimpleHeadphoneIR")
     sofa.SourceModel = 1
-    with pytest.raises(ValueError, match="SourceModel can be of type"):
+    with raises(ValueError, match="SourceModel can be of type"):
         sofa.verify()
 
     sofa.SourceModel = np.array(1)
-    with pytest.raises(ValueError, match="SourceModel can be of dtype"):
+    with raises(ValueError, match="SourceModel can be of dtype"):
         sofa.verify()
 
     # test valid data
@@ -189,6 +190,130 @@ def test_sofa_verify():
     sofa.verify()
     sofa.SourceModel = np.array(["test"])
     sofa.verify()
+
+
+# test everything from sofar._sofa_restrictions explicitly to make sure
+# all possible error in SOFA files are caught
+@pytest.mark.parametrize("key,value,msg", [
+    ("GLOBAL_DataType", "image", "GLOBAL_DataType is image but must be FIR,"),
+    ("GLOBAL_RoomType", "Living room", ""),        # message tested above
+    ("ListenerPosition_Type", "cylindrical", ""),  # message tested above
+    ("ListenerPosition_Units", "A", "ListenerPosition_Units must be metre if"),
+    ("ListenerView_Type", "cylindrical", ""),      # message tested above
+    ("ListenerView_Units", "A", ""),               # message tested above
+    ("ReceiverPosition_Type", "cylindrical", ""),  # message tested above
+    ("ReceiverPosition_Units", "A", ""),           # message tested above
+    ("ReceiverView_Type", "cylindrical", ""),      # message tested above
+    ("ReceiverView_Units", "A", ""),               # message tested above
+    ("SourcePosition_Type", "cylindrical", ""),    # message tested above
+    ("SourcePosition_Units", "A", ""),             # message tested above
+    ("SourceView_Type", "cylindrical", ""),        # message tested above
+    ("SourceView_Units", "A", ""),                 # message tested above
+    ("EmitterPosition_Type", "cylindrical", ""),   # message tested above
+    ("EmitterPosition_Units", "A", ""),            # message tested above
+    ("EmitterView_Type", "cylindrical", ""),       # message tested above
+    ("EmitterView_Units", "A", ""),                # message tested above
+    ("RoomVolume_Units", "square metre", ""),      # message tested above
+    ("RoomTemperature_Units", "Celsius", ""),      # message tested above
+])
+def test_sofa_verify_restrictions_data_wrong_value(key, value, msg):
+    """
+    Test assertions for generally restricted data values.
+    """
+
+    # invalid data type
+    sofa = sf.Sofa("SingleRoomSRIR")
+    sofa.add_variable("RoomVolume", 200, "double", 'II')
+    sofa.add_attribute("RoomVolume_Units", "cubic metre")
+    sofa.add_variable("RoomTemperature", 100, "double", 'II')
+    sofa.add_attribute("RoomTemperature_Units", "Kelvin")
+    sofa._protected = False
+    setattr(sofa, key, value)
+    sofa._protected = True
+    with raises(ValueError, match=msg):
+        sofa.verify()
+
+
+# can't test everything from sofar._sofa_restrictions explicitly because
+# mandatory fields are added by default
+@pytest.mark.parametrize("key,msg", [
+    ("ReceiverView", "ReceiverView must be given if ReceiverUp"),
+    ("RoomVolume_Units", ""),                      # message tested above
+    ("RoomTemperature_Units", ""),                 # message tested above
+])
+def test_sofa_verify_restrictions_data_missing_attribute(key, msg):
+    """
+    Test assertions for removing optional fields that become mandatory due to
+    another field.
+    """
+
+    # invalid data type
+    sofa = sf.Sofa("SingleRoomSRIR")
+    sofa.add_variable("RoomVolume", 200, "double", 'II')
+    sofa.add_attribute("RoomVolume_Units", "cubic metre")
+    sofa.add_variable("RoomTemperature", 100, "double", 'II')
+    sofa.add_attribute("RoomTemperature_Units", "Kelvin")
+    sofa._protected = False
+    delattr(sofa, key)
+    sofa._protected = True
+    with raises(AttributeError, match=msg):
+        sofa.verify()
+
+
+# test everything from sofar._sofa_restrictions explicitly to make sure
+# all possible error in SOFA files are caught
+@pytest.mark.parametrize("convention,key,value,msg", [
+    ("GeneralFIR", "Data_SamplingRate_Units", "hz",
+     "Data_SamplingRate_Units is hz but must be hertz"),
+    ("GeneralTF", "N_LongName", "f",
+     "N_LongName is f but must be frequency"),
+    ("GeneralTF", "N_Units", "hz",
+     "N_Units is hz but must be hertz"),
+    ("SimpleFreeFieldSOS", "N", 0,
+     "N is 0 but must be an integer multiple of 6 greater 0")
+])
+def test_sofa_verify_restrictions_data_type(convention, key, value, msg):
+    """Test assertions for values that are restricted by GLOBAL_DataType."""
+
+    sofa = sf.Sofa(convention)
+    setattr(sofa, key, value)
+    with raises(ValueError, match=msg):
+        sofa.verify()
+
+
+def test_sofa_verify_restrictions_api_spherical_harmonics():
+    """
+    Test assertions for incorrect number of emitters/receiver in case of
+    spherical harmonics coordinate systems
+    """
+
+    sofa = sf.Sofa("GeneralFIR-E")
+    sofa.ReceiverPosition_Type = "spherical harmonics"
+    sofa.ReceiverPosition_Units = "degree, degree, metre"
+    sofa.Data_IR = np.zeros((1, 2, 1, 1))
+    sofa.Data_Delay = np.zeros((1, 2, 1))
+    with raises(ValueError, match="Dimension R is of size 2 but must be"):
+        sofa.verify()
+
+    sofa = sf.Sofa("GeneralFIR-E")
+    sofa.EmitterPosition_Type = "spherical harmonics"
+    sofa.EmitterPosition_Units = "degree, degree, metre"
+    sofa.Data_IR = np.zeros((1, 1, 1, 2))
+    sofa.Data_Delay = np.zeros((1, 1, 2))
+    with raises(ValueError, match="Dimension E is of size 2 but must be"):
+        sofa.verify()
+
+
+def test_sofa_verify_restrictions_api_second_order_sections():
+    """
+    Test assertions for incorrect number of N in case of
+    SOS data type
+    """
+
+    sofa = sf.Sofa("SimpleFreeFieldHRSOS")
+    sofa.Data_SOS = np.zeros((1, 2, 1))
+    with raises(ValueError, match="Dimension N is of size 1 but must be"):
+        sofa.verify()
 
 
 def test_dimensions(capfd):
@@ -220,6 +345,8 @@ def test_dimensions(capfd):
 
     sofa.EmitterPosition_Type = "spherical harmonics"
     sofa.ReceiverPosition_Type = "spherical harmonics"
+    sofa.EmitterPosition_Units = "degree, degree, metre"
+    sofa.ReceiverPosition_Units = "degree, degree, metre"
     sofa.dimensions
     out, _ = capfd.readouterr()
     assert "E = 1 emitter spherical harmonics coefficients" in out
@@ -231,7 +358,7 @@ def test_info(capfd):
     sofa = sf.Sofa("SimpleFreeFieldHRIR")
 
     # test with wrong info string
-    with pytest.raises(
+    with raises(
             ValueError, match="info='invalid' is invalid"):
         sofa.info("invalid")
 
@@ -265,7 +392,7 @@ def test_read_sofa():
     assert not hasattr(sofa, "_api")
 
     # read non-existing file
-    with pytest.raises(ValueError, match="test.sofa does not exist"):
+    with raises(ValueError, match="test.sofa does not exist"):
         sf.read_sofa("test.sofa")
 
     # read file of unknown convention
@@ -273,13 +400,13 @@ def test_read_sofa():
     sf.write_sofa(filename, sofa)
     with Dataset(filename, "r+", format="NETCDF4") as file:
         setattr(file, "SOFAConventions", "Funky")
-    with pytest.raises(ValueError, match="File has unknown convention Funky"):
+    with raises(ValueError, match="File has unknown convention Funky"):
         sf.read_sofa(filename)
 
     # read file of unknown version
     sofa = sf.Sofa("SimpleFreeFieldHRIR")
     sf.write_sofa(filename, sofa)
-    with pytest.raises(ValueError, match="Version not found"):
+    with raises(ValueError, match="Version not found"):
         sf.read_sofa(filename, version="0.25")
 
     # read file containing a variable with wrong shape
@@ -291,7 +418,7 @@ def test_read_sofa():
         var = file.createVariable("Data_IR", "f8", ('I', 'A'))
         var[:] = np.zeros((1, 10)).astype("double")
     # reading data with update API generates an error
-    with pytest.raises(ValueError, match="The SOFA object could not be"):
+    with raises(ValueError, match="The SOFA object could not be"):
         sf.read_sofa(filename)
     # data can be read without updating API
     sf.read_sofa(filename, verify=False)
@@ -350,7 +477,7 @@ def test_compare_sofa_global_parameters():
     sofa_a = sf.Sofa("SimpleFreeFieldHRIR")
 
     # check invalid
-    with pytest.raises(ValueError, match="exclude is"):
+    with raises(ValueError, match="exclude is"):
         sf.compare_sofa(sofa_a, sofa_a, exclude="wrong")
 
     # check identical objects
@@ -476,16 +603,16 @@ def test_add_entry():
 
     # test assertions
     # add existing entry
-    with pytest.raises(ValueError, match="Entry Temperature already exists"):
+    with raises(ValueError, match="Entry Temperature already exists"):
         sofa.add_variable("Temperature", 25.1, "double", "MI")
     # entry violating the naming convention
-    with pytest.raises(ValueError, match="underscores '_' in the name"):
+    with raises(ValueError, match="underscores '_' in the name"):
         sofa.add_variable("Temperature_Celsius", 25.1, "double", "MI")
     # entry with wrong type
-    with pytest.raises(ValueError, match="dtype is float but must be"):
+    with raises(ValueError, match="dtype is float but must be"):
         sofa.add_variable("TemperatureCelsius", 25.1, "float", "MI")
     # variable without dimensions
-    with pytest.raises(ValueError, match="dimensions must be provided"):
+    with raises(ValueError, match="dimensions must be provided"):
         sofa.add_variable("TemperatureCelsius", 25.1, "double", None)
     # invalid dimensins
     with pytest.warns(UserWarning, match="Added custom dimension T"):
@@ -516,7 +643,7 @@ def test_get_size_and_shape_of_string_var():
     assert shape == (2, )
 
     # test with wrong type
-    with pytest.raises(TypeError, match="key must be a string"):
+    with raises(TypeError, match="key must be a string"):
         sf.Sofa._get_size_and_shape_of_string_var(1, "key")
 
 
@@ -576,7 +703,7 @@ def test_format_value_for_netcdf():
     assert value.ndim == 2
 
     # unkonw data type
-    with pytest.raises(ValueError, match="Unknown type int for TestVar"):
+    with raises(ValueError, match="Unknown type int for TestVar"):
         value, dtype = _format_value_for_netcdf(1, "TestVar", "int", "MR", 12)
 
 
@@ -609,7 +736,7 @@ def test_format_value_from_netcdf():
     npt.assert_allclose(value, array)
 
     # test with invalid data dtype
-    with pytest.raises(TypeError, match="Data_IR: value.dtype is complex"):
+    with raises(TypeError, match="Data_IR: value.dtype is complex"):
         _format_value_from_netcdf(
             np.array([44100], dtype="complex"), "Data_IR")
 
@@ -639,11 +766,11 @@ def test_verify_convention_and_version():
     assert version == "1.0"
 
     # test assertions
-    with pytest.raises(ValueError, match="Convention Funky does not exist"):
+    with raises(ValueError, match="Convention Funky does not exist"):
         _verify_convention_and_version("latest", "1.0", "Funky")
-    with pytest.raises(ValueError, match="Version 1.1 does not exist"):
+    with raises(ValueError, match="Version 1.1 does not exist"):
         _verify_convention_and_version("match", "1.1", "GeneralTF")
-    with pytest.raises(ValueError, match="Version 1.2 does not exist"):
+    with raises(ValueError, match="Version 1.2 does not exist"):
         _verify_convention_and_version("1.2", "1.0", "GeneralTF")
 
 

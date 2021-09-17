@@ -633,6 +633,75 @@ class Sofa():
                     (f"The shape of {key} is {shape_compare} but has "
                      f"to be {', '.join(dimensions_verbose)}"))
 
+        # check restrictions on the content of SOFA files
+        data, data_type, api = _sofa_restrictions()
+
+        # general restrictions on data
+        for key in data.keys():
+
+            ref = data[key]["value"]
+            if hasattr(self, key):
+
+                # test if the value is valid
+                test = getattr(self, key)
+                if ref is not None and test not in ref:
+                    raise ValueError(
+                        f"{key} is {test} but must be {', '.join(ref)}")
+
+                # check dependencies
+                if "dependency" not in data[key]:
+                    continue
+
+                for key_dep, ref_dep in data[key]["dependency"].items():
+                    pass
+
+                    # check if dependency is contained in SOFA object
+                    # hard to test, because mandatory fields are added by sofar
+                    # this is more to be future proof
+                    if not hasattr(self, key_dep):
+                        raise AttributeError((f"{key_dep} must be given if "
+                                              f"{key} is in SOFA object"))
+
+                    # check if dependency has the correct value
+                    test_dep = getattr(self, key_dep)
+                    if not (isinstance(ref, list) and
+                            isinstance(ref_dep, list)):
+                        continue
+
+                    idx = ref.index(test)
+                    if test_dep != ref_dep[idx]:
+                        raise ValueError((f"{key_dep} must be {ref_dep[idx]} "
+                                          f"if {key} is {test}"))
+
+        # restriction posed by GLOBAL_DataType
+        if self.GLOBAL_DataType.startswith("FIR"):
+            data_str = "FIR"
+        elif self.GLOBAL_DataType.startswith("TF"):
+            data_str = "TF"
+        elif self.GLOBAL_DataType.startswith("SOS"):
+            data_str = "SOS"
+
+        for key, value in data_type[data_str].items():
+
+            # hard to test. included to detect problems with future conventions
+            if not hasattr(self, key):
+                raise ValueError((f"{key} must be contained if SOFA objects if"
+                                  f" GLOBAL_DataType={self.GLOBAL_DataType}"))
+
+            if value is not None and getattr(self, key) not in value[0]:
+                raise ValueError(
+                    f"{key} is {getattr(self, key)} but must be {value[1]}")
+
+        # restrictions on the API
+        for key, value in api.items():
+            if hasattr(self, key) and getattr(self, key) == value["value"]:
+                size = getattr(self, "_api")[value["API"][0]]
+                if size not in value["API"][1]:
+                    raise ValueError(
+                        (f"Dimension {value['API'][0]} is of size {size} but "
+                         f"must be {value['API'][2]} if "
+                         f"{key} is {getattr(self, key)}"))
+
     def _update_convention(self, version):
         """
         Add API to SOFA object. If The SOFA files contains an API it is
@@ -1638,7 +1707,11 @@ def _nd_newaxis(array, ndim):
 
 def _sofa_restrictions():
     """
-    Return dictionaries to check restrictions on the data posed by SOFA
+    Return dictionaries to check restrictions on the data posed by SOFA.
+
+    The check is done in SOFA.verify(). This is not a private class method,
+    to save additional indention that would make the code harder to read and
+    write.
 
     Returns:
     data : dict
@@ -1650,18 +1723,32 @@ def _sofa_restrictions():
     """
 
     # definition of valid coordinate systems and units
-    coords_min = ["carthesian", "spherical"]
+    coords_min = ["cartesian", "spherical"]
     coords_full = coords_min + ["spherical harmonics"]
     units_min = ["metre", "degree, degree, metre"]
     units_full = units_min + [units_min[1]]
+    # possible values for restricted dimensions in the API
+    sh_dimension = ([(N+1)**2 for N in range(200)],
+                    "(N+1)**2 where N is the spherical harmonics order")
+    sos_dimension = ([6 * (N + 1) for N in range(1000)],
+                     "an integer multiple of 6 greater 0")
 
     # restrictions on the data
+    # - if `value` is None it in only checked if the SOFA object has the attr
+    # - if `value` is a list, it is also checked if the actual value is in
+    #   `value`
+    # - if there is a list of values for a dependency the value of the SOFA
+    #   object has to match the value of the list at a certain index. The index
+    #   is determined by the value of the parent.
     data = {
         # Global --------------------------------------------------------------
         # GLOBAL_SOFAConventions?
         # Check value of GLOBAL_DataType
+        # (FIRE and TFE are legacy data types from SOFA version 1.0)
         "GLOBAL_DataType": {
-            "value": ["FIR", "FIR-E", "TF", "TF-E", "SOS"]},
+            "value": ["FIR", "FIR-E", "FIRE", "TF", "TF-E", "TFE", "SOS"]},
+        "GLOBAL_RoomType": {
+            "value": ["free field", "reverberant", "shoebox", "dae"]},
         # Listener ------------------------------------------------------------
         # Check values and consistency of if ListenerPosition Type and Unit
         "ListenerPosition_Type": {
@@ -1672,22 +1759,18 @@ def _sofa_restrictions():
         "ListenerView": {
             "value": None,
             "dependency": {
-                "ListenerUp": None,
                 "ListenerView_Type": None,
                 "ListenerView_Units": None}},
-        # Check if dependencies of ListenerUp are contained
-        # (better save than sorry)
-        "ListenerUp": {
-            "value": None,
-            "dependency": {
-                "ListenerView": None,
-                "ListenerView_Type": None,
-                "ListenerView_Units": None}},
-        # Check values and consitency of ListenerView Type and Units
+        # Check values and consistency of if ListenerView Type and Unit
         "ListenerView_Type": {
             "value": coords_min,
             "dependency": {
                 "ListenerView_Units": units_min}},
+        # Check if dependencies of ListenerUp are contained
+        "ListenerUp": {
+            "value": None,
+            "dependency": {
+                "ListenerView": None}},
         # Receiver ------------------------------------------------------------
         # Check values and consistency of if ReceiverPosition Type and Unit
         "ReceiverPosition_Type": {
@@ -1698,15 +1781,6 @@ def _sofa_restrictions():
         "ReceiverView": {
             "value": None,
             "dependency": {
-                "ReceiverUp": None,
-                "ReceiverView_Type": None,
-                "ReceiverView_Units": None}},
-        # Check if dependencies of ReceiverUp are contained
-        # (better save than sorry)
-        "ReceiverUp": {
-            "value": None,
-            "dependency": {
-                "ReceiverView": None,
                 "ReceiverView_Type": None,
                 "ReceiverView_Units": None}},
         # Check values and consistency of if ReceiverView Type and Unit
@@ -1714,7 +1788,12 @@ def _sofa_restrictions():
             "value": coords_min,
             "dependency": {
                 "ReceiverView_Units": units_min}},
-        # Source ------------------------------------------------------------
+        # Check if dependencies of ReceiverUp are contained
+        "ReceiverUp": {
+            "value": None,
+            "dependency": {
+                "ReceiverView": None}},
+        # Source --------------------------------------------------------------
         # Check values and consistency of if SourcePosition Type and Unit
         "SourcePosition_Type": {
             "value": coords_min,
@@ -1724,23 +1803,19 @@ def _sofa_restrictions():
         "SourceView": {
             "value": None,
             "dependency": {
-                "SourceUp": None,
                 "SourceView_Type": None,
                 "SourceView_Units": None}},
-        # Check if dependencies of SourceUp are contained
-        # (better save than sorry)
-        "SourceUp": {
-            "value": None,
-            "dependency": {
-                "SourceView": None,
-                "SourceView_Type": None,
-                "SourceView_Units": None}},
-        # Check values and consitency of SourceView Type and Units
+        # Check values and consistency of if SourceView Type and Unit
         "SourceView_Type": {
             "value": coords_min,
             "dependency": {
                 "SourceView_Units": units_min}},
-        # Emitter ------------------------------------------------------------
+        # Check if dependencies of SourceUp are contained
+        "SourceUp": {
+            "value": None,
+            "dependency": {
+                "SourceView": None}},
+        # Emitter -------------------------------------------------------------
         # Check values and consistency of if EmitterPosition Type and Unit
         "EmitterPosition_Type": {
             "value": coords_full,
@@ -1750,15 +1825,6 @@ def _sofa_restrictions():
         "EmitterView": {
             "value": None,
             "dependency": {
-                "EmitterUp": None,
-                "EmitterView_Type": None,
-                "EmitterView_Units": None}},
-        # Check if dependencies of EmitterUp are contained
-        # (better save than sorry)
-        "EmitterUp": {
-            "value": None,
-            "dependency": {
-                "EmitterView": None,
                 "EmitterView_Type": None,
                 "EmitterView_Units": None}},
         # Check values and consistency of if EmitterView Type and Unit
@@ -1766,36 +1832,48 @@ def _sofa_restrictions():
             "value": coords_min,
             "dependency": {
                 "EmitterView_Units": units_min}},
-        # Room meta data
-        "RoomType":
-            ["free field", "reverberant", "shoebox", "dae"],
-        "RoomVolume":
-            ["cubic metre"],
-        "RoomTemperature_Units":
-            ["Kelvin"]
+        # Check if dependencies of EmitterUp are contained
+        "EmitterUp": {
+            "value": None,
+            "dependency": {
+                "EmitterView": None}},
+        # Room ----------------------------------------------------------------
+        "RoomVolume": {
+            "value": None,
+            "dependency": {
+                "RoomVolume_Units": None}},
+        "RoomTemperature": {
+            "value": None,
+            "dependency": {
+                "RoomTemperature_Units": None}},
+        "RoomVolume_Units": {
+            "value": ["cubic metre"]},
+        "RoomTemperature_Units": {
+            "value": ["Kelvin"]}
     }
 
     # restrictions arising from GLOBAL_DataType
-    # This checks also if all mandatory fields consist, redundant but better
-    # save than sorry for future conventions
+    # - if `value` is None it in only checked if the SOFA object has the attr
+    # - if `value` is a list, it is also checked if the actual value is in
+    #   `value`
     data_type = {
         "FIR": {
             "Data_IR": None,
             "Data_Delay": None,
             "Data_SamplingRate": None,
-            "Data_SamplingRate_Units": ["hertz"]},
+            "Data_SamplingRate_Units": (["hertz"], "hertz")},
         "TF": {
             "Data_Real": None,
             "Data_Imag": None,
-            "Data_N": None,
-            "Data_N_LongName": ["frequency"],
-            "Data_N_Units": ["hertz"]},
+            "N": None,
+            "N_LongName": (["frequency"], "frequency"),
+            "N_Units": (["hertz"], "hertz")},
         "SOS": {
             "Data_SOS": None,
-            "Data_N": [6 * (N + 1) for N in range(1000)],
+            "N": sos_dimension,
             "Data_Delay": None,
             "Data_SamplingRate": None,
-            "Data_SamplingRate_Units": ["hertz"]}
+            "Data_SamplingRate_Units": (["hertz"], "hertz")}
     }
 
     # restrictions on the API
@@ -1804,17 +1882,17 @@ def _sofa_restrictions():
         # (assuming SH orders < 200)
         "ReceiverPosition_Type": {
             "value": "spherical harmonics",
-            "R": [(N+1)**2 for N in range(200)]},
+            "API": ("R", ) + sh_dimension},
         # Check dimension E if using spherical harmonics for the Emitter
         # (assuming SH orders < 200)
         "EmitterPosition_Type": {
             "value": "spherical harmonics",
-            "E": [(N+1)**2 for N in range(200)]},
+            "API": ("E", ) + sh_dimension},
         # Checking the dimension of N if having SOS data
         # (assuming up to 1000 second order sections)
         "GLOBAL_DataType": {
             "value": "SOS",
-            "N": [6 * (N + 1) for N in range(1000)]}
+            "API": ("N", ) + sos_dimension}
     }
 
     return data, data_type, api
