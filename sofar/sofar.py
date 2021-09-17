@@ -426,22 +426,29 @@ class Sofa():
 
     def verify(self, version="latest"):
         """
-        Verify a SOFA object.
+        Verify a SOFA object against the SOFA standard.
 
-        This function updates the API, checks if all mandatory fields are
-        contained and if the dimensions of the data inside the SOFA object are
-        according to the SOFA standard. If a mandatory attribute is missing, it
-        is added to the SOFA object with its default value and a warning is
-        raised.
+        This function updates the API, and checks the following
+
+        - Are all mandatory fields contained? If not mandatory fields are added
+          with their default value and a warning is raised.
+        - Are the names of variables and attributes in accordance to the SOFA
+          standard? If not a warning is raised.
+        - Are the data types in accordance with the SOFA standard?
+        - Are the dimensions of the variables consistent and in accordance
+          to the SOFA standard?
+        - Are the values of attributes consistent and in accordance to the
+          SOFA standard?
 
         .. note::
-            ``verify`` is automatically called when you create a new SOFA
-            object or read a SOFA file disk using the default parameters.
+            :py:func:`~verify` is automatically called when you create a new
+            SOFA object, read a SOFA file from disk, and write a SOFA file to
+            disk (using the default parameters).
 
         The API of a SOFA object consists of three parts, that are stored
         as private attributes. This is required for writing data with
         :py:func:`~sofa.write_sofa` and should usually not be manipulated
-        outside of `verify`
+        outside of :py:func:`~verify`
 
         self._convention
             The SOFA convention with default values, variable dimensions, flags
