@@ -196,6 +196,7 @@ def test_sofa_verify():
 # all possible error in SOFA files are caught
 @pytest.mark.parametrize("key,value,msg", [
     ("GLOBAL_DataType", "image", "GLOBAL_DataType is image but must be FIR,"),
+    ("GLOBAL_SOFAConventions", "FIR", ""),         # message tested above
     ("GLOBAL_RoomType", "Living room", ""),        # message tested above
     ("ListenerPosition_Type", "cylindrical", ""),  # message tested above
     ("ListenerPosition_Units", "A", "ListenerPosition_Units must be metre if"),
@@ -313,6 +314,70 @@ def test_sofa_verify_restrictions_api_second_order_sections():
     sofa = sf.Sofa("SimpleFreeFieldHRSOS")
     sofa.Data_SOS = np.zeros((1, 2, 1))
     with raises(ValueError, match="Dimension N is of size 1 but must be"):
+        sofa.verify()
+
+
+@pytest.mark.parametrize('convention,kwargs,msg', [
+    ("GeneralFIR", [("GLOBAL_DataType", "FIR-E")], "GLOBAL_DataType is FIR-E"),
+    ("GeneralFIR-E", [("GLOBAL_DataType", "FIR")], "GLOBAL_DataType is FIR"),
+    ("GeneralFIRE", [("GLOBAL_DataType", "FIR")], "GLOBAL_DataType is FIR"),
+    ("GeneralTF", [("GLOBAL_DataType", "TF-E")], "GLOBAL_DataType is TF-E"),
+    ("GeneralTF-E", [("GLOBAL_DataType", "TF")], "GLOBAL_DataType is TF"),
+
+    ("SimpleFreeFieldHRIR", [("GLOBAL_DataType", "FIR-E")],
+     "GLOBAL_DataType is FIR-E"),
+    ("SimpleFreeFieldHRIR", [("GLOBAL_RoomType", "echoic")],
+     "GLOBAL_RoomType is echoic"),
+    ("SimpleFreeFieldHRIR", [("EmitterPosition", np.zeros((2, 3)))],
+     "Dimension E is of size 2 but must be 1 if GLOBAL"),
+    ("SimpleFreeFieldHRIR",
+     [("EmitterPosition_Type", "spherical harmonics"),
+      ("EmitterPosition_Units", "degree, degree, metre")],
+     "EmitterPosition_Type is spherical harmonics"),
+
+    ("SimpleFreeFieldHRTF", [("GLOBAL_DataType", "TF-E")],
+     "GLOBAL_DataType is TF-E"),
+    ("SimpleFreeFieldHRTF", [("GLOBAL_RoomType", "echoic")],
+     "GLOBAL_RoomType is echoic"),
+    ("SimpleFreeFieldHRTF", [("EmitterPosition", np.zeros((2, 3)))],
+     "Dimension E is of size 2 but must be 1 if GLOBAL"),
+    ("SimpleFreeFieldHRTF",
+     [("EmitterPosition_Type", "spherical harmonics"),
+      ("EmitterPosition_Units", "degree, degree, metre")],
+     "EmitterPosition_Type is spherical harmonics"),
+
+    # DataType for SimpleFreeFieldHRSOS can not be checked. It raises an error
+    # beforehands
+    ("SimpleFreeFieldHRSOS", [("GLOBAL_RoomType", "echoic")],
+     "GLOBAL_RoomType is echoic"),
+    ("SimpleFreeFieldHRSOS", [("EmitterPosition", np.zeros((2, 3)))],
+     "Dimension E is of size 2 but must be 1 if GLOBAL"),
+    ("SimpleFreeFieldHRSOS",
+     [("EmitterPosition_Type", "spherical harmonics"),
+      ("EmitterPosition_Units", "degree, degree, metre")],
+     "EmitterPosition_Type is spherical harmonics"),
+
+    # Can not be tested, because it is not yet defined
+    # ("FreeFieldHRIR", [("GLOBAL_DataType", "FIR")],
+    #  "GLOBAL_DataType is FIR"),
+    ("FreeFieldHRTF", [("GLOBAL_DataType", "TF")],
+     "GLOBAL_DataType is TF"),
+    ("SimpleHeadphoneIR", [("GLOBAL_DataType", "FIR-E")],
+     "GLOBAL_DataType is FIR-E"),
+    ("SingleRoomSRIR", [("GLOBAL_DataType", "FIR-E")],
+     "GLOBAL_DataType is FIR-E"),
+    ("SingleRoomMIMOSRIR", [("GLOBAL_DataType", "FIR")],
+     "GLOBAL_DataType is FIR"),
+    ("FreeFieldDirectivityTF", [("GLOBAL_DataType", "TF-E")],
+     "GLOBAL_DataType is TF-E"),
+])
+def test_sofa_verify_restrictions_convention(convention, kwargs, msg):
+
+    sofa = sf.Sofa(convention)
+    sofa._protected = False
+    for key_value in kwargs:
+        setattr(sofa, key_value[0], key_value[1])
+    with raises(ValueError, match=msg):
         sofa.verify()
 
 

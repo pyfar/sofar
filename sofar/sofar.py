@@ -634,7 +634,7 @@ class Sofa():
                      f"to be {', '.join(dimensions_verbose)}"))
 
         # check restrictions on the content of SOFA files
-        data, data_type, api = _sofa_restrictions()
+        data, data_type, api, convention = _sofa_restrictions()
 
         # general restrictions on data
         for key in data.keys():
@@ -701,6 +701,22 @@ class Sofa():
                         (f"Dimension {value['API'][0]} is of size {size} but "
                          f"must be {value['API'][2]} if "
                          f"{key} is {getattr(self, key)}"))
+
+        # restrictions from the SOFA convention (on the data and API)
+        if self.GLOBAL_SOFAConventions in convention:
+            for key, ref in convention[self.GLOBAL_SOFAConventions].items():
+
+                if key == "API":
+                    for dimension, size in ref.items():
+                        if self._api[dimension] != size:
+                            raise ValueError(
+                    (f"Dimension {dimension} is of size "  # noqa
+                     f"{self._api[dimension]} but must be {size} if "
+                     f"GLOBAL_SOFAConventions is {key}"))
+                else:
+                    value = getattr(self, key)
+                    if value not in ref:
+                        raise ValueError(f"{key} is {value} but must be {ref}")
 
     def _update_convention(self, version):
         """
@@ -1749,6 +1765,8 @@ def _sofa_restrictions():
             "value": ["FIR", "FIR-E", "FIRE", "TF", "TF-E", "TFE", "SOS"]},
         "GLOBAL_RoomType": {
             "value": ["free field", "reverberant", "shoebox", "dae"]},
+        "GLOBAL_SOFAConventions": {
+            "value": list_conventions(verbose=False, return_type="name")},
         # Listener ------------------------------------------------------------
         # Check values and consistency of if ListenerPosition Type and Unit
         "ListenerPosition_Type": {
@@ -1895,4 +1913,49 @@ def _sofa_restrictions():
             "API": ("N", ) + sos_dimension}
     }
 
-    return data, data_type, api
+    # restrictions from the convention. Values of fields will be checked.
+    # Must contain testing the API. If this would be tested under api={}, the
+    # entry GLOBAL_SOFAConventions would be repeated.
+    convention = {
+        "GeneralFIR": {
+            "GLOBAL_DataType": ["FIR"]},
+        "GeneralFIR-E": {
+            "GLOBAL_DataType": ["FIR-E"]},
+        "GeneralFIRE": {  # SOFA version 1.0 legacy
+            "GLOBAL_DataType": ["FIRE"]},
+        "GeneralTF": {
+            "GLOBAL_DataType": ["TF"]},
+        "GeneralTF-E": {
+            "GLOBAL_DataType": ["TF-E"]},
+        "SimpleFreeFieldHRIR": {
+            "GLOBAL_DataType": ["FIR"],
+            "GLOBAL_RoomType": ["free field"],
+            "EmitterPosition_Type": coords_min,
+            "API": {"E": 1}},
+        "SimpleFreeFieldHRTF": {
+            "GLOBAL_DataType": ["TF"],
+            "GLOBAL_RoomType": ["free field"],
+            "EmitterPosition_Type": coords_min,
+            "API": {"E": 1}},
+        "SimpleFreeFieldHRSOS": {
+            "GLOBAL_DataType": ["SOS"],
+            "GLOBAL_RoomType": ["free field"],
+            "EmitterPosition_Type": coords_min,
+            "API": {"E": 1}},
+        "FreeFieldHRIR": {
+            "GLOBAL_DataType": ["FIR-E"],
+            "GLOBAL_RoomType": ["free field"]},
+        "FreeFieldHRTF": {
+            "GLOBAL_DataType": ["TF-E"],
+            "GLOBAL_RoomType": ["free field"]},
+        "SimpleHeadphoneIR": {
+            "GLOBAL_DataType": ["FIR"]},
+        "SingleRoomSRIR": {
+            "GLOBAL_DataType": ["FIR"]},
+        "SingleRoomMIMOSRIR": {
+            "GLOBAL_DataType": ["FIR-E"]},
+        "FreeFieldDirectivityTF": {
+            "GLOBAL_DataType": ["TF"]}
+    }
+
+    return data, data_type, api, convention
