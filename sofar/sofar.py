@@ -511,10 +511,9 @@ class Sofa():
                         f"numpy array but not {type(value)}"))
                 if isinstance(value, np.ndarray):
                     if not (str(value.dtype).startswith('int') or
-                            str(value.dtype).startswith('float') or
-                            str(value.dtype).startswith('complex')):
+                            str(value.dtype).startswith('float')):
                         raise ValueError((
-                            f"{key} can be of dtype int, float, complex "
+                            f"{key} can be of dtype int, float "
                             f"but not {str(value.dtype)}"))
             elif dtype == "string":
                 # multiple checks needed because sofar does not force the user

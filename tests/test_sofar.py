@@ -165,7 +165,11 @@ def test_sofa_verify():
     with raises(ValueError, match="Data_Real can be of dtype"):
         sofa.verify()
 
-    sofa.Data_Real = [1, 1., 1+1j, "1"]
+    sofa.Data_Real = ["1", "2"]
+    with raises(ValueError, match="Data_Real can be of dtype int"):
+        sofa.verify()
+
+    sofa.Data_Real = [1+1j, 1-1j]
     with raises(ValueError, match="Data_Real can be of dtype int"):
         sofa.verify()
 
