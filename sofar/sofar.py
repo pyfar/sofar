@@ -181,6 +181,9 @@ class Sofa():
         elif self.GLOBAL_DataType.startswith("SOS"):
             N_verbose = "SOS coefficients"
         else:
+            # This line can not be tested. An invalid DataType would be cached
+            # in self.verify above. This to make sure we don't miss something
+            # in case new DataTypes are added to SOFA in the future.
             raise ValueError((
                 "GLOBAL_DataType start with 'FIR', 'TF', "
                 f"or 'SOS' but not with {self.GLOBAL_DataType}"))
@@ -235,24 +238,11 @@ class Sofa():
             key
                 If key is the name of an object attribute, all information for
                 attribute will be printed.
-
-        Notes
-        -----
-        ``self.verify(version='match')`` is called to make sure that the
-        required meta data is available.
         """
 
-        try:
-            # update the API to make sure all meta data is in place
-            self.verify(version="match")
-        except ValueError:
-            # This is hard to test automatically. It was tested manually once.
-            keys = [k for k in self.__dict__.keys() if k[0] != '_']
-            keys = "\n".join(keys)
-            warnings.warn((
-                "SOFA object could not be verified maybe due to invalid data."
-                "Call self.verify() for more detailed information. These "
-                f"are the Attributes contained in the sofa object:\n{keys}"))
+        # update the private attribute `_convention` to make sure the required
+        # meta data is in place
+        self._update_convention(version="match")
 
         # list of all attributes
         keys = [k for k in self.__dict__.keys() if not k.startswith("_")]
@@ -727,8 +717,8 @@ class Sofa():
 
     def _update_convention(self, version):
         """
-        Add API to SOFA object. If The SOFA files contains an API it is
-        overwritten.
+        Add SOFA convention to SOFA object in private attribute `_convention`.
+        If The object already contains a convention, it will be overwritten.
 
         Parameters
         ----------
