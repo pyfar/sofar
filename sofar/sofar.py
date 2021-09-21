@@ -569,7 +569,9 @@ class Sofa():
         # forth run: verify data type, dimensions, and names of data
         for key in keys:
 
-            # check the name
+            # check the name (can not be tested within sofar, because it does
+            # not allow to add data with such names. It was tested manually
+            # with third party files).
             if "_" in key.replace("Data_", ""):
                 warnings.warn((
                     f"{key} contains '.' or '_' in its name. In SOFA files, "

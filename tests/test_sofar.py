@@ -173,6 +173,10 @@ def test_sofa_verify():
     with raises(ValueError, match="Data_Real can be of dtype int"):
         sofa.verify()
 
+    sofa.Data_Real = 1+1j
+    with raises(ValueError, match="Data_Real can be of type int"):
+        sofa.verify()
+
     # test valid data
     sofa.Data_Real = np.array([1])
     sofa.verify()
