@@ -116,7 +116,7 @@ def test_sofa_delete_attribute():
         delattr(sofa, "new")
 
 
-def test_sofa_verify():
+def test_sofa_verify_version():
 
     # test the default "latest"
     sofa = sf.Sofa("GeneralTF", version="1.0")
@@ -138,59 +138,63 @@ def test_sofa_verify():
         sofa.verify(version="1.0")
     assert str(sofa.GLOBAL_SOFAConventionsVersion) == "1.0"
 
+
+def test_sofa_verify_missing_default_attributes():
+
     # test missing default attribute
     sofa = sf.Sofa("GeneralTF")
     sofa._protected = False
     delattr(sofa, "GLOBAL_Conventions")
     sofa._protected = True
-    with pytest.warns(UserWarning, match="Mandatory attribute GLOBAL_Conv"):
+    with pytest.warns(UserWarning, match="Added mandatory data with default"):
         sofa.verify()
     assert sofa.GLOBAL_Conventions == "SOFA"
 
-    # test attribute with wrong shape
-    sofa = sf.Sofa("GeneralTF")
-    sofa.ListenerPosition = 1
-    with raises(ValueError, match=("The shape of ListenerPosition")):
-        sofa.verify()
+
+def test_sofa_verify_data_types():
 
     # test invalid data for netCDF attribute
-    sofa = sf.Sofa("GeneralTF")
-    sofa.GLOBAL_History = 1
-    with raises(ValueError, match="GLOBAL_History must be a string"):
+    sofa = sf.Sofa("GeneralFIR")
+    sofa.GLOBAL_Comment = [1, 2, 3]
+    with raises(ValueError, match="- GLOBAL_Comment must be string"):
         sofa.verify()
 
     # test invalid data for netCDF double variable
-    sofa = sf.Sofa("GeneralTF")
-    sofa.Data_Real = np.array("test")
-    with raises(ValueError, match="Data_Real can be of dtype"):
+    sofa = sf.Sofa("GeneralFIR")
+    sofa.Data_IR = np.array("test")
+    with raises(ValueError, match="- Data_IR must be int or float"):
         sofa.verify()
 
-    sofa.Data_Real = ["1", "2"]
-    with raises(ValueError, match="Data_Real can be of dtype int"):
+    sofa.Data_IR = "1"
+    with raises(ValueError, match="- Data_IR must be int, float"):
         sofa.verify()
 
-    sofa.Data_Real = [1+1j, 1-1j]
-    with raises(ValueError, match="Data_Real can be of dtype int"):
-        sofa.verify()
-
-    sofa.Data_Real = 1+1j
-    with raises(ValueError, match="Data_Real can be of type int"):
+    sofa.Data_IR = 1+1j
+    with raises(ValueError, match="- Data_IR must be int, float"):
         sofa.verify()
 
     # test valid data
-    sofa.Data_Real = np.array([1])
+    sofa.Data_IR = np.array([1])
     sofa.verify()
-    sofa.Data_Real = [1]
+    sofa.Data_IR = [1]
     sofa.verify()
+    sofa.Data_IR = 1
+    sofa.verify()
+
+    # test invalid data for netCDF attribute
+    sofa = sf.Sofa("GeneralFIR")
+    sofa.GLOBAL_History = 1
+    with raises(ValueError, match="- GLOBAL_History must be string"):
+        sofa.verify()
 
     # test invalid data for netCDF string variable
     sofa = sf.Sofa("SimpleHeadphoneIR")
     sofa.SourceModel = 1
-    with raises(ValueError, match="SourceModel can be of type"):
+    with raises(ValueError, match="- SourceModel must be string"):
         sofa.verify()
 
     sofa.SourceModel = np.array(1)
-    with raises(ValueError, match="SourceModel can be of dtype"):
+    with raises(ValueError, match="- SourceModel must be U or S"):
         sofa.verify()
 
     # test valid data
@@ -198,6 +202,15 @@ def test_sofa_verify():
     sofa.verify()
     sofa.SourceModel = np.array(["test"])
     sofa.verify()
+
+
+def test_sofa_verify_wrong_shape():
+
+    # test attribute with wrong shape
+    sofa = sf.Sofa("GeneralTF")
+    sofa.ListenerPosition = 1
+    with raises(ValueError, match=("- ListenerPosition has shape")):
+        sofa.verify()
 
 
 # test everything from sofar._sofa_restrictions explicitly to make sure
@@ -265,7 +278,7 @@ def test_sofa_verify_restrictions_data_missing_attribute(key, msg):
     sofa._protected = False
     delattr(sofa, key)
     sofa._protected = True
-    with raises(AttributeError, match=msg):
+    with raises(ValueError, match=msg):
         sofa.verify()
 
 

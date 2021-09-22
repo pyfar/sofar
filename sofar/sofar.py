@@ -466,6 +466,14 @@ class Sofa():
             The default is ``'latest'``
 
         """
+        # NOTE: This function collects warnings and errors and tries to output
+        # them in a block. This makes the code slightly more complicated but
+        # is more convenient for the user and with respect to a potential
+        # future web based tool for verifying SOFA files.
+
+        # initialize warning and error messages
+        error_msg = "\nERRORS\n------\n"
+        warning_msg = "\nWARNINGS\n--------\n"
 
         # initialize the API
         self._update_convention(version)
@@ -475,19 +483,26 @@ class Sofa():
         self._protected = True
 
         # first run: check if the mandatory attributes are contained
+        current_warning = ""
         keys = [key for key in self.__dict__.keys() if not key.startswith("_")]
 
         for key in self._convention.keys():
             if self._mandatory(self._convention[key]["flags"]) \
                     and key not in keys:
+                # add missing data with default value
                 self._protected = False
                 setattr(self, key, self._convention[key]["default"])
                 self._protected = True
-                warnings.warn((
-                    f"Mandatory attribute {key} was missing and added to the "
-                    "SOFA object with its default value"))
+
+                # prepare to raise warning
+                current_warning += "- " + key + "\n"
+
+        if current_warning:
+            warning_msg += "Added mandatory data with default values:\n"
+            warning_msg += current_warning
 
         # second run: verify data type
+        current_error = ""
         for key in keys:
 
             # handle dimensions
@@ -499,40 +514,52 @@ class Sofa():
 
             if dtype == "attribute":
                 if not isinstance(value, str):
-                    raise ValueError((f"{key} must be a string but "
-                                      f"is of type {type(key)}"))
+                    current_error += \
+                        f"- {key} must be string but is {type(value)}\n"
+
             elif dtype == "double":
                 # multiple checks needed because sofar does not force the user
                 # to initally pass data as numpy arrays
                 if not isinstance(value,
                                   (np.int_, np.float_, np.double, np.ndarray)):
-                    raise ValueError((
-                        f"{key} can be of type int, float, complex, or "
-                        f"numpy array but not {type(value)}"))
-                if isinstance(value, np.ndarray):
-                    if not (str(value.dtype).startswith('int') or
-                            str(value.dtype).startswith('float')):
-                        raise ValueError((
-                            f"{key} can be of dtype int, float "
-                            f"but not {str(value.dtype)}"))
+                    current_error += (f"- {key} must be int, float or numpy "
+                                      f"array but is {type(value)}\n")
+
+                if isinstance(value, np.ndarray) and not (
+                        str(value.dtype).startswith('int') or
+                        str(value.dtype).startswith('float')):
+                    current_error += (f"- {key} must be int or float "
+                                      f"but is {type(value.dtype)}\n")
+
             elif dtype == "string":
                 # multiple checks needed because sofar does not force the user
                 # to initally pass data as numpy arrays
                 if not isinstance(value, (str, np.ndarray)):
-                    raise ValueError((
-                        f"{key} can be of type str, or numpy array "
-                        f"but not {type(value)}"))
-                if isinstance(value, np.ndarray):
-                    if not (str(value.dtype).startswith('<U') or
-                            str(value.dtype).startswith('<S')):
-                        raise ValueError((
-                            f"{key} can be of dtype U or S "
-                            f"but not {str(value.dtype)}"))
+                    current_error += (f"- {key} must be string or numpy array "
+                                      f"but is {type(value)}\n")
+
+                if isinstance(value, np.ndarray) and not (
+                        str(value.dtype).startswith('<U') or
+                        str(value.dtype).startswith('<S')):
+                    current_error += (f"- {key} must be U or S "
+                                      f"but is {type(value.dtype)}\n")
+
             else:
                 # Could only be tested by manipulating JSON convention files
-                raise ValueError((
-                    "Error in SOFA API. type must be attribute, double, or "
-                    f"string but is {dtype}"))
+                # (Could take different data types in the future and convert to
+                # numpy double arrays.)
+                current_error += (
+                    f"- {key} Error in convention. Must be "
+                    f"double, string, or attribute but is {dtype}\n")
+
+        if current_error:
+            error_msg += "Detected data of wrong type:\n"
+            error_msg += current_error
+
+        # if an error ocurred up to here, it has to be raised. Otherwise
+        # detecting the dimensions might fail
+        if error_msg != "\nERRORS\n------\n":
+            self._verify_raise(warning_msg, error_msg)
 
         # third run: Get dimensions (E, R, M, N, S, c, I, and custom)
         keys = [key for key in self.__dict__.keys() if not key.startswith("_")
@@ -566,17 +593,16 @@ class Sofa():
         self._api["I"] = 1
         self._api["S"] = S
 
-        # forth run: verify data type, dimensions, and names of data
+        # forth run: verify dimensions and names of data
+        current_warning = ""
+        current_error = ""
         for key in keys:
 
             # check the name (can not be tested within sofar, because it does
             # not allow to add data with such names. It was tested manually
             # with third party files).
             if "_" in key.replace("Data_", ""):
-                warnings.warn((
-                    f"{key} contains '.' or '_' in its name. In SOFA files, "
-                    "this is only allowed for Data_* and SOFA attributes."
-                    "Writing with sofar.write_sofa() might not work."))
+                current_warning += "- " + key + "\n"
 
             # handle dimensions
             dimensions = self._convention[key]["dimensions"]
@@ -627,14 +653,25 @@ class Sofa():
                     dimensions_verbose.append(
                         f"({', '.join([f'{d}={self._api[d]}' for d in dim])})")
 
-                raise ValueError(
-                    (f"The shape of {key} is {shape_compare} but has "
-                     f"to be {', '.join(dimensions_verbose)}"))
+                current_error += (
+                    f"- {key} has shape {shape_compare} but must "
+                    f"have {', '.join(dimensions_verbose)}\n")
+
+        if current_warning:
+            warning_msg += (
+                "Detected data with '_' or '.' in its name (only "
+                "allowed for 'Data_' and SOFA attributes. Writing SOFA "
+                "object to disk might not work):\n")
+            warning_msg += current_warning
+        if current_error:
+            error_msg += "Detected variables of wrong shape:\n"
+            error_msg += current_error
 
         # check restrictions on the content of SOFA files
         data, data_type, api, convention = _sofa_restrictions()
 
         # general restrictions on data
+        current_error = ""
         for key in data.keys():
 
             ref = data[key]["value"]
@@ -643,8 +680,8 @@ class Sofa():
                 # test if the value is valid
                 test = getattr(self, key)
                 if ref is not None and test not in ref:
-                    raise ValueError(
-                        f"{key} is {test} but must be {', '.join(ref)}")
+                    current_error += \
+                        f"{key} is {test} but must be {', '.join(ref)}\n"
 
                 # check dependencies
                 if "dependency" not in data[key]:
@@ -657,8 +694,9 @@ class Sofa():
                     # hard to test, because mandatory fields are added by sofar
                     # this is more to be future proof
                     if not hasattr(self, key_dep):
-                        raise AttributeError((f"{key_dep} must be given if "
-                                              f"{key} is in SOFA object"))
+                        current_error += (f"{key_dep} must be given if "
+                                          f"{key} is in SOFA object\n")
+                        continue
 
                     # check if dependency has the correct value
                     test_dep = getattr(self, key_dep)
@@ -668,8 +706,8 @@ class Sofa():
 
                     idx = ref.index(test)
                     if test_dep != ref_dep[idx]:
-                        raise ValueError((f"{key_dep} must be {ref_dep[idx]} "
-                                          f"if {key} is {test}"))
+                        current_error += (f"{key_dep} must be {ref_dep[idx]} "
+                                          f"if {key} is {test}\n")
 
         # restriction posed by GLOBAL_DataType
         if self.GLOBAL_DataType.startswith("FIR"):
@@ -678,27 +716,33 @@ class Sofa():
             data_str = "TF"
         elif self.GLOBAL_DataType.startswith("SOS"):
             data_str = "SOS"
+        else:
+            # the data type was tested before. This is to prevent redundant
+            # errors in the next for loop
+            data_str = False
 
-        for key, value in data_type[data_str].items():
+        if data_str:
+            for key, value in data_type[data_str].items():
 
-            # hard to test. included to detect problems with future conventions
-            if not hasattr(self, key):
-                raise ValueError((f"{key} must be contained if SOFA objects if"
-                                  f" GLOBAL_DataType={self.GLOBAL_DataType}"))
+                # hard to test. included to detect problems with future conventions
+                if not hasattr(self, key):
+                    current_error += (
+                        f"{key} must be contained if SOFA objects if"
+                        f" GLOBAL_DataType={self.GLOBAL_DataType}\n")
 
-            if value is not None and getattr(self, key) not in value[0]:
-                raise ValueError(
-                    f"{key} is {getattr(self, key)} but must be {value[1]}")
+                if value is not None and getattr(self, key) not in value[0]:
+                    current_error += (f"{key} is {getattr(self, key)} but "
+                                      f"must be {value[1]}\n")
 
         # restrictions on the API
         for key, value in api.items():
             if hasattr(self, key) and getattr(self, key) == value["value"]:
                 size = getattr(self, "_api")[value["API"][0]]
                 if size not in value["API"][1]:
-                    raise ValueError(
+                    current_error += \
                         (f"Dimension {value['API'][0]} is of size {size} but "
                          f"must be {value['API'][2]} if "
-                         f"{key} is {getattr(self, key)}"))
+                         f"{key} is {getattr(self, key)}\n")
 
         # restrictions from the SOFA convention (on the data and API)
         if self.GLOBAL_SOFAConventions in convention:
@@ -707,14 +751,31 @@ class Sofa():
                 if key == "API":
                     for dimension, size in ref.items():
                         if self._api[dimension] != size:
-                            raise ValueError(
+                            current_error += \
                     (f"Dimension {dimension} is of size "  # noqa
                      f"{self._api[dimension]} but must be {size} if "
-                     f"GLOBAL_SOFAConventions is {key}"))
+                     f"GLOBAL_SOFAConventions is {key}\n")
                 else:
                     value = getattr(self, key)
                     if value not in ref:
-                        raise ValueError(f"{key} is {value} but must be {ref}")
+                        current_error += \
+                            f"{key} is {value} but must be {ref}\n"
+
+        if current_error:
+            error_msg += "Detected violations of the SOFA convention:\n"
+            error_msg += current_error
+
+        # raise warnings and errors
+        self._verify_raise(warning_msg, error_msg)
+
+    @staticmethod
+    def _verify_raise(warning_msg, error_msg):
+        # raise collected warnings and errors
+        if warning_msg != "\nWARNINGS\n--------\n":
+            warnings.warn(warning_msg)
+
+        if error_msg != "\nERRORS\n------\n":
+            raise ValueError(error_msg)
 
     def _update_convention(self, version):
         """
