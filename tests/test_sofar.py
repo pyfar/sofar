@@ -220,7 +220,8 @@ def test_sofa_verify_wrong_shape():
     ("GLOBAL_SOFAConventions", "FIR", ""),         # message tested above
     ("GLOBAL_RoomType", "Living room", ""),        # message tested above
     ("ListenerPosition_Type", "cylindrical", ""),  # message tested above
-    ("ListenerPosition_Units", "A", "ListenerPosition_Units must be metre if"),
+    ("ListenerPosition_Units", "A",
+     "ListenerPosition_Units is A but must be metre if ListenerPosition_Type"),
     ("ListenerView_Type", "cylindrical", ""),      # message tested above
     ("ListenerView_Units", "A", ""),               # message tested above
     ("ReceiverPosition_Type", "cylindrical", ""),  # message tested above
@@ -400,6 +401,43 @@ def test_sofa_verify_restrictions_convention(convention, kwargs, msg):
         setattr(sofa, key_value[0], key_value[1])
     with raises(ValueError, match=msg):
         sofa.verify()
+
+
+def test_verify_issue_handling(capfd):
+    """Test different methods for handling issues during verification"""
+
+    error_msg = "\nERRORS\n------\n"
+    warning_msg = "\nWARNINGS\n--------\n"
+
+    # no issue
+    issue_handling = "raise"
+    error_occurred, issues = sf.Sofa._verify_handle_issues(
+        warning_msg, error_msg, issue_handling)
+    assert not error_occurred
+    assert issues is None
+
+    # raise
+    issue_handling = "raise"
+    with pytest.warns(UserWarning, match="warning"):
+        sf.Sofa._verify_handle_issues(
+            warning_msg + "warning", error_msg, issue_handling)
+    with raises(ValueError, match="error"):
+        sf.Sofa._verify_handle_issues(
+            warning_msg, error_msg + "error", issue_handling)
+
+    # report warning
+    issue_handling = "report"
+    with pytest.warns(None) as warning:
+        _, issues = sf.Sofa._verify_handle_issues(
+            warning_msg + "warning", error_msg, issue_handling)
+    assert "warning" in issues
+    assert "ERROR" not in issues
+    assert len(warning) == 0
+    # report error
+    _, issues = sf.Sofa._verify_handle_issues(
+            warning_msg, error_msg + "error", issue_handling)
+    assert "error" in issues
+    assert "WARNING" not in issues
 
 
 def test_dimensions(capfd):

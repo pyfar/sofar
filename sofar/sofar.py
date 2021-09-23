@@ -414,7 +414,7 @@ class Sofa():
         _add_custom_api_entry(
             self, name, value, None, dimensions, dtype)
 
-    def verify(self, version="latest"):
+    def verify(self, version="latest", issue_handling="raise"):
         """
         Verify a SOFA object against the SOFA standard.
 
@@ -464,6 +464,24 @@ class Sofa():
                 the SOFA object
 
             The default is ``'latest'``
+        issue_handling : str, optional
+            Defines how detected issues are handeled
+
+            ``'raise'``
+                Warnings and errors are raised if issues are detected
+            ``'print'``
+                Issues are printed without raising warnings and errors
+            ``'return'``
+                Issues are returned as string but neither raised nor printed
+
+            The default is ``'raise'``.
+
+        Returns
+        -------
+        issues : str, None
+            Detected issues as a string. None if no issues were detected. Note
+            that this is only returned if ``issue_handling='return'`` (see
+            above)
 
         """
         # NOTE: This function collects warnings and errors and tries to output
@@ -556,10 +574,18 @@ class Sofa():
             error_msg += "Detected data of wrong type:\n"
             error_msg += current_error
 
-        # if an error ocurred up to here, it has to be raised. Otherwise
-        # detecting the dimensions might fail
+        # if an error ocurred up to here, it has to be handled. Otherwise
+        # detecting the dimensions might fail. Warnings are not reported until
+        # the end
         if error_msg != "\nERRORS\n------\n":
-            self._verify_raise(warning_msg, error_msg)
+            error_occurred, issues = self._verify_handle_issues(
+                    "\nWARNINGS\n--------\n", error_msg, issue_handling)
+
+            if error_occurred:
+                if issue_handling == "print":
+                    return
+                elif issue_handling == "return":
+                    return issues
 
         # third run: Get dimensions (E, R, M, N, S, c, I, and custom)
         keys = [key for key in self.__dict__.keys() if not key.startswith("_")
@@ -681,20 +707,19 @@ class Sofa():
                 test = getattr(self, key)
                 if ref is not None and test not in ref:
                     current_error += \
-                        f"{key} is {test} but must be {', '.join(ref)}\n"
+                        f"- {key} is {test} but must be {', '.join(ref)}\n"
 
                 # check dependencies
                 if "dependency" not in data[key]:
                     continue
 
                 for key_dep, ref_dep in data[key]["dependency"].items():
-                    pass
 
                     # check if dependency is contained in SOFA object
                     # hard to test, because mandatory fields are added by sofar
                     # this is more to be future proof
                     if not hasattr(self, key_dep):
-                        current_error += (f"{key_dep} must be given if "
+                        current_error += (f"- {key_dep} must be given if "
                                           f"{key} is in SOFA object\n")
                         continue
 
@@ -706,8 +731,9 @@ class Sofa():
 
                     idx = ref.index(test)
                     if test_dep != ref_dep[idx]:
-                        current_error += (f"{key_dep} must be {ref_dep[idx]} "
-                                          f"if {key} is {test}\n")
+                        current_error += (
+                            f"- {key_dep} is {test_dep} but must be "
+                            f"{ref_dep[idx]} if {key} is {test}\n")
 
         # restriction posed by GLOBAL_DataType
         if self.GLOBAL_DataType.startswith("FIR"):
@@ -727,7 +753,7 @@ class Sofa():
                 # hard to test. included to detect problems with future conventions
                 if not hasattr(self, key):
                     current_error += (
-                        f"{key} must be contained if SOFA objects if"
+                        f"- {key} must be contained if"
                         f" GLOBAL_DataType={self.GLOBAL_DataType}\n")
 
                 if value is not None and getattr(self, key) not in value[0]:
@@ -740,8 +766,8 @@ class Sofa():
                 size = getattr(self, "_api")[value["API"][0]]
                 if size not in value["API"][1]:
                     current_error += \
-                        (f"Dimension {value['API'][0]} is of size {size} but "
-                         f"must be {value['API'][2]} if "
+                        (f"- Dimension {value['API'][0]} is of size {size} "
+                         f"but must be {value['API'][2]} if "
                          f"{key} is {getattr(self, key)}\n")
 
         # restrictions from the SOFA convention (on the data and API)
@@ -752,7 +778,7 @@ class Sofa():
                     for dimension, size in ref.items():
                         if self._api[dimension] != size:
                             current_error += \
-                    (f"Dimension {dimension} is of size "  # noqa
+                    (f"- Dimension {dimension} is of size "  # noqa
                      f"{self._api[dimension]} but must be {size} if "
                      f"GLOBAL_SOFAConventions is {key}\n")
                 else:
@@ -765,17 +791,52 @@ class Sofa():
             error_msg += "Detected violations of the SOFA convention:\n"
             error_msg += current_error
 
-        # raise warnings and errors
-        self._verify_raise(warning_msg, error_msg)
+        # handle warnings and errors
+        error_occurred, issues = self._verify_handle_issues(
+                warning_msg, error_msg, issue_handling)
+
+        if error_occurred:
+            if issue_handling == "print":
+                return
+            elif issue_handling == "return":
+                return issues
 
     @staticmethod
-    def _verify_raise(warning_msg, error_msg):
-        # raise collected warnings and errors
-        if warning_msg != "\nWARNINGS\n--------\n":
-            warnings.warn(warning_msg)
+    def _verify_handle_issues(warning_msg, error_msg, issue_handling):
+        """Handle warnings and errors from Sofa.verify"""
 
+        # handle warnings
+        if warning_msg != "\nWARNINGS\n--------\n":
+            if issue_handling == "raise":
+                warnings.warn(warning_msg)
+            elif issue_handling == "print":
+                print(warning_msg)
+        else:
+            warning_msg = None
+
+        # handle errors
         if error_msg != "\nERRORS\n------\n":
-            raise ValueError(error_msg)
+            if issue_handling == "raise":
+                raise ValueError(error_msg)
+            elif issue_handling == "print":
+                print(error_msg)
+        else:
+            error_msg = None
+
+        # flag indicating if an error occurred
+        error_occurred = error_msg is not None
+
+        # verbose issue message
+        if warning_msg and error_msg:
+            issues = error_msg + "\n" + warning_msg
+        elif warning_msg:
+            issues = warning_msg
+        elif error_msg:
+            issues = error_msg
+        else:
+            issues = None
+
+        return error_occurred, issues
 
     def _update_convention(self, version):
         """
