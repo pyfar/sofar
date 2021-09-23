@@ -412,7 +412,7 @@ class Sofa():
 
         # add attribute to class
         _add_custom_api_entry(
-            self, name, value, None, dimensions, dtype, False)
+            self, name, value, None, dimensions, dtype)
 
     def verify(self, version="latest"):
         """
@@ -1155,6 +1155,9 @@ def read_sofa(filename, verify=True, version="latest"):
     # attributes that are skipped
     skip = ["_Encoding"]
 
+    # init list of custom attributes
+    custom = []
+
     # open new NETCDF4 file for reading
     with Dataset(filename, "r+", format="NETCDF4") as file:
 
@@ -1185,7 +1188,8 @@ def read_sofa(filename, verify=True, version="latest"):
 
             if not hasattr(sofa, "GLOBAL_" + attr):
                 _add_custom_api_entry(sofa, "GLOBAL_" + attr, value, None,
-                                      None, "attribute", True)
+                                      None, "attribute")
+                custom.append("GLOBAL_" + attr)
             else:
                 setattr(sofa, "GLOBAL_" + attr, value)
 
@@ -1205,7 +1209,8 @@ def read_sofa(filename, verify=True, version="latest"):
                 # SOFA only uses dtypes 'double' and 'S1' but netCDF has more
                 dtype = "string" if file[var].datatype == "S1" else "double"
                 _add_custom_api_entry(sofa, var.replace(".", "_"), value, None,
-                                      dimensions, dtype, True)
+                                      dimensions, dtype)
+                custom.append(var.replace(".", "_"))
 
             # load variable attributes
             for attr in [a for a in file[var].ncattrs() if a not in skip]:
@@ -1215,12 +1220,18 @@ def read_sofa(filename, verify=True, version="latest"):
                 if not hasattr(sofa, var.replace(".", "_") + "_" + attr):
                     _add_custom_api_entry(
                         sofa, var.replace(".", "_") + "_" + attr, value, None,
-                        None, "attribute", True)
+                        None, "attribute")
+                    custom.append(var.replace(".", "_") + "_" + attr)
                 else:
                     setattr(sofa, var.replace(".", "_") + "_" + attr, value)
 
         # do not allow writing read only attributes any more
         sofa._protected = True
+
+    # notice about custom entries
+    if custom:
+        warnings.warn(("SOFA file contained custom entries "
+                      f"({', '.join(custom)})"))
 
     # update api
     if verify:
@@ -1655,7 +1666,7 @@ def _format_value_from_netcdf(value, key):
     return value
 
 
-def _add_custom_api_entry(sofa, key, value, flags, dimensions, dtype, warn):
+def _add_custom_api_entry(sofa, key, value, flags, dimensions, dtype):
     """
     Add custom entry to the sofa._convention and permanently save it in
     sofa._custom
@@ -1667,8 +1678,6 @@ def _add_custom_api_entry(sofa, key, value, flags, dimensions, dtype, warn):
         name of the entry
     flags, dimensions, dtype : any
         as in sofa._convention
-    warn : bool
-        Make a user warning that a custom entry was added
     """
     # create custom API if it not exists
     sofa._protected = False
@@ -1693,9 +1702,6 @@ def _add_custom_api_entry(sofa, key, value, flags, dimensions, dtype, warn):
     # add attribute to object
     setattr(sofa, key, value)
     sofa._protected = True
-
-    if warn:
-        warnings.warn(f"Added custom attribute {key}")
 
 
 def _verify_convention_and_version(version, version_in, convention):
