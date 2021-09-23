@@ -435,20 +435,23 @@ class Sofa():
             SOFA object, read a SOFA file from disk, and write a SOFA file to
             disk (using the default parameters).
 
-        The API of a SOFA object consists of three parts, that are stored
-        as private attributes. This is required for writing data with
-        :py:func:`~sofa.write_sofa` and should usually not be manipulated
+        The API of a SOFA object consists of four parts, that are stored
+        dictionaries in private attributes. This is required for writing data
+        with :py:func:`~sofa.write_sofa` and should usually not be manipulated
         outside of :py:func:`~verify`
 
         self._convention
             The SOFA convention with default values, variable dimensions, flags
             and comments. These data are read from the official SOFA
-            conventions contained in the SOFA Matlab/Octave API
+            conventions contained in the SOFA Matlab/Octave API.
         self._dimensions
-            The detected dimensions of the data inside the SOFA object
+            The detected dimensions of the data inside the SOFA object.
         self._api
             The size of the dimensions (see ``self.info("dimensions")``). This
             specifies the dimensions of the data inside the SOFA object.
+        self._custom
+            Stores information of custom variables that are not defined by the
+            convention. The format is the same as in `self._convention`.
 
         Parameters
         ----------
