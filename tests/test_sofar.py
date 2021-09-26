@@ -12,6 +12,7 @@ import numpy as np
 import numpy.testing as npt
 from copy import deepcopy
 from netCDF4 import Dataset
+from distutils import dir_util
 
 
 def test_list_conventions(capfd):
@@ -41,6 +42,32 @@ def test_list_conventions(capfd):
 
     with raises(ValueError, match="return_type None is invalid"):
         sf.list_conventions(verbose=False, return_type="None")
+
+
+def test_update_conventions(capfd):
+
+    # create temporary directory and copy existing conventions
+    temp_dir = TemporaryDirectory()
+    dir_util.copy_tree(
+        os.path.join(os.path.dirname(__file__), "..", "sofar", "conventions"),
+        temp_dir.name)
+
+    # modify and delete selected conventions to verbose feedback
+    os.remove(os.path.join(temp_dir.name, "GeneralTF_2.0.csv"))
+    with open(os.path.join(temp_dir.name, "GeneralFIR_2.0.csv"), "w") as fid:
+        fid.write("test")
+
+    # first run to test if conventions were updated
+    sf.sofar.update_conventions(conventions_path=temp_dir.name)
+    out, _ = capfd.readouterr()
+    assert "added new convention: GeneralTF_2.0.csv" in out
+    assert "updated existing convention: GeneralFIR_2.0.csv" in out
+
+    # second run to make sure that up to date conventions are not overwritten
+    sf.sofar.update_conventions(conventions_path=temp_dir.name)
+    out, _ = capfd.readouterr()
+    assert "added" not in out
+    assert "updated" not in out
 
 
 def test_create_sofa_object(capfd):

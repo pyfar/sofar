@@ -1062,7 +1062,7 @@ class Sofa():
         return is_read_only
 
 
-def update_conventions():
+def update_conventions(conventions_path=None):
     """
     Update SOFA conventions.
 
@@ -1082,6 +1082,13 @@ def update_conventions():
     .. note::
         If the official convention contain errors, calling this function might
         break sofar. Be sure that you want to do this.
+
+    Parameters
+    ----------
+    conventions_path : str, optional
+        Path to the folder where the conventions are saved. The default is
+        ``None``, which saves the conventions inside the sofar package.
+        Conventions saved under a different path can not be used by sofar.
     """
 
     # url for parsing and downloading the convention files
@@ -1091,7 +1098,7 @@ def update_conventions():
                "master/API_MO/conventions")
     ext = 'csv'
 
-    print(f"Downloading and converting SOFA conventions from {url} ...")
+    print(f"Reading SOFA conventions from {url} ...")
 
     # get file names of conventions from the SOFA Matlab/Octave API
     page = requests.get(url).text
@@ -1101,20 +1108,41 @@ def update_conventions():
                    if node.get('href').endswith(ext)]
 
     # Loop conventions
+    updated = False
     for convention in conventions:
 
         # exclude these conventions
         if convention.startswith(("General_", "GeneralString_")):
             continue
 
-        filename_csv = os.path.join(
-            os.path.dirname(__file__), "conventions", convention)
+        if conventions_path is None:
+            filename_csv = os.path.join(
+                os.path.dirname(__file__), "conventions", convention)
+        else:
+            filename_csv = os.path.join(conventions_path, convention)
+
         filename_json = filename_csv[:-3] + "json"
 
         # download SOFA convention definitions to package diretory
         data = requests.get(url_raw + "/" + convention)
-        with open(filename_csv, "wb") as file:
-            file.write(data.content)
+
+        # check if convention needs to be added or updated
+        update = False
+        if not os.path.isfile(filename_csv):
+            update = True
+            updated = f"- added new convention: {convention}"
+        else:
+            with open(filename_csv, "rb") as file:
+                data_current = file.readlines()
+            if b"".join(data_current) != data.content:
+                update = True
+                updated = f"- updated existing convention: {convention}"
+
+        # update convention
+        if update:
+            with open(filename_csv, "wb") as file:
+                file.write(data.content)
+            print(updated)
 
         # convert SOFA conventions from csv to json
         convention_dict = _convention_csv2dict(filename_csv)
@@ -1122,7 +1150,10 @@ def update_conventions():
         with open(filename_json, 'w') as file:
             json.dump(convention_dict, file)
 
-    print("... done.")
+    if updated:
+        print("... done.")
+    else:
+        print("... conventions already up to date.")
 
 
 def list_conventions(verbose=True, return_type=None):
