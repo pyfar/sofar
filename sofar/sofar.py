@@ -161,11 +161,12 @@ class Sofa():
 
         # Check if the dimensions can be updated
         issues = self.verify(version="match", issue_handling="return")
-        if issues is not None and ("variables of wrong shape" in issues or
+        if issues is not None and ("data of wrong type" in issues or
+                                   "variables of wrong shape" in issues or
                                    not hasattr(self, "_api")):
-            raise ValueError((
-                "Dimensions can not be shown because variables of wrong shape "
-                "were detected. Call Sofa.verify() for more information."))
+            raise ValueError(("Dimensions can not be shown because variables "
+                              "of wrong type or shape were detected. "
+                              "Call Sofa.verify() for more information."))
 
         # get verbose description for dimesion N
         if self.GLOBAL_DataType.startswith("FIR"):
@@ -288,8 +289,7 @@ class Sofa():
 
             for key in [k for k in keys if info in k]:
                 comment = str(self._convention[key]['comment'])
-                if not comment:
-                    comment = "None"
+
                 info_str += (
                     f"{key}\n"
                     f"    type: {self._convention[key]['type']}\n"
@@ -563,7 +563,7 @@ class Sofa():
                 # (Could take different data types in the future and convert to
                 # numpy double arrays.)
                 current_error += (
-                    f"- {key} Error in convention. Must be "
+                    f"- {key}: Error in convention. Type must be "
                     f"double, string, or attribute but is {dtype}\n")
 
         if current_error:
@@ -574,14 +574,13 @@ class Sofa():
         # detecting the dimensions might fail. Warnings are not reported until
         # the end
         if error_msg != "\nERRORS\n------\n":
-            error_occurred, issues = self._verify_handle_issues(
+            _, issues = self._verify_handle_issues(
                     "\nWARNINGS\n--------\n", error_msg, issue_handling)
 
-            if error_occurred:
-                if issue_handling == "print":
-                    return
-                elif issue_handling == "return":
-                    return issues
+            if issue_handling == "print":
+                return
+            else:  # (issue_handling == "return"):
+                return issues
 
         # ---------------------------------------------------------------------
         # 3. Get dimensions (E, R, M, N, S, c, I, and custom)

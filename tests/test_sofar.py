@@ -178,7 +178,7 @@ def test_sofa_verify_missing_default_attributes():
     assert sofa.GLOBAL_Conventions == "SOFA"
 
 
-def test_sofa_verify_data_types():
+def test_sofa_verify_data_types(capfd):
 
     # test invalid data for netCDF attribute
     sofa = sf.Sofa("GeneralFIR")
@@ -199,6 +199,20 @@ def test_sofa_verify_data_types():
     sofa.Data_IR = 1+1j
     with raises(ValueError, match="- Data_IR must be int, float"):
         sofa.verify()
+
+    # test invalid data with issue_handling "print" and "return"
+    sofa = sf.Sofa("GeneralFIR")
+    sofa.Data_IR = np.array("test")
+    out, _ = capfd.readouterr()
+    issues = sofa.verify(issue_handling="print")
+    out, _ = capfd.readouterr()
+    assert issues is None
+    assert "- Data_IR must be int or float" in out
+
+    issues = sofa.verify(issue_handling="return")
+    out, _ = capfd.readouterr()
+    assert "- Data_IR must be int or float" in issues
+    assert "- Data_IR must be int or float" not in out
 
     # test valid data
     sofa.Data_IR = np.array([1])
@@ -502,6 +516,15 @@ def test_dimensions(capfd):
     out, _ = capfd.readouterr()
     assert "E = 1 emitter spherical harmonics coefficients" in out
     assert "R = 1 receiver spherical harmonics coefficients" in out
+
+    # test assertion in case of variables with wrong type or shape
+    sofa = sf.Sofa("GeneralFIR")
+    sofa.Data_IR = "test"
+    with raises(ValueError, match="Dimensions can not be shown"):
+        sofa.dimensions
+    sofa.Data_IR = [1, 2, 3, 4]
+    with raises(ValueError, match="Dimensions can not be shown"):
+        sofa.dimensions
 
 
 def test_info(capfd):
