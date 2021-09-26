@@ -157,21 +157,15 @@ class Sofa():
 
         see :py:func:`~Sofa.info` to see the shapes of the data inside the SOFA
         object.
-
-        Notes
-        -----
-        ``self.verify(version='match')`` is called to make sure that the
-        required meta data is available.
-
         """
 
-        try:
-            # update the API to make sure all meta data is in place
-            self.verify(version="match")
-        except ValueError:
+        # Check if the dimensions can be updated
+        issues = self.verify(version="match", issue_handling="return")
+        if issues is not None and ("variables of wrong shape" in issues or
+                                   not hasattr(self, "_api")):
             raise ValueError((
-                "SOFA object could not be verified maybe due to invalid data."
-                "Call self.verify() for more detailed information."))
+                "Dimensions can not be shown because variables of wrong shape "
+                "were detected. Call Sofa.verify() for more information."))
 
         # get verbose description for dimesion N
         if self.GLOBAL_DataType.startswith("FIR"):
@@ -496,14 +490,12 @@ class Sofa():
         error_msg = "\nERRORS\n------\n"
         warning_msg = "\nWARNINGS\n--------\n"
 
-        # initialize the API
+        # ---------------------------------------------------------------------
+        # 0. update the convention
         self._update_convention(version)
-        self._protected = False
-        self._dimensions = {}
-        self._api = {}
-        self._protected = True
 
-        # first run: check if the mandatory attributes are contained
+        # ---------------------------------------------------------------------
+        # 1. check if the mandatory attributes are contained
         current_warning = ""
         keys = [key for key in self.__dict__.keys() if not key.startswith("_")]
 
@@ -522,7 +514,8 @@ class Sofa():
             warning_msg += "Added mandatory data with default values:\n"
             warning_msg += current_warning
 
-        # second run: verify data type
+        # ---------------------------------------------------------------------
+        # 2. verify data type
         current_error = ""
         for key in keys:
 
@@ -590,8 +583,18 @@ class Sofa():
                 elif issue_handling == "return":
                     return issues
 
-        # third run: Get dimensions (E, R, M, N, S, c, I, and custom)
-        keys = [key for key in self.__dict__.keys() if not key.startswith("_")
+        # ---------------------------------------------------------------------
+        # 3. Get dimensions (E, R, M, N, S, c, I, and custom)
+
+        # initialize required API fields
+        self._protected = False
+        self._dimensions = {}
+        self._api = {}
+        self._protected = True
+
+        # get keys for checking the dimensions (all SOFA variables)
+        keys = [key for key in self.__dict__.keys()
+                if key in self._convention
                 and self._convention[key]["dimensions"] is not None]
         if hasattr(self, "_custom"):
             keys_custom = [key for key in self._custom.keys()
@@ -622,7 +625,8 @@ class Sofa():
         self._api["I"] = 1
         self._api["S"] = S
 
-        # forth run: verify dimensions and names of data
+        # ---------------------------------------------------------------------
+        # 4. verify dimensions and names of data
         current_warning = ""
         current_error = ""
         for key in keys:
@@ -696,7 +700,8 @@ class Sofa():
             error_msg += "Detected variables of wrong shape:\n"
             error_msg += current_error
 
-        # check restrictions on the content of SOFA files
+        # ---------------------------------------------------------------------
+        # 5. check restrictions on the content of SOFA files
         data, data_type, api, convention = _sofa_restrictions()
 
         # general restrictions on data
