@@ -3,7 +3,7 @@ from sofar.sofar import (_update_conventions,
                          _get_conventions,
                          _format_value_for_netcdf,
                          _format_value_from_netcdf,
-                         _nd_array,
+                         _atleast_nd,
                          _nd_newaxis,
                          _verify_convention_and_version)
 import os
@@ -963,16 +963,16 @@ def test_verify_convention_and_version():
         _verify_convention_and_version("1.2", "1.0", "GeneralTF")
 
 
-def test_nd_array():
+def test_atleast_nd():
     # test with single dimension array
     for ndim in range(1, 6):
-        array = _nd_array(1, ndim)
+        array = _atleast_nd(1, ndim)
         assert array.ndim == ndim
         assert array.flatten() == np.array([1])
 
     # test with two-dimensional array
     for ndim in range(1, 6):
-        array = _nd_array(np.atleast_2d(1), ndim)
+        array = _atleast_nd(np.atleast_2d(1), ndim)
         assert array.ndim == max(2, ndim)
         assert array.flatten() == np.array([1])
 

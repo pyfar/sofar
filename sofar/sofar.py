@@ -654,7 +654,7 @@ class Sofa():
                     value, key)[1]
             elif len(dimensions.split(",")[0]) > 1:
                 # multidimensional array like data
-                shape_act = _nd_array(value, 4).shape
+                shape_act = _atleast_nd(value, 4).shape
             else:
                 # scalar of single dimensional array like data
                 shape_act = (np.array(value).size, )
@@ -972,7 +972,7 @@ class Sofa():
             default = self._convention[key]["default"]
             if isinstance(default, list):
                 ndim = len(self._convention[key]["dimensions"].split(", ")[0])
-                default = _nd_array(default, ndim)
+                default = _atleast_nd(default, ndim)
 
             # create attribute with default value
             setattr(self, key, default)
@@ -1705,7 +1705,7 @@ def _format_value_for_netcdf(value, key, dtype, dimensions, S):
     dtype : str
         The the data type of value
     dimensions : str
-        The intended dimensions from ``sofa._dimensions``
+        The intended dimensions from ``sofa.dimensions``
     S : int
         Length of the string array.
 
@@ -1728,11 +1728,11 @@ def _format_value_for_netcdf(value, key, dtype, dimensions, S):
         value = str(value)
         netcdf_dtype = "attribute"
     elif dtype == "double":
-        value = _nd_array(value, len(dimensions))
+        value = _atleast_nd(value, len(dimensions))
         netcdf_dtype = "f8"
     elif dtype == "string":
         value = np.array(value, dtype="S" + str(S))
-        value = _nd_array(value, len(dimensions))
+        value = _atleast_nd(value, len(dimensions))
         netcdf_dtype = 'S1'
     else:
         raise ValueError(f"Unknown type {dtype} for {key}")
@@ -1871,7 +1871,7 @@ def _verify_convention_and_version(version, version_in, convention):
     return version_out
 
 
-def _nd_array(array, ndim):
+def _atleast_nd(array, ndim):
     """
     Get numpy array with specified number of dimensions. Dimensions are
     appended at the end if ndim > 3.
