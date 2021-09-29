@@ -11,11 +11,11 @@ from .sofar import (Sofa,
                     list_conventions,
                     read_sofa,
                     write_sofa,
-                    compare_sofa)
+                    equals)
 
 
 __all__ = ['Sofa',
            'list_conventions',
            'read_sofa',
            'write_sofa',
-           'compare_sofa']
+           'equals']

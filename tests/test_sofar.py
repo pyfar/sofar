@@ -657,20 +657,20 @@ def test_roundtrip():
         sofa = sf.Sofa(name)
         sf.write_sofa(file, sofa)
         sofa_r = sf.read_sofa(file)
-        identical = sf.compare_sofa(sofa, sofa_r, verbose=True, exclude="DATE")
+        identical = sf.equals(sofa, sofa_r, verbose=True, exclude="DATE")
         assert identical
 
 
-def test_compare_sofa_global_parameters():
+def test_equals_global_parameters():
 
     sofa_a = sf.Sofa("SimpleFreeFieldHRIR")
 
     # check invalid
     with raises(ValueError, match="exclude is"):
-        sf.compare_sofa(sofa_a, sofa_a, exclude="wrong")
+        sf.equals(sofa_a, sofa_a, exclude="wrong")
 
     # check identical objects
-    assert sf.compare_sofa(sofa_a, sofa_a)
+    assert sf.equals(sofa_a, sofa_a)
 
     # check different number of keys
     sofa_b = deepcopy(sofa_a)
@@ -678,7 +678,7 @@ def test_compare_sofa_global_parameters():
     delattr(sofa_b, "ReceiverPosition")
     sofa_b._protected = True
     with pytest.warns(UserWarning, match="not identical: sofa_a has"):
-        is_identical = sf.compare_sofa(sofa_a, sofa_b)
+        is_identical = sf.equals(sofa_a, sofa_b)
         assert not is_identical
 
     # check different keys
@@ -688,7 +688,7 @@ def test_compare_sofa_global_parameters():
     delattr(sofa_b, "ReceiverPosition")
     sofa_b._protected = True
     with pytest.warns(UserWarning, match="not identical: sofa_a and sofa_b"):
-        is_identical = sf.compare_sofa(sofa_a, sofa_b)
+        is_identical = sf.equals(sofa_a, sofa_b)
         assert not is_identical
 
     # check mismatching data types
@@ -697,7 +697,7 @@ def test_compare_sofa_global_parameters():
     sofa_b._convention["ReceiverPosition"]["type"] = "int"
     sofa_b._protected = True
     with pytest.warns(UserWarning, match="not identical: ReceiverPosition"):
-        is_identical = sf.compare_sofa(sofa_a, sofa_b)
+        is_identical = sf.equals(sofa_a, sofa_b)
         assert not is_identical
 
     # check exclude GLOBAL attributes
@@ -705,7 +705,7 @@ def test_compare_sofa_global_parameters():
     sofa_b._protected = False
     delattr(sofa_b, "GLOBAL_Version")
     sofa_b._protected = True
-    is_identical = sf.compare_sofa(sofa_a, sofa_b, exclude="GLOBAL")
+    is_identical = sf.equals(sofa_a, sofa_b, exclude="GLOBAL")
     assert is_identical
 
     # check exclude Date attributes
@@ -713,7 +713,7 @@ def test_compare_sofa_global_parameters():
     sofa_b._protected = False
     delattr(sofa_b, "GLOBAL_DateModified")
     sofa_b._protected = True
-    is_identical = sf.compare_sofa(sofa_a, sofa_b, exclude="DATE")
+    is_identical = sf.equals(sofa_a, sofa_b, exclude="DATE")
     assert is_identical
 
     # check exclude Date attributes
@@ -721,7 +721,7 @@ def test_compare_sofa_global_parameters():
     sofa_b._protected = False
     delattr(sofa_b, "GLOBAL_DateModified")
     sofa_b._protected = True
-    is_identical = sf.compare_sofa(sofa_a, sofa_b, exclude="ATTR")
+    is_identical = sf.equals(sofa_a, sofa_b, exclude="ATTR")
     assert is_identical
 
 
@@ -737,7 +737,7 @@ def test_compare_sofa_global_parameters():
     ("HD 650", np.array(["HD 650"], dtype="S"), "SourceModel", False),
     ("HD 650", "HD-650", "SourceModel", True)
 ])
-def test_compare_sofa_attribute_values(value_a, value_b, attribute, fails):
+def test_equals_attribute_values(value_a, value_b, attribute, fails):
 
     # generate SOFA objects (SimpleHeadphoneIR has string variables)
     sofa_a = sf.Sofa("SimpleHeadphoneIR")
@@ -753,9 +753,9 @@ def test_compare_sofa_attribute_values(value_a, value_b, attribute, fails):
     # compare
     if fails:
         with pytest.warns(UserWarning):
-            assert not sf.compare_sofa(sofa_a, sofa_b)
+            assert not sf.equals(sofa_a, sofa_b)
     else:
-        assert sf.compare_sofa(sofa_a, sofa_b)
+        assert sf.equals(sofa_a, sofa_b)
 
 
 def test_add_entry():
@@ -783,7 +783,7 @@ def test_add_entry():
     # check if everything can be verified and written, and read correctly
     sf.write_sofa(os.path.join(tmp_dir.name, "tmp.sofa"), sofa)
     sofa_read = sf.read_sofa(os.path.join(tmp_dir.name, "tmp.sofa"))
-    assert sf.compare_sofa(sofa, sofa_read)
+    assert sf.equals(sofa, sofa_read)
 
     # test deleting an entry
     delattr(sofa, "Temperature_Units")

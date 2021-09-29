@@ -1443,7 +1443,7 @@ def write_sofa(filename: str, sofa: Sofa, version="latest", compression=4):
                         str(getattr(sofa, sub_key)))
 
 
-def compare_sofa(sofa_a, sofa_b, verbose=True, exclude=None):
+def equals(sofa_a, sofa_b, verbose=True, exclude=None):
     """
     Compare two SOFA objects against each other.
 
@@ -1498,7 +1498,7 @@ def compare_sofa(sofa_a, sofa_b, verbose=True, exclude=None):
 
     # check for equal length
     if len(keys_a) != len(keys_b):
-        is_identical = _compare_sofa_warning((
+        is_identical = _equals_warning((
             f"not identical: sofa_a has {len(keys_a)} attributes for "
             f"comparison and sofa_b has {len(keys_b)}."), verbose)
 
@@ -1506,7 +1506,7 @@ def compare_sofa(sofa_a, sofa_b, verbose=True, exclude=None):
 
     # check if the keys match
     if set(keys_a) != set(keys_b):
-        is_identical = _compare_sofa_warning(
+        is_identical = _equals_warning(
             "not identical: sofa_a and sofa_b do not have the ame attributes",
             verbose)
 
@@ -1531,7 +1531,7 @@ def compare_sofa(sofa_a, sofa_b, verbose=True, exclude=None):
 
             # compare
             if a != b:
-                is_identical = _compare_sofa_warning(
+                is_identical = _equals_warning(
                     f"not identical: different values for {key}", verbose)
 
         # compare double variables
@@ -1540,7 +1540,7 @@ def compare_sofa(sofa_a, sofa_b, verbose=True, exclude=None):
             try:
                 npt.assert_allclose(np.squeeze(a), np.squeeze(b))
             except AssertionError:
-                is_identical = _compare_sofa_warning(
+                is_identical = _equals_warning(
                     "not identical: different values for {key}", verbose)
 
         # compare string variables
@@ -1549,17 +1549,17 @@ def compare_sofa(sofa_a, sofa_b, verbose=True, exclude=None):
                 assert np.all(
                     np.squeeze(a).astype("S") == np.squeeze(b).astype("S"))
             except AssertionError:
-                is_identical = _compare_sofa_warning(
+                is_identical = _equals_warning(
                     "not identical: different values for {key}", verbose)
         else:
-            is_identical = _compare_sofa_warning(
+            is_identical = _equals_warning(
                 (f"not identical: {key} has different data types "
                  f"({type_a}, {type_b})"), verbose)
 
     return is_identical
 
 
-def _compare_sofa_warning(message, verbose):
+def _equals_warning(message, verbose):
     if verbose:
         warnings.warn(message)
     return False

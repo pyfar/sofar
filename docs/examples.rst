@@ -192,7 +192,7 @@ And to see that the written and read files contain the same data you can check
 
 .. code-block:: python
 
-    sf.compare_sofa(sofa, sofa_read)
+    sf.equals(sofa, sofa_read)
     >>> True
 
 Next steps
