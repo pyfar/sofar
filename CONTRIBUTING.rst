@@ -50,15 +50,15 @@ Get Started!
 Ready to contribute? Here's how to set up `sofar` for local development.
 
 1. Fork the `sofar` repo on GitHub.
-2. Clone your fork locally::
+2. Clone your fork locally and cd into the sofar directory::
 
     $ git clone https://github.com/pyfar/sofar.git
+    $ cd sofar/
 
 3. Install your local copy into a virtualenv. Assuming you have Anaconda or Miniconda installed, this is how you set up your fork for local development::
 
-    $ conda env --name sofar
+    $ conda create --name sofar
     $ conda activate sofar
-    $ cd sofar/
     $ conda install pip
     $ pip install -e .
     $ pip install -r requirements_dev.txt
@@ -183,3 +183,4 @@ $ git push
 $ git push --tags
 
 Travis will then deploy to PyPI if tests pass.
+
