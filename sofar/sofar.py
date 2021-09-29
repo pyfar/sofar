@@ -86,7 +86,7 @@ class Sofa():
             if self._read_only(self._convention[key]["flags"])]
 
         # add attributes with default values
-        self._convention2sofa(mandatory)
+        self._convention_to_sofa(mandatory)
 
         # add and update the API
         if verify:
@@ -142,12 +142,14 @@ class Sofa():
         M
             number of measurements
         N
-            number of samles, frequencies, SOS coefficients, SH coefficients
+            number of samles, frequencies, SOS coefficients
             (depending on self.GLOBAL_DataType)
         R
-            Number of receivers
+            Number of receivers or SH coefficients
+            (depending on ReceiverPosition_Type)
         E
-            Number of emitters
+            Number of emitters or SH coefficients
+            (depending on EmitterPosition_Type)
         S
             Maximum length of a string in a string array
         C
@@ -949,7 +951,7 @@ class Sofa():
 
         return convention
 
-    def _convention2sofa(self,  mandatory):
+    def _convention_to_sofa(self, mandatory):
         """
         Use SOFA convention to create attributes with default values.
 
@@ -983,7 +985,10 @@ class Sofa():
         self.GLOBAL_APIName = "sofar SOFA API for Python (pyfar.org)"
         self.GLOBAL_APIVersion = sf.__version__
         self.GLOBAL_ApplicationName = "Python"
-        self.GLOBAL_ApplicationVersion = platform.python_version()
+        self.GLOBAL_ApplicationVersion = (
+            f"{platform.python_version()} "
+            f"[{platform.python_implementation()} - "
+            f"{platform.python_compiler()}]")
         self._protected = True
 
     @staticmethod

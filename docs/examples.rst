@@ -141,7 +141,7 @@ us, however, delete an optional entry that we do not need at this point
 
 In some cases you might want to add custom data - although third party
 applications most likely won't make use of non-standardized data. Try this
-to add a Temperature value and unit
+to add a temperature value and unit
 
 .. code-block:: python
 
@@ -198,8 +198,7 @@ And to see that the written and read files contain the same data you can check
 Next steps
 ==========
 
-This is it for the short tour of SOFA and sofar. For detailed information about
-sofar refer to the :ref:`sofar_documentation`.
+For detailed information about sofar refer to the :ref:`sofar_documentation`.
 
 
 .. _sofaconventions.org: https://sofaconventions.org
