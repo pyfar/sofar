@@ -1106,6 +1106,13 @@ def update_conventions(conventions_path=None):
                    for node in soup.find_all('a')
                    if node.get('href').endswith(ext)]
 
+    # directory handling
+    if conventions_path is None:
+        conventions_path = os.path.join(os.path.dirname(__file__),
+                                        "conventions")
+    if not os.path.isdir(os.path.join(conventions_path, "source")):
+        os.mkdir(os.path.join(conventions_path, "source"))
+
     # Loop conventions
     updated = False
     for convention in conventions:
@@ -1114,13 +1121,8 @@ def update_conventions(conventions_path=None):
         if convention.startswith(("General_", "GeneralString_")):
             continue
 
-        if conventions_path is None:
-            filename_csv = os.path.join(
-                os.path.dirname(__file__), "conventions", convention)
-        else:
-            filename_csv = os.path.join(conventions_path, convention)
-
-        filename_json = filename_csv[:-3] + "json"
+        filename_csv = os.path.join(conventions_path, "source", convention)
+        filename_json = os.path.join(conventions_path, convention[:-3]+"json")
 
         # download SOFA convention definitions to package diretory
         data = requests.get(url_raw + "/" + convention)

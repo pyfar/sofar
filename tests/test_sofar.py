@@ -53,8 +53,9 @@ def test_update_conventions(capfd):
         temp_dir.name)
 
     # modify and delete selected conventions to verbose feedback
-    os.remove(os.path.join(temp_dir.name, "GeneralTF_2.0.csv"))
-    with open(os.path.join(temp_dir.name, "GeneralFIR_2.0.csv"), "w") as fid:
+    os.remove(os.path.join(temp_dir.name, "source", "GeneralTF_2.0.csv"))
+    with open(os.path.join(
+            temp_dir.name, "source", "GeneralFIR_2.0.csv"), "w") as fid:
         fid.write("test")
 
     # first run to test if conventions were updated
