@@ -1574,7 +1574,10 @@ def _convention_csv2dict(file: str):
     """
 
     # read the file
-    with open(file, 'r') as fid:
+    # (encoding should be changed to utf-8 after the SOFA conventions repo is
+    # clean.)
+    # TODO: add explicit test for this function that checks the output
+    with open(file, 'r', encoding="windows-1252") as fid:
         lines = fid.readlines()
 
     # write into dict
