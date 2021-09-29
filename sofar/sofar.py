@@ -1061,7 +1061,7 @@ class Sofa():
         return is_read_only
 
 
-def update_conventions(conventions_path=None):
+def _update_conventions(conventions_path=None):
     """
     Update SOFA conventions.
 

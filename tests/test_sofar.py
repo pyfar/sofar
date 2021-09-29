@@ -1,5 +1,6 @@
 import sofar as sf
-from sofar.sofar import (_format_value_for_netcdf,
+from sofar.sofar import (_update_conventions,
+                         _format_value_for_netcdf,
                          _format_value_from_netcdf,
                          _nd_array,
                          _nd_newaxis,
@@ -59,13 +60,13 @@ def test_update_conventions(capfd):
         fid.write("test")
 
     # first run to test if conventions were updated
-    sf.sofar.update_conventions(conventions_path=temp_dir.name)
+    _update_conventions(conventions_path=temp_dir.name)
     out, _ = capfd.readouterr()
     assert "added new convention: GeneralTF_2.0.csv" in out
     assert "updated existing convention: GeneralFIR_2.0.csv" in out
 
     # second run to make sure that up to date conventions are not overwritten
-    sf.sofar.update_conventions(conventions_path=temp_dir.name)
+    _update_conventions(conventions_path=temp_dir.name)
     out, _ = capfd.readouterr()
     assert "added" not in out
     assert "updated" not in out
