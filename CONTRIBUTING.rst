@@ -50,15 +50,15 @@ Get Started!
 Ready to contribute? Here's how to set up `sofar` for local development.
 
 1. Fork the `sofar` repo on GitHub.
-2. Clone your fork locally::
+2. Clone your fork locally and cd into the sofar directory::
 
     $ git clone https://github.com/pyfar/sofar.git
+    $ cd sofar/
 
 3. Install your local copy into a virtualenv. Assuming you have Anaconda or Miniconda installed, this is how you set up your fork for local development::
 
-    $ conda env --name sofar
+    $ conda create --name sofar
     $ conda activate sofar
-    $ cd sofar/
     $ conda install pip
     $ pip install -e .
     $ pip install -r requirements_dev.txt
@@ -112,7 +112,7 @@ Tips
 ~~~~~~~~~~~
 Pytest provides several, sophisticated functionalities which could reduce the effort of implementing tests.
 
-- Similar tests executing the same code with different variables can be `parametrized <https://docs.pytest.org/en/stable/example/parametrize.html>`_. An example is ``test___eq___differInPoints`` in *test_coordinates.py*.
+- Similar tests executing the same code with different variables can be `parametrized <https://docs.pytest.org/en/stable/example/parametrize.html>`_.
 - Feel free to add more recommendations on useful pytest functionalities here. Consider, that a trade-off between easy implemention and good readability of the tests needs to be found.
 
 You can create an html report on the test `coverage <https://coverage.readthedocs.io/en/coverage-5.5/>`_ by calling
@@ -183,3 +183,4 @@ $ git push
 $ git push --tags
 
 Travis will then deploy to PyPI if tests pass.
+

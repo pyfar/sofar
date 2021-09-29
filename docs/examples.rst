@@ -141,7 +141,7 @@ us, however, delete an optional entry that we do not need at this point
 
 In some cases you might want to add custom data - although third party
 applications most likely won't make use of non-standardized data. Try this
-to add a Temperature value and unit
+to add a temperature value and unit
 
 .. code-block:: python
 
@@ -156,10 +156,17 @@ your data can (most likely) be read by other applications.
 
     sofa.verify()
 
-This will check if all mandatory data are contained, if the names of the data
-are compliant with the SOFA standard, and if all data have the correct data
-type and shape. This would for example tell you that you are in trouble if you
-entered only one HRIR but two source positions.
+This will check the following
+
+- Are all mandatory fields contained? If not mandatory fields are added
+  with their default value and a warning is raised.
+- Are the names of variables and attributes in accordance to the SOFA
+  standard? If not a warning is raised.
+- Are the data types in accordance with the SOFA standard?
+- Are the dimensions of the variables consistent and in accordance
+  to the SOFA standard?
+- Are the values of attributes consistent and in accordance to the
+  SOFA standard?
 
 Reading and writing SOFA objects
 ================================
@@ -185,15 +192,13 @@ And to see that the written and read files contain the same data you can check
 
 .. code-block:: python
 
-    sf.compare_sofa(sofa, sofa_read)
+    sf.equals(sofa, sofa_read)
     >>> True
 
 Next steps
 ==========
 
-This is it for the short tour of SOFA and sofar. For detailed information about
-sofar refer to the :ref:`sofar_documentation`. The next step introduces
-possible ways for :ref:`working_with_sofa_files`.
+For detailed information about sofar refer to the :ref:`sofar_documentation`.
 
 
 .. _sofaconventions.org: https://sofaconventions.org

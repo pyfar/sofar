@@ -86,7 +86,7 @@ class Sofa():
             if self._read_only(self._convention[key]["flags"])]
 
         # add attributes with default values
-        self._convention2sofa(mandatory)
+        self._convention_to_sofa(mandatory)
 
         # add and update the API
         if verify:
@@ -142,12 +142,14 @@ class Sofa():
         M
             number of measurements
         N
-            number of samles, frequencies, SOS coefficients, SH coefficients
+            number of samles, frequencies, SOS coefficients
             (depending on self.GLOBAL_DataType)
         R
-            Number of receivers
+            Number of receivers or SH coefficients
+            (depending on ReceiverPosition_Type)
         E
-            Number of emitters
+            Number of emitters or SH coefficients
+            (depending on EmitterPosition_Type)
         S
             Maximum length of a string in a string array
         C
@@ -157,21 +159,16 @@ class Sofa():
 
         see :py:func:`~Sofa.info` to see the shapes of the data inside the SOFA
         object.
-
-        Notes
-        -----
-        ``self.verify(version='match')`` is called to make sure that the
-        required meta data is available.
-
         """
 
-        try:
-            # update the API to make sure all meta data is in place
-            self.verify(version="match")
-        except ValueError:
-            raise ValueError((
-                "SOFA object could not be verified maybe due to invalid data."
-                "Call self.verify() for more detailed information."))
+        # Check if the dimensions can be updated
+        issues = self.verify(version="match", issue_handling="return")
+        if issues is not None and ("data of wrong type" in issues or
+                                   "variables of wrong shape" in issues or
+                                   not hasattr(self, "_api")):
+            raise ValueError(("Dimensions can not be shown because variables "
+                              "of wrong type or shape were detected. "
+                              "Call Sofa.verify() for more information."))
 
         # get verbose description for dimesion N
         if self.GLOBAL_DataType.startswith("FIR"):
@@ -181,6 +178,9 @@ class Sofa():
         elif self.GLOBAL_DataType.startswith("SOS"):
             N_verbose = "SOS coefficients"
         else:
+            # This line can not be tested. An invalid DataType would be cached
+            # in self.verify above. This to make sure we don't miss something
+            # in case new DataTypes are added to SOFA in the future.
             raise ValueError((
                 "GLOBAL_DataType start with 'FIR', 'TF', "
                 f"or 'SOS' but not with {self.GLOBAL_DataType}"))
@@ -235,24 +235,11 @@ class Sofa():
             key
                 If key is the name of an object attribute, all information for
                 attribute will be printed.
-
-        Notes
-        -----
-        ``self.verify(version='match')`` is called to make sure that the
-        required meta data is available.
         """
 
-        try:
-            # update the API to make sure all meta data is in place
-            self.verify(version="match")
-        except ValueError:
-            # This is hard to test automatically. It was tested manually once.
-            keys = [k for k in self.__dict__.keys() if k[0] != '_']
-            keys = "\n".join(keys)
-            warnings.warn((
-                "SOFA object could not be verified maybe due to invalid data."
-                "Call self.verify() for more detailed information. These "
-                f"are the Attributes contained in the sofa object:\n{keys}"))
+        # update the private attribute `_convention` to make sure the required
+        # meta data is in place
+        self._update_convention(version="match")
 
         # list of all attributes
         keys = [k for k in self.__dict__.keys() if not k.startswith("_")]
@@ -304,8 +291,7 @@ class Sofa():
 
             for key in [k for k in keys if info in k]:
                 comment = str(self._convention[key]['comment'])
-                if not comment:
-                    comment = "None"
+
                 info_str += (
                     f"{key}\n"
                     f"    type: {self._convention[key]['type']}\n"
@@ -422,36 +408,46 @@ class Sofa():
 
         # add attribute to class
         _add_custom_api_entry(
-            self, name, value, None, dimensions, dtype, False)
+            self, name, value, None, dimensions, dtype)
 
-    def verify(self, version="latest"):
+    def verify(self, version="latest", issue_handling="raise"):
         """
-        Verify a SOFA object.
+        Verify a SOFA object against the SOFA standard.
 
-        This function updates the API, checks if all mandatory fields are
-        contained and if the dimensions of the data inside the SOFA object are
-        according to the SOFA standard. If a mandatory attribute is missing, it
-        is added to the SOFA object with its default value and a warning is
-        raised.
+        This function updates the API, and checks the following
+
+        - Are all mandatory fields contained? If not mandatory fields are added
+          with their default value and a warning is raised.
+        - Are the names of variables and attributes in accordance to the SOFA
+          standard? If not a warning is raised.
+        - Are the data types in accordance with the SOFA standard?
+        - Are the dimensions of the variables consistent and in accordance
+          to the SOFA standard?
+        - Are the values of attributes consistent and in accordance to the
+          SOFA standard?
 
         .. note::
-            ``verify`` is automatically called when you create a new SOFA
-            object or read a SOFA file disk using the default parameters.
+            :py:func:`~verify` is automatically called when you create a new
+            SOFA object, read a SOFA file from disk, and write a SOFA file to
+            disk (using the default parameters).
 
-        The API of a SOFA object consists of three parts, that are stored
-        as private attributes. This is required for writing data with
-        :py:func:`~sofa.write_sofa` and should usually not be manipulated
-        outside of `verify`
+        The API of a SOFA object consists of four parts, that are stored
+        dictionaries in private attributes. This is required for writing data
+        with :py:func:`~sofa.write_sofa` and should usually not be manipulated
+        outside of :py:func:`~verify`
 
         self._convention
             The SOFA convention with default values, variable dimensions, flags
             and comments. These data are read from the official SOFA
-            conventions contained in the SOFA Matlab/Octave API
+            conventions contained in the SOFA Matlab/Octave API.
         self._dimensions
-            The detected dimensions of the data inside the SOFA object
+            The detected dimensions of the data inside the SOFA object.
         self._api
             The size of the dimensions (see ``self.info("dimensions")``). This
             specifies the dimensions of the data inside the SOFA object.
+        self._custom
+            Stores information of custom variables that are not defined by the
+            convention. The format is the same as in `self._convention`.
 
         Parameters
         ----------
@@ -467,30 +463,62 @@ class Sofa():
                 the SOFA object
 
             The default is ``'latest'``
+        issue_handling : str, optional
+            Defines how detected issues are handeled
+
+            ``'raise'``
+                Warnings and errors are raised if issues are detected
+            ``'print'``
+                Issues are printed without raising warnings and errors
+            ``'return'``
+                Issues are returned as string but neither raised nor printed
+
+            The default is ``'raise'``.
+
+        Returns
+        -------
+        issues : str, None
+            Detected issues as a string. None if no issues were detected. Note
+            that this is only returned if ``issue_handling='return'`` (see
+            above)
 
         """
+        # NOTE: This function collects warnings and errors and tries to output
+        # them in a block. This makes the code slightly more complicated but
+        # is more convenient for the user and with respect to a potential
+        # future web based tool for verifying SOFA files.
 
-        # initialize the API
+        # initialize warning and error messages
+        error_msg = "\nERRORS\n------\n"
+        warning_msg = "\nWARNINGS\n--------\n"
+
+        # ---------------------------------------------------------------------
+        # 0. update the convention
         self._update_convention(version)
-        self._protected = False
-        self._dimensions = {}
-        self._api = {}
-        self._protected = True
 
-        # first run: check if the mandatory attributes are contained
+        # ---------------------------------------------------------------------
+        # 1. check if the mandatory attributes are contained
+        current_warning = ""
         keys = [key for key in self.__dict__.keys() if not key.startswith("_")]
 
         for key in self._convention.keys():
             if self._mandatory(self._convention[key]["flags"]) \
                     and key not in keys:
+                # add missing data with default value
                 self._protected = False
                 setattr(self, key, self._convention[key]["default"])
                 self._protected = True
-                warnings.warn((
-                    f"Mandatory attribute {key} was missing and added to the "
-                    "SOFA object with its default value"))
 
-        # second run: verify data type
+                # prepare to raise warning
+                current_warning += "- " + key + "\n"
+
+        if current_warning:
+            warning_msg += "Added mandatory data with default values:\n"
+            warning_msg += current_warning
+
+        # ---------------------------------------------------------------------
+        # 2. verify data type
+        current_error = ""
         for key in keys:
 
             # handle dimensions
@@ -502,44 +530,72 @@ class Sofa():
 
             if dtype == "attribute":
                 if not isinstance(value, str):
-                    raise ValueError((f"{key} must be a string but "
-                                      f"is of type {type(key)}"))
+                    current_error += \
+                        f"- {key} must be string but is {type(value)}\n"
+
             elif dtype == "double":
                 # multiple checks needed because sofar does not force the user
                 # to initally pass data as numpy arrays
                 if not isinstance(value,
                                   (np.int_, np.float_, np.double, np.ndarray)):
-                    raise ValueError((
-                        f"{key} can be of type int, float, complex, or "
-                        f"numpy array but not {type(value)}"))
-                if isinstance(value, np.ndarray):
-                    if not (str(value.dtype).startswith('int') or
-                            str(value.dtype).startswith('float') or
-                            str(value.dtype).startswith('complex')):
-                        raise ValueError((
-                            f"{key} can be of dtype int, float, complex "
-                            f"but not {str(value.dtype)}"))
+                    current_error += (f"- {key} must be int, float or numpy "
+                                      f"array but is {type(value)}\n")
+
+                if isinstance(value, np.ndarray) and not (
+                        str(value.dtype).startswith('int') or
+                        str(value.dtype).startswith('float')):
+                    current_error += (f"- {key} must be int or float "
+                                      f"but is {type(value.dtype)}\n")
+
             elif dtype == "string":
                 # multiple checks needed because sofar does not force the user
                 # to initally pass data as numpy arrays
                 if not isinstance(value, (str, np.ndarray)):
-                    raise ValueError((
-                        f"{key} can be of type str, or numpy array "
-                        f"but not {type(value)}"))
-                if isinstance(value, np.ndarray):
-                    if not (str(value.dtype).startswith('<U') or
-                            str(value.dtype).startswith('<S')):
-                        raise ValueError((
-                            f"{key} can be of dtype U or S "
-                            f"but not {str(value.dtype)}"))
+                    current_error += (f"- {key} must be string or numpy array "
+                                      f"but is {type(value)}\n")
+
+                if isinstance(value, np.ndarray) and not (
+                        str(value.dtype).startswith('<U') or
+                        str(value.dtype).startswith('<S')):
+                    current_error += (f"- {key} must be U or S "
+                                      f"but is {type(value.dtype)}\n")
+
             else:
                 # Could only be tested by manipulating JSON convention files
-                raise ValueError((
-                    "Error in SOFA API. type must be attribute, double, or "
-                    f"string but is {dtype}"))
+                # (Could take different data types in the future and convert to
+                # numpy double arrays.)
+                current_error += (
+                    f"- {key}: Error in convention. Type must be "
+                    f"double, string, or attribute but is {dtype}\n")
 
-        # third run: Get dimensions (E, R, M, N, S, c, I, and custom)
-        keys = [key for key in self.__dict__.keys() if not key.startswith("_")
+        if current_error:
+            error_msg += "Detected data of wrong type:\n"
+            error_msg += current_error
+
+        # if an error ocurred up to here, it has to be handled. Otherwise
+        # detecting the dimensions might fail. Warnings are not reported until
+        # the end
+        if error_msg != "\nERRORS\n------\n":
+            _, issues = self._verify_handle_issues(
+                    "\nWARNINGS\n--------\n", error_msg, issue_handling)
+
+            if issue_handling == "print":
+                return
+            else:  # (issue_handling == "return"):
+                return issues
+
+        # ---------------------------------------------------------------------
+        # 3. Get dimensions (E, R, M, N, S, c, I, and custom)
+
+        # initialize required API fields
+        self._protected = False
+        self._dimensions = {}
+        self._api = {}
+        self._protected = True
+
+        # get keys for checking the dimensions (all SOFA variables)
+        keys = [key for key in self.__dict__.keys()
+                if key in self._convention
                 and self._convention[key]["dimensions"] is not None]
         if hasattr(self, "_custom"):
             keys_custom = [key for key in self._custom.keys()
@@ -570,15 +626,17 @@ class Sofa():
         self._api["I"] = 1
         self._api["S"] = S
 
-        # forth run: verify data type, dimensions, and names of data
+        # ---------------------------------------------------------------------
+        # 4. verify dimensions and names of data
+        current_warning = ""
+        current_error = ""
         for key in keys:
 
-            # check the name
+            # check the name (can not be tested within sofar, because it does
+            # not allow to add data with such names. It was tested manually
+            # with third party files).
             if "_" in key.replace("Data_", ""):
-                warnings.warn((
-                    f"{key} contains '.' or '_' in its name. In SOFA files, "
-                    "this is only allowed for Data_* and SOFA attributes."
-                    "Writing with sofar.write_sofa() might not work."))
+                current_warning += "- " + key + "\n"
 
             # handle dimensions
             dimensions = self._convention[key]["dimensions"]
@@ -596,7 +654,7 @@ class Sofa():
                     value, key)[1]
             elif len(dimensions.split(",")[0]) > 1:
                 # multidimensional array like data
-                shape_act = _nd_array(value, 4).shape
+                shape_act = _atleast_nd(value, 4).shape
             else:
                 # scalar of single dimensional array like data
                 shape_act = (np.array(value).size, )
@@ -629,14 +687,170 @@ class Sofa():
                     dimensions_verbose.append(
                         f"({', '.join([f'{d}={self._api[d]}' for d in dim])})")
 
-                raise ValueError(
-                    (f"The shape of {key} is {shape_compare} but has "
-                     f"to be {', '.join(dimensions_verbose)}"))
+                current_error += (
+                    f"- {key} has shape {shape_compare} but must "
+                    f"have {', '.join(dimensions_verbose)}\n")
+
+        if current_warning:
+            warning_msg += (
+                "Detected data with '_' or '.' in its name (only "
+                "allowed for 'Data_' and SOFA attributes. Writing SOFA "
+                "object to disk might not work):\n")
+            warning_msg += current_warning
+        if current_error:
+            error_msg += "Detected variables of wrong shape:\n"
+            error_msg += current_error
+
+        # ---------------------------------------------------------------------
+        # 5. check restrictions on the content of SOFA files
+        data, data_type, api, convention = _sofa_restrictions()
+
+        # general restrictions on data
+        current_error = ""
+        for key in data.keys():
+
+            ref = data[key]["value"]
+            if hasattr(self, key):
+
+                # test if the value is valid
+                test = getattr(self, key)
+                if ref is not None and test not in ref:
+                    current_error += \
+                        f"- {key} is {test} but must be {', '.join(ref)}\n"
+
+                # check dependencies
+                if "dependency" not in data[key]:
+                    continue
+
+                for key_dep, ref_dep in data[key]["dependency"].items():
+
+                    # check if dependency is contained in SOFA object
+                    # hard to test, because mandatory fields are added by sofar
+                    # this is more to be future proof
+                    if not hasattr(self, key_dep):
+                        current_error += (f"- {key_dep} must be given if "
+                                          f"{key} is in SOFA object\n")
+                        continue
+
+                    # check if dependency has the correct value
+                    test_dep = getattr(self, key_dep)
+                    if not (isinstance(ref, list) and
+                            isinstance(ref_dep, list)):
+                        continue
+
+                    idx = ref.index(test)
+                    if test_dep != ref_dep[idx]:
+                        current_error += (
+                            f"- {key_dep} is {test_dep} but must be "
+                            f"{ref_dep[idx]} if {key} is {test}\n")
+
+        # restriction posed by GLOBAL_DataType
+        if self.GLOBAL_DataType.startswith("FIR"):
+            data_str = "FIR"
+        elif self.GLOBAL_DataType.startswith("TF"):
+            data_str = "TF"
+        elif self.GLOBAL_DataType.startswith("SOS"):
+            data_str = "SOS"
+        else:
+            # the data type was tested before. This is to prevent redundant
+            # errors in the next for loop
+            data_str = False
+
+        if data_str:
+            for key, value in data_type[data_str].items():
+
+                # hard to test. included to detect problems with future conventions
+                if not hasattr(self, key):
+                    current_error += (
+                        f"- {key} must be contained if"
+                        f" GLOBAL_DataType={self.GLOBAL_DataType}\n")
+
+                if value is not None and getattr(self, key) not in value[0]:
+                    current_error += (f"{key} is {getattr(self, key)} but "
+                                      f"must be {value[1]}\n")
+
+        # restrictions on the API
+        for key, value in api.items():
+            if hasattr(self, key) and getattr(self, key) == value["value"]:
+                size = getattr(self, "_api")[value["API"][0]]
+                if size not in value["API"][1]:
+                    current_error += \
+                        (f"- Dimension {value['API'][0]} is of size {size} "
+                         f"but must be {value['API'][2]} if "
+                         f"{key} is {getattr(self, key)}\n")
+
+        # restrictions from the SOFA convention (on the data and API)
+        if self.GLOBAL_SOFAConventions in convention:
+            for key, ref in convention[self.GLOBAL_SOFAConventions].items():
+
+                if key == "API":
+                    for dimension, size in ref.items():
+                        if self._api[dimension] != size:
+                            current_error += \
+                    (f"- Dimension {dimension} is of size "  # noqa
+                     f"{self._api[dimension]} but must be {size} if "
+                     f"GLOBAL_SOFAConventions is {key}\n")
+                else:
+                    value = getattr(self, key)
+                    if value not in ref:
+                        current_error += \
+                            f"{key} is {value} but must be {ref}\n"
+
+        if current_error:
+            error_msg += "Detected violations of the SOFA convention:\n"
+            error_msg += current_error
+
+        # handle warnings and errors
+        error_occurred, issues = self._verify_handle_issues(
+                warning_msg, error_msg, issue_handling)
+
+        if error_occurred:
+            if issue_handling == "print":
+                return
+            elif issue_handling == "return":
+                return issues
+
+    @staticmethod
+    def _verify_handle_issues(warning_msg, error_msg, issue_handling):
+        """Handle warnings and errors from Sofa.verify"""
+
+        # handle warnings
+        if warning_msg != "\nWARNINGS\n--------\n":
+            if issue_handling == "raise":
+                warnings.warn(warning_msg)
+            elif issue_handling == "print":
+                print(warning_msg)
+        else:
+            warning_msg = None
+
+        # handle errors
+        if error_msg != "\nERRORS\n------\n":
+            if issue_handling == "raise":
+                raise ValueError(error_msg)
+            elif issue_handling == "print":
+                print(error_msg)
+        else:
+            error_msg = None
+
+        # flag indicating if an error occurred
+        error_occurred = error_msg is not None
+
+        # verbose issue message
+        if warning_msg and error_msg:
+            issues = error_msg + "\n" + warning_msg
+        elif warning_msg:
+            issues = warning_msg
+        elif error_msg:
+            issues = error_msg
+        else:
+            issues = None
+
+        return error_occurred, issues
 
     def _update_convention(self, version):
         """
-        Add API to SOFA object. If The SOFA files contains an API it is
-        overwritten.
+        Add SOFA convention to SOFA object in private attribute `_convention`.
+        If The object already contains a convention, it will be overwritten.
 
         Parameters
         ----------
@@ -705,7 +919,7 @@ class Sofa():
                              f"but is of type {type(convention)}"))
 
         # get and check path to json file
-        paths = list_conventions(False, "path")
+        paths = _get_conventions("path")
         path = [path for path in paths
                 if os.path.basename(path).startswith(convention + "_")]
 
@@ -737,7 +951,7 @@ class Sofa():
 
         return convention
 
-    def _convention2sofa(self,  mandatory):
+    def _convention_to_sofa(self, mandatory):
         """
         Use SOFA convention to create attributes with default values.
 
@@ -758,7 +972,7 @@ class Sofa():
             default = self._convention[key]["default"]
             if isinstance(default, list):
                 ndim = len(self._convention[key]["dimensions"].split(", ")[0])
-                default = _nd_array(default, ndim)
+                default = _atleast_nd(default, ndim)
 
             # create attribute with default value
             setattr(self, key, default)
@@ -771,7 +985,10 @@ class Sofa():
         self.GLOBAL_APIName = "sofar SOFA API for Python (pyfar.org)"
         self.GLOBAL_APIVersion = sf.__version__
         self.GLOBAL_ApplicationName = "Python"
-        self.GLOBAL_ApplicationVersion = platform.python_version()
+        self.GLOBAL_ApplicationVersion = (
+            f"{platform.python_version()} "
+            f"[{platform.python_implementation()} - "
+            f"{platform.python_compiler()}]")
         self._protected = True
 
     @staticmethod
@@ -849,7 +1066,7 @@ class Sofa():
         return is_read_only
 
 
-def update_conventions():
+def _update_conventions(conventions_path=None):
     """
     Update SOFA conventions.
 
@@ -869,6 +1086,13 @@ def update_conventions():
     .. note::
         If the official convention contain errors, calling this function might
         break sofar. Be sure that you want to do this.
+
+    Parameters
+    ----------
+    conventions_path : str, optional
+        Path to the folder where the conventions are saved. The default is
+        ``None``, which saves the conventions inside the sofar package.
+        Conventions saved under a different path can not be used by sofar.
     """
 
     # url for parsing and downloading the convention files
@@ -878,7 +1102,7 @@ def update_conventions():
                "master/API_MO/conventions")
     ext = 'csv'
 
-    print(f"Downloading and converting SOFA conventions from {url} ...")
+    print(f"Reading SOFA conventions from {url} ...")
 
     # get file names of conventions from the SOFA Matlab/Octave API
     page = requests.get(url).text
@@ -887,21 +1111,44 @@ def update_conventions():
                    for node in soup.find_all('a')
                    if node.get('href').endswith(ext)]
 
+    # directory handling
+    if conventions_path is None:
+        conventions_path = os.path.join(os.path.dirname(__file__),
+                                        "conventions")
+    if not os.path.isdir(os.path.join(conventions_path, "source")):
+        os.mkdir(os.path.join(conventions_path, "source"))
+
     # Loop conventions
+    updated = False
     for convention in conventions:
 
         # exclude these conventions
         if convention.startswith(("General_", "GeneralString_")):
             continue
 
-        filename_csv = os.path.join(
-            os.path.dirname(__file__), "conventions", convention)
-        filename_json = filename_csv[:-3] + "json"
+        filename_csv = os.path.join(conventions_path, "source", convention)
+        filename_json = os.path.join(conventions_path, convention[:-3]+"json")
 
         # download SOFA convention definitions to package diretory
         data = requests.get(url_raw + "/" + convention)
-        with open(filename_csv, "wb") as file:
-            file.write(data.content)
+
+        # check if convention needs to be added or updated
+        update = False
+        if not os.path.isfile(filename_csv):
+            update = True
+            updated = f"- added new convention: {convention}"
+        else:
+            with open(filename_csv, "rb") as file:
+                data_current = file.readlines()
+            if b"".join(data_current) != data.content:
+                update = True
+                updated = f"- updated existing convention: {convention}"
+
+        # update convention
+        if update:
+            with open(filename_csv, "wb") as file:
+                file.write(data.content)
+            print(updated)
 
         # convert SOFA conventions from csv to json
         convention_dict = _convention_csv2dict(filename_csv)
@@ -909,18 +1156,25 @@ def update_conventions():
         with open(filename_json, 'w') as file:
             json.dump(convention_dict, file)
 
-    print("... done.")
+    if updated:
+        print("... done.")
+    else:
+        print("... conventions already up to date.")
 
 
-def list_conventions(verbose=True, return_type=None):
+def list_conventions():
     """
-    List available SOFA conventions.
+    List available SOFA conventions by printing to the console.
+    """
+    print(_get_conventions("string"))
+
+
+def _get_conventions(return_type):
+    """
+    Get available SOFA conventions.
 
     Parameters
     ----------
-    verbose=True : bool, optional
-        Print the names and versions of the currently supported conventions to
-        the console. The default is ``True``.
     return_type : string, optional
         ``'path'``
             Return a list with the full paths and filenames of the convention
@@ -929,8 +1183,9 @@ def list_conventions(verbose=True, return_type=None):
             Return a list of the convention names without version
         ``'name_version'``
             Return a list of tuples containing the convention name and version.
-
-        The default is ``None`` which does not return anything
+        ``'string'``
+            Returns a string that lists the names and versions of all
+            conventions.
 
     Returns
     -------
@@ -942,8 +1197,7 @@ def list_conventions(verbose=True, return_type=None):
     # SOFA convention files
     paths = [file for file in glob.glob(os.path.join(directory, "*.json"))]
 
-    if verbose:
-        print("Available SOFA conventions:")
+    conventions_str = "Available SOFA conventions:\n"
 
     conventions = []
     versions = []
@@ -951,8 +1205,7 @@ def list_conventions(verbose=True, return_type=None):
         fileparts = os.path.basename(path).split(sep="_")
         conventions += [fileparts[0]]
         versions += [fileparts[1][:-5]]
-        if verbose:
-            print(f"{conventions[-1]} (Version {versions[-1]})")
+        conventions_str += f"{conventions[-1]} (Version {versions[-1]})\n"
 
     if return_type is None:
         return
@@ -962,6 +1215,8 @@ def list_conventions(verbose=True, return_type=None):
         return conventions
     elif return_type == "name_version":
         return [(n, v) for n, v in zip(conventions, versions)]
+    elif return_type == "string":
+        return conventions_str
     else:
         raise ValueError(f"return_type {return_type} is invalid")
 
@@ -1003,13 +1258,16 @@ def read_sofa(filename, verify=True, version="latest"):
     """
 
     # check the filename
-    if not filename.lower().endswith('.sofa'):
-        filename += ".sofa"
+    if not filename.endswith('.sofa'):
+        raise ValueError("Filename must end with .sofa")
     if not os.path.isfile(filename):
         raise ValueError(f"{filename} does not exist")
 
     # attributes that are skipped
     skip = ["_Encoding"]
+
+    # init list of custom attributes
+    custom = []
 
     # open new NETCDF4 file for reading
     with Dataset(filename, "r+", format="NETCDF4") as file:
@@ -1041,7 +1299,8 @@ def read_sofa(filename, verify=True, version="latest"):
 
             if not hasattr(sofa, "GLOBAL_" + attr):
                 _add_custom_api_entry(sofa, "GLOBAL_" + attr, value, None,
-                                      None, "attribute", True)
+                                      None, "attribute")
+                custom.append("GLOBAL_" + attr)
             else:
                 setattr(sofa, "GLOBAL_" + attr, value)
 
@@ -1061,7 +1320,8 @@ def read_sofa(filename, verify=True, version="latest"):
                 # SOFA only uses dtypes 'double' and 'S1' but netCDF has more
                 dtype = "string" if file[var].datatype == "S1" else "double"
                 _add_custom_api_entry(sofa, var.replace(".", "_"), value, None,
-                                      dimensions, dtype, True)
+                                      dimensions, dtype)
+                custom.append(var.replace(".", "_"))
 
             # load variable attributes
             for attr in [a for a in file[var].ncattrs() if a not in skip]:
@@ -1071,12 +1331,18 @@ def read_sofa(filename, verify=True, version="latest"):
                 if not hasattr(sofa, var.replace(".", "_") + "_" + attr):
                     _add_custom_api_entry(
                         sofa, var.replace(".", "_") + "_" + attr, value, None,
-                        None, "attribute", True)
+                        None, "attribute")
+                    custom.append(var.replace(".", "_") + "_" + attr)
                 else:
                     setattr(sofa, var.replace(".", "_") + "_" + attr, value)
 
         # do not allow writing read only attributes any more
         sofa._protected = True
+
+    # notice about custom entries
+    if custom:
+        warnings.warn(("SOFA file contained custom entries "
+                      f"({', '.join(custom)})"))
 
     # update api
     if verify:
@@ -1084,14 +1350,14 @@ def read_sofa(filename, verify=True, version="latest"):
             sofa.verify(version)
         except: # noqa (No error handling - just improved verbosity)
             raise ValueError((
-                "The SOFA object could not be verified, maybe do to errornous "
-                "data. Call sofa=sofar.read_sofa(filename, verify=False) and "
+                "The SOFA object could not be verified, maybe due to errornous"
+                " data. Call sofa=sofar.read_sofa(filename, verify=False) and "
                 "than sofa.verify() to get more information"))
 
     return sofa
 
 
-def write_sofa(filename: str, sofa: Sofa, version="latest", compression=9):
+def write_sofa(filename: str, sofa: Sofa, version="latest", compression=4):
     """
     Write a SOFA object to disk as a SOFA file.
 
@@ -1122,8 +1388,8 @@ def write_sofa(filename: str, sofa: Sofa, version="latest", compression=9):
     """
 
     # check the filename
-    if not filename.lower().endswith('.sofa'):
-        filename += ".sofa"
+    if not filename.endswith('.sofa'):
+        raise ValueError("Filename must end with .sofa")
 
     # setting the netCDF compression parameter
     zlib = False if compression == 0 else True
@@ -1177,7 +1443,7 @@ def write_sofa(filename: str, sofa: Sofa, version="latest", compression=9):
                         str(getattr(sofa, sub_key)))
 
 
-def compare_sofa(sofa_a, sofa_b, verbose=True, exclude=None):
+def equals(sofa_a, sofa_b, verbose=True, exclude=None):
     """
     Compare two SOFA objects against each other.
 
@@ -1232,7 +1498,7 @@ def compare_sofa(sofa_a, sofa_b, verbose=True, exclude=None):
 
     # check for equal length
     if len(keys_a) != len(keys_b):
-        is_identical = _compare_sofa_warning((
+        is_identical = _equals_raise_warning((
             f"not identical: sofa_a has {len(keys_a)} attributes for "
             f"comparison and sofa_b has {len(keys_b)}."), verbose)
 
@@ -1240,7 +1506,7 @@ def compare_sofa(sofa_a, sofa_b, verbose=True, exclude=None):
 
     # check if the keys match
     if set(keys_a) != set(keys_b):
-        is_identical = _compare_sofa_warning(
+        is_identical = _equals_raise_warning(
             "not identical: sofa_a and sofa_b do not have the ame attributes",
             verbose)
 
@@ -1265,7 +1531,7 @@ def compare_sofa(sofa_a, sofa_b, verbose=True, exclude=None):
 
             # compare
             if a != b:
-                is_identical = _compare_sofa_warning(
+                is_identical = _equals_raise_warning(
                     f"not identical: different values for {key}", verbose)
 
         # compare double variables
@@ -1274,7 +1540,7 @@ def compare_sofa(sofa_a, sofa_b, verbose=True, exclude=None):
             try:
                 npt.assert_allclose(np.squeeze(a), np.squeeze(b))
             except AssertionError:
-                is_identical = _compare_sofa_warning(
+                is_identical = _equals_raise_warning(
                     "not identical: different values for {key}", verbose)
 
         # compare string variables
@@ -1283,17 +1549,17 @@ def compare_sofa(sofa_a, sofa_b, verbose=True, exclude=None):
                 assert np.all(
                     np.squeeze(a).astype("S") == np.squeeze(b).astype("S"))
             except AssertionError:
-                is_identical = _compare_sofa_warning(
+                is_identical = _equals_raise_warning(
                     "not identical: different values for {key}", verbose)
         else:
-            is_identical = _compare_sofa_warning(
+            is_identical = _equals_raise_warning(
                 (f"not identical: {key} has different data types "
                  f"({type_a}, {type_b})"), verbose)
 
     return is_identical
 
 
-def _compare_sofa_warning(message, verbose):
+def _equals_raise_warning(message, verbose):
     if verbose:
         warnings.warn(message)
     return False
@@ -1318,7 +1584,10 @@ def _convention_csv2dict(file: str):
     """
 
     # read the file
-    with open(file, 'r') as fid:
+    # (encoding should be changed to utf-8 after the SOFA conventions repo is
+    # clean.)
+    # TODO: add explicit test for this function that checks the output
+    with open(file, 'r', encoding="windows-1252") as fid:
         lines = fid.readlines()
 
     # write into dict
@@ -1436,7 +1705,7 @@ def _format_value_for_netcdf(value, key, dtype, dimensions, S):
     dtype : str
         The the data type of value
     dimensions : str
-        The intended dimensions from ``sofa._dimensions``
+        The intended dimensions from ``sofa.dimensions``
     S : int
         Length of the string array.
 
@@ -1459,11 +1728,11 @@ def _format_value_for_netcdf(value, key, dtype, dimensions, S):
         value = str(value)
         netcdf_dtype = "attribute"
     elif dtype == "double":
-        value = _nd_array(value, len(dimensions))
+        value = _atleast_nd(value, len(dimensions))
         netcdf_dtype = "f8"
     elif dtype == "string":
         value = np.array(value, dtype="S" + str(S))
-        value = _nd_array(value, len(dimensions))
+        value = _atleast_nd(value, len(dimensions))
         netcdf_dtype = 'S1'
     else:
         raise ValueError(f"Unknown type {dtype} for {key}")
@@ -1511,7 +1780,7 @@ def _format_value_from_netcdf(value, key):
     return value
 
 
-def _add_custom_api_entry(sofa, key, value, flags, dimensions, dtype, warn):
+def _add_custom_api_entry(sofa, key, value, flags, dimensions, dtype):
     """
     Add custom entry to the sofa._convention and permanently save it in
     sofa._custom
@@ -1523,8 +1792,6 @@ def _add_custom_api_entry(sofa, key, value, flags, dimensions, dtype, warn):
         name of the entry
     flags, dimensions, dtype : any
         as in sofa._convention
-    warn : bool
-        Make a user warning that a custom entry was added
     """
     # create custom API if it not exists
     sofa._protected = False
@@ -1550,9 +1817,6 @@ def _add_custom_api_entry(sofa, key, value, flags, dimensions, dtype, warn):
     setattr(sofa, key, value)
     sofa._protected = True
 
-    if warn:
-        warnings.warn(f"Added custom attribute {key}")
-
 
 def _verify_convention_and_version(version, version_in, convention):
     """
@@ -1574,17 +1838,18 @@ def _verify_convention_and_version(version, version_in, convention):
     """
 
     # check if the convention exists in sofar
-    if convention not in sf.list_conventions(False, "name"):
+    if convention not in _get_conventions("name"):
         raise ValueError(
             f"Convention {convention} does not exist")
 
-    name_version = sf.list_conventions(False, "name_version")
+    name_version = _get_conventions("name_version")
 
     if version == "latest":
-        # get latest version (comes last)
-        for versions in name_version:
-            if versions[0] == convention:
-                version_out = versions[1]
+        # get list of versions as floats
+        version_out = [float(versions[1]) for versions in name_version
+                       if versions[0] == convention]
+        # get latest version as string
+        version_out = str(version_out[np.argmax(version_out)])
     else:
         # check which version is wanted
         if version == "match":
@@ -1606,7 +1871,7 @@ def _verify_convention_and_version(version, version_in, convention):
     return version_out
 
 
-def _nd_array(array, ndim):
+def _atleast_nd(array, ndim):
     """
     Get numpy array with specified number of dimensions. Dimensions are
     appended at the end if ndim > 3.
@@ -1634,3 +1899,243 @@ def _nd_newaxis(array, ndim):
     for _ in range(ndim - array.ndim):
         array = array[..., np.newaxis]
     return array
+
+
+def _sofa_restrictions():
+    """
+    Return dictionaries to check restrictions on the data posed by SOFA.
+
+    The check is done in SOFA.verify(). This is not a private class method,
+    to save additional indention that would make the code harder to read and
+    write.
+
+    Returns:
+    data : dict
+        General restrictions on the data of any SOFA convention
+    data_type : dict
+        Restriction depending on GLOBAL_DataType
+    api : dict
+        Restrictions on the API depending on specific fields of a SOFA file
+    """
+
+    # definition of valid coordinate systems and units
+    coords_min = ["cartesian", "spherical"]
+    coords_full = coords_min + ["spherical harmonics"]
+    units_min = ["metre", "degree, degree, metre"]
+    units_full = units_min + [units_min[1]]
+    # possible values for restricted dimensions in the API
+    sh_dimension = ([(N+1)**2 for N in range(200)],
+                    "(N+1)**2 where N is the spherical harmonics order")
+    sos_dimension = ([6 * (N + 1) for N in range(1000)],
+                     "an integer multiple of 6 greater 0")
+
+    # restrictions on the data
+    # - if `value` is None it in only checked if the SOFA object has the attr
+    # - if `value` is a list, it is also checked if the actual value is in
+    #   `value`
+    # - if there is a list of values for a dependency the value of the SOFA
+    #   object has to match the value of the list at a certain index. The index
+    #   is determined by the value of the parent.
+    data = {
+        # Global --------------------------------------------------------------
+        # GLOBAL_SOFAConventions?
+        # Check value of GLOBAL_DataType
+        # (FIRE and TFE are legacy data types from SOFA version 1.0)
+        "GLOBAL_DataType": {
+            "value": ["FIR", "FIR-E", "FIRE", "TF", "TF-E", "TFE", "SOS"]},
+        "GLOBAL_RoomType": {
+            "value": ["free field", "reverberant", "shoebox", "dae"]},
+        "GLOBAL_SOFAConventions": {
+            "value": _get_conventions(return_type="name")},
+        # Listener ------------------------------------------------------------
+        # Check values and consistency of if ListenerPosition Type and Unit
+        "ListenerPosition_Type": {
+            "value": coords_min,
+            "dependency": {
+                "ListenerPosition_Units": units_min}},
+        # Check if dependencies of ListenerView are contained
+        "ListenerView": {
+            "value": None,
+            "dependency": {
+                "ListenerView_Type": None,
+                "ListenerView_Units": None}},
+        # Check values and consistency of if ListenerView Type and Unit
+        "ListenerView_Type": {
+            "value": coords_min,
+            "dependency": {
+                "ListenerView_Units": units_min}},
+        # Check if dependencies of ListenerUp are contained
+        "ListenerUp": {
+            "value": None,
+            "dependency": {
+                "ListenerView": None}},
+        # Receiver ------------------------------------------------------------
+        # Check values and consistency of if ReceiverPosition Type and Unit
+        "ReceiverPosition_Type": {
+            "value": coords_full,
+            "dependency": {
+                "ReceiverPosition_Units": units_full}},
+        # Check if dependencies of ReceiverView are contained
+        "ReceiverView": {
+            "value": None,
+            "dependency": {
+                "ReceiverView_Type": None,
+                "ReceiverView_Units": None}},
+        # Check values and consistency of if ReceiverView Type and Unit
+        "ReceiverView_Type": {
+            "value": coords_min,
+            "dependency": {
+                "ReceiverView_Units": units_min}},
+        # Check if dependencies of ReceiverUp are contained
+        "ReceiverUp": {
+            "value": None,
+            "dependency": {
+                "ReceiverView": None}},
+        # Source --------------------------------------------------------------
+        # Check values and consistency of if SourcePosition Type and Unit
+        "SourcePosition_Type": {
+            "value": coords_min,
+            "dependency": {
+                "SourcePosition_Units": units_min}},
+        # Check if dependencies of SourceView are contained
+        "SourceView": {
+            "value": None,
+            "dependency": {
+                "SourceView_Type": None,
+                "SourceView_Units": None}},
+        # Check values and consistency of if SourceView Type and Unit
+        "SourceView_Type": {
+            "value": coords_min,
+            "dependency": {
+                "SourceView_Units": units_min}},
+        # Check if dependencies of SourceUp are contained
+        "SourceUp": {
+            "value": None,
+            "dependency": {
+                "SourceView": None}},
+        # Emitter -------------------------------------------------------------
+        # Check values and consistency of if EmitterPosition Type and Unit
+        "EmitterPosition_Type": {
+            "value": coords_full,
+            "dependency": {
+                "EmitterPosition_Units": units_full}},
+        # Check if dependencies of EmitterView are contained
+        "EmitterView": {
+            "value": None,
+            "dependency": {
+                "EmitterView_Type": None,
+                "EmitterView_Units": None}},
+        # Check values and consistency of if EmitterView Type and Unit
+        "EmitterView_Type": {
+            "value": coords_min,
+            "dependency": {
+                "EmitterView_Units": units_min}},
+        # Check if dependencies of EmitterUp are contained
+        "EmitterUp": {
+            "value": None,
+            "dependency": {
+                "EmitterView": None}},
+        # Room ----------------------------------------------------------------
+        "RoomVolume": {
+            "value": None,
+            "dependency": {
+                "RoomVolume_Units": None}},
+        "RoomTemperature": {
+            "value": None,
+            "dependency": {
+                "RoomTemperature_Units": None}},
+        "RoomVolume_Units": {
+            "value": ["cubic metre"]},
+        "RoomTemperature_Units": {
+            "value": ["Kelvin"]}
+    }
+
+    # restrictions arising from GLOBAL_DataType
+    # - if `value` is None it in only checked if the SOFA object has the attr
+    # - if `value` is a list, it is also checked if the actual value is in
+    #   `value`
+    data_type = {
+        "FIR": {
+            "Data_IR": None,
+            "Data_Delay": None,
+            "Data_SamplingRate": None,
+            "Data_SamplingRate_Units": (["hertz"], "hertz")},
+        "TF": {
+            "Data_Real": None,
+            "Data_Imag": None,
+            "N": None,
+            "N_LongName": (["frequency"], "frequency"),
+            "N_Units": (["hertz"], "hertz")},
+        "SOS": {
+            "Data_SOS": None,
+            "N": sos_dimension,
+            "Data_Delay": None,
+            "Data_SamplingRate": None,
+            "Data_SamplingRate_Units": (["hertz"], "hertz")}
+    }
+
+    # restrictions on the API
+    api = {
+        # Check dimension R if using spherical harmonics for the Receiver
+        # (assuming SH orders < 200)
+        "ReceiverPosition_Type": {
+            "value": "spherical harmonics",
+            "API": ("R", ) + sh_dimension},
+        # Check dimension E if using spherical harmonics for the Emitter
+        # (assuming SH orders < 200)
+        "EmitterPosition_Type": {
+            "value": "spherical harmonics",
+            "API": ("E", ) + sh_dimension},
+        # Checking the dimension of N if having SOS data
+        # (assuming up to 1000 second order sections)
+        "GLOBAL_DataType": {
+            "value": "SOS",
+            "API": ("N", ) + sos_dimension}
+    }
+
+    # restrictions from the convention. Values of fields will be checked.
+    # Must contain testing the API. If this would be tested under api={}, the
+    # entry GLOBAL_SOFAConventions would be repeated.
+    convention = {
+        "GeneralFIR": {
+            "GLOBAL_DataType": ["FIR"]},
+        "GeneralFIR-E": {
+            "GLOBAL_DataType": ["FIR-E"]},
+        "GeneralFIRE": {  # SOFA version 1.0 legacy
+            "GLOBAL_DataType": ["FIRE"]},
+        "GeneralTF": {
+            "GLOBAL_DataType": ["TF"]},
+        "GeneralTF-E": {
+            "GLOBAL_DataType": ["TF-E"]},
+        "SimpleFreeFieldHRIR": {
+            "GLOBAL_DataType": ["FIR"],
+            "GLOBAL_RoomType": ["free field"],
+            "EmitterPosition_Type": coords_min,
+            "API": {"E": 1}},
+        "SimpleFreeFieldHRTF": {
+            "GLOBAL_DataType": ["TF"],
+            "GLOBAL_RoomType": ["free field"],
+            "EmitterPosition_Type": coords_min,
+            "API": {"E": 1}},
+        "SimpleFreeFieldHRSOS": {
+            "GLOBAL_DataType": ["SOS"],
+            "GLOBAL_RoomType": ["free field"],
+            "EmitterPosition_Type": coords_min,
+            "API": {"E": 1}},
+        "FreeFieldHRIR": {
+            "GLOBAL_DataType": ["FIR-E"],
+            "GLOBAL_RoomType": ["free field"]},
+        "FreeFieldHRTF": {
+            "GLOBAL_DataType": ["TF-E"],
+            "GLOBAL_RoomType": ["free field"]},
+        "SimpleHeadphoneIR": {
+            "GLOBAL_DataType": ["FIR"]},
+        "SingleRoomSRIR": {
+            "GLOBAL_DataType": ["FIR"]},
+        "SingleRoomMIMOSRIR": {
+            "GLOBAL_DataType": ["FIR-E"]},
+        "FreeFieldDirectivityTF": {
+            "GLOBAL_DataType": ["TF"]}
+    }
+
+    return data, data_type, api, convention
