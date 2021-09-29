@@ -1830,10 +1830,11 @@ def _verify_convention_and_version(version, version_in, convention):
     name_version = sf.list_conventions(False, "name_version")
 
     if version == "latest":
-        # get latest version (comes last)
-        for versions in name_version:
-            if versions[0] == convention:
-                version_out = versions[1]
+        # get list of versions as floats
+        version_out = [float(versions[1]) for versions in name_version
+                       if versions[0] == convention]
+        # get latest version as string
+        version_out = str(version_out[np.argmax(version_out)])
     else:
         # check which version is wanted
         if version == "match":
