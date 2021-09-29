@@ -600,6 +600,18 @@ def test_read_sofa():
     # data can be read without updating API
     sf.read_sofa(filename, verify=False)
 
+    # test assertion for wrong filename
+    with raises(ValueError, match="Filename must end with .sofa"):
+        sf.read_sofa('sofa.exe')
+
+
+def test_write_sofa_assertion():
+    """Test assertion for wrong filename ending"""
+
+    sofa = sf.Sofa("SimpleFreeFieldHRIR")
+    with raises(ValueError, match="Filename must end with .sofa"):
+        sf.write_sofa("sofa.exe", sofa)
+
 
 def test_write_sofa_compression():
     """Test writing SOFA files with compression"""
@@ -641,7 +653,7 @@ def test_roundtrip():
 
     for name in names:
         print(f"Testing: {name}")
-        file = os.path.join(temp_dir.name, name)
+        file = os.path.join(temp_dir.name, name + ".sofa")
         sofa = sf.Sofa(name)
         sf.write_sofa(file, sofa)
         sofa_r = sf.read_sofa(file)
@@ -769,8 +781,8 @@ def test_add_entry():
     assert sofa.Temperature_Units == "degree Celsius"
 
     # check if everything can be verified and written, and read correctly
-    sf.write_sofa(os.path.join(tmp_dir.name, "tmp"), sofa)
-    sofa_read = sf.read_sofa(os.path.join(tmp_dir.name, "tmp"))
+    sf.write_sofa(os.path.join(tmp_dir.name, "tmp.sofa"), sofa)
+    sofa_read = sf.read_sofa(os.path.join(tmp_dir.name, "tmp.sofa"))
     assert sf.compare_sofa(sofa, sofa_read)
 
     # test deleting an entry

@@ -1258,8 +1258,8 @@ def read_sofa(filename, verify=True, version="latest"):
     """
 
     # check the filename
-    if not filename.lower().endswith('.sofa'):
-        filename += ".sofa"
+    if not filename.endswith('.sofa'):
+        raise ValueError("Filename must end with .sofa")
     if not os.path.isfile(filename):
         raise ValueError(f"{filename} does not exist")
 
@@ -1350,14 +1350,14 @@ def read_sofa(filename, verify=True, version="latest"):
             sofa.verify(version)
         except: # noqa (No error handling - just improved verbosity)
             raise ValueError((
-                "The SOFA object could not be verified, maybe do to errornous "
-                "data. Call sofa=sofar.read_sofa(filename, verify=False) and "
+                "The SOFA object could not be verified, maybe due to errornous"
+                " data. Call sofa=sofar.read_sofa(filename, verify=False) and "
                 "than sofa.verify() to get more information"))
 
     return sofa
 
 
-def write_sofa(filename: str, sofa: Sofa, version="latest", compression=9):
+def write_sofa(filename: str, sofa: Sofa, version="latest", compression=4):
     """
     Write a SOFA object to disk as a SOFA file.
 
@@ -1388,8 +1388,8 @@ def write_sofa(filename: str, sofa: Sofa, version="latest", compression=9):
     """
 
     # check the filename
-    if not filename.lower().endswith('.sofa'):
-        filename += ".sofa"
+    if not filename.endswith('.sofa'):
+        raise ValueError("Filename must end with .sofa")
 
     # setting the netCDF compression parameter
     zlib = False if compression == 0 else True
