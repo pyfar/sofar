@@ -919,7 +919,7 @@ class Sofa():
                              f"but is of type {type(convention)}"))
 
         # get and check path to json file
-        paths = list_conventions(False, "path")
+        paths = _get_conventions("path")
         path = [path for path in paths
                 if os.path.basename(path).startswith(convention + "_")]
 
@@ -1162,15 +1162,19 @@ def _update_conventions(conventions_path=None):
         print("... conventions already up to date.")
 
 
-def list_conventions(verbose=True, return_type=None):
+def list_conventions():
     """
-    List available SOFA conventions.
+    List available SOFA conventions by printing to the console.
+    """
+    print(_get_conventions("string"))
+
+
+def _get_conventions(return_type):
+    """
+    Get available SOFA conventions.
 
     Parameters
     ----------
-    verbose=True : bool, optional
-        Print the names and versions of the currently supported conventions to
-        the console. The default is ``True``.
     return_type : string, optional
         ``'path'``
             Return a list with the full paths and filenames of the convention
@@ -1179,8 +1183,9 @@ def list_conventions(verbose=True, return_type=None):
             Return a list of the convention names without version
         ``'name_version'``
             Return a list of tuples containing the convention name and version.
-
-        The default is ``None`` which does not return anything
+        ``'string'``
+            Returns a string that lists the names and versions of all
+            conventions.
 
     Returns
     -------
@@ -1192,8 +1197,7 @@ def list_conventions(verbose=True, return_type=None):
     # SOFA convention files
     paths = [file for file in glob.glob(os.path.join(directory, "*.json"))]
 
-    if verbose:
-        print("Available SOFA conventions:")
+    conventions_str = "Available SOFA conventions:\n"
 
     conventions = []
     versions = []
@@ -1201,8 +1205,7 @@ def list_conventions(verbose=True, return_type=None):
         fileparts = os.path.basename(path).split(sep="_")
         conventions += [fileparts[0]]
         versions += [fileparts[1][:-5]]
-        if verbose:
-            print(f"{conventions[-1]} (Version {versions[-1]})")
+        conventions_str += f"{conventions[-1]} (Version {versions[-1]})\n"
 
     if return_type is None:
         return
@@ -1212,6 +1215,8 @@ def list_conventions(verbose=True, return_type=None):
         return conventions
     elif return_type == "name_version":
         return [(n, v) for n, v in zip(conventions, versions)]
+    elif return_type == "string":
+        return conventions_str
     else:
         raise ValueError(f"return_type {return_type} is invalid")
 
@@ -1833,11 +1838,11 @@ def _verify_convention_and_version(version, version_in, convention):
     """
 
     # check if the convention exists in sofar
-    if convention not in sf.list_conventions(False, "name"):
+    if convention not in _get_conventions("name"):
         raise ValueError(
             f"Convention {convention} does not exist")
 
-    name_version = sf.list_conventions(False, "name_version")
+    name_version = _get_conventions("name_version")
 
     if version == "latest":
         # get list of versions as floats
@@ -1941,7 +1946,7 @@ def _sofa_restrictions():
         "GLOBAL_RoomType": {
             "value": ["free field", "reverberant", "shoebox", "dae"]},
         "GLOBAL_SOFAConventions": {
-            "value": list_conventions(verbose=False, return_type="name")},
+            "value": _get_conventions(return_type="name")},
         # Listener ------------------------------------------------------------
         # Check values and consistency of if ListenerPosition Type and Unit
         "ListenerPosition_Type": {

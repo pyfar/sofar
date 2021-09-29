@@ -1,5 +1,6 @@
 import sofar as sf
 from sofar.sofar import (_update_conventions,
+                         _get_conventions,
                          _format_value_for_netcdf,
                          _format_value_from_netcdf,
                          _nd_array,
@@ -23,26 +24,26 @@ def test_list_conventions(capfd):
     out, _ = capfd.readouterr()
     assert "Available SOFA conventions:" in out
 
-    sf.list_conventions(verbose=False)
+
+def test_get_conventions(capfd):
+
+    # check the return type
+    paths = _get_conventions(return_type="path")
+    assert isinstance(paths, list)
+    assert os.path.isfile(paths[0])
     out, _ = capfd.readouterr()
     assert out == ""
 
-    # check the return type
-    paths = sf.list_conventions(verbose=False, return_type="path")
-    assert isinstance(paths, list)
-    assert os.path.isfile(paths[0])
-
-    names = sf.list_conventions(verbose=False, return_type="name")
+    names = _get_conventions(return_type="name")
     assert isinstance(names, list)
     assert not os.path.isfile(names[0])
 
-    names_versions = sf.list_conventions(
-        verbose=False, return_type="name_version")
+    names_versions = _get_conventions(return_type="name_version")
     assert isinstance(names_versions, list)
     assert isinstance(names_versions[0], tuple)
 
     with raises(ValueError, match="return_type None is invalid"):
-        sf.list_conventions(verbose=False, return_type="None")
+        _get_conventions(return_type="None")
 
 
 def test_update_conventions(capfd):
@@ -636,7 +637,7 @@ def test_roundtrip():
     """
 
     temp_dir = TemporaryDirectory()
-    names = sf.list_conventions(verbose=False, return_type="name")
+    names = _get_conventions(return_type="name")
 
     for name in names:
         print(f"Testing: {name}")
