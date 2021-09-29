@@ -1498,7 +1498,7 @@ def equals(sofa_a, sofa_b, verbose=True, exclude=None):
 
     # check for equal length
     if len(keys_a) != len(keys_b):
-        is_identical = _equals_warning((
+        is_identical = _equals_raise_warning((
             f"not identical: sofa_a has {len(keys_a)} attributes for "
             f"comparison and sofa_b has {len(keys_b)}."), verbose)
 
@@ -1506,7 +1506,7 @@ def equals(sofa_a, sofa_b, verbose=True, exclude=None):
 
     # check if the keys match
     if set(keys_a) != set(keys_b):
-        is_identical = _equals_warning(
+        is_identical = _equals_raise_warning(
             "not identical: sofa_a and sofa_b do not have the ame attributes",
             verbose)
 
@@ -1531,7 +1531,7 @@ def equals(sofa_a, sofa_b, verbose=True, exclude=None):
 
             # compare
             if a != b:
-                is_identical = _equals_warning(
+                is_identical = _equals_raise_warning(
                     f"not identical: different values for {key}", verbose)
 
         # compare double variables
@@ -1540,7 +1540,7 @@ def equals(sofa_a, sofa_b, verbose=True, exclude=None):
             try:
                 npt.assert_allclose(np.squeeze(a), np.squeeze(b))
             except AssertionError:
-                is_identical = _equals_warning(
+                is_identical = _equals_raise_warning(
                     "not identical: different values for {key}", verbose)
 
         # compare string variables
@@ -1549,17 +1549,17 @@ def equals(sofa_a, sofa_b, verbose=True, exclude=None):
                 assert np.all(
                     np.squeeze(a).astype("S") == np.squeeze(b).astype("S"))
             except AssertionError:
-                is_identical = _equals_warning(
+                is_identical = _equals_raise_warning(
                     "not identical: different values for {key}", verbose)
         else:
-            is_identical = _equals_warning(
+            is_identical = _equals_raise_warning(
                 (f"not identical: {key} has different data types "
                  f"({type_a}, {type_b})"), verbose)
 
     return is_identical
 
 
-def _equals_warning(message, verbose):
+def _equals_raise_warning(message, verbose):
     if verbose:
         warnings.warn(message)
     return False
