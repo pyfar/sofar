@@ -1421,6 +1421,9 @@ def write_sofa(filename: str, sofa: Sofa, version="latest", compression=4):
         for key in all_keys:
 
             # skip attributes
+            # Note: This definition of attribute follows the inherent SOFA
+            #       definition. A less strict definition is:
+            #       sofa._convention[key]["type"] == "attribute":
             if ("_" in key and not key.startswith("Data_")) \
                     or key.count("_") > 1:
                 continue
