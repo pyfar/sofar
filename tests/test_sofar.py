@@ -146,6 +146,14 @@ def test_sofa_delete_attribute():
         delattr(sofa, "new")
 
 
+def test_copy_sofa_object():
+    sofa_org = sf.Sofa("GeneralTF")
+    sofa_cp = sofa_org.copy()
+
+    assert sf.equals(sofa_org, sofa_cp, verbose=False)
+    assert id(sofa_org) != id(sofa_cp)
+
+
 def test_sofa_verify_version():
 
     # test the default "latest"

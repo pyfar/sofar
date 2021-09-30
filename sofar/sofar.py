@@ -9,6 +9,7 @@ import numpy.testing as npt
 import warnings
 from bs4 import BeautifulSoup
 from netCDF4 import Dataset, stringtochar
+from copy import deepcopy
 import sofar as sf
 
 
@@ -846,6 +847,10 @@ class Sofa():
             issues = None
 
         return error_occurred, issues
+
+    def copy(self):
+        """Return a copy of the SOFA object."""
+        return deepcopy(self)
 
     def _update_convention(self, version):
         """
