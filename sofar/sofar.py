@@ -633,9 +633,12 @@ class Sofa():
         current_error = ""
         for key in keys:
 
-            # check the name (can not be tested within sofar, because it does
-            # not allow to add data with such names. It was tested manually
-            # with third party files).
+            # check the name and warn if it contains underscores. Do not raise
+            # an error because underscores are not explicitly forbidden in the
+            # SOFA standard.
+            # (can not be tested within sofar, because it does not allow to add
+            # data with such names. It was tested manually with third party
+            # files).
             if "_" in key.replace("Data_", ""):
                 current_warning += "- " + key + "\n"
 
@@ -1463,11 +1466,15 @@ def write_sofa(filename: str, sofa: Sofa, version="latest", compression=4):
         for key in all_keys:
 
             # skip attributes
-            # Note: This definition of attribute follows the inherent SOFA
-            #       definition. A less strict definition is:
-            #       sofa._convention[key]["type"] == "attribute":
-            if ("_" in key and not key.startswith("Data_")) \
-                    or key.count("_") > 1:
+            # Note: This definition of attribute is blurry:
+            # lax definition:
+            #   sofa._convention[key]["type"] == "attribute":
+            # strict definition:
+            #   ("_" in key and not key.startswith("Data_")) or key.count("_") > 1
+            #
+            # The strict definition is implicitly included in the SOFA standard
+            # since underscores only occur for variables starting with Data_
+            if sofa._convention[key]["type"] == "attribute":
                 continue
 
             # get the data and type and shape
