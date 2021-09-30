@@ -455,6 +455,29 @@ def test_sofa_verify_restrictions_convention(convention, kwargs, msg):
         sofa.verify()
 
 
+def test_verify_value():
+    # example alias for testing as returned by sf.sofa._sofa_restrictions()
+    unit_aliases = {"meter": "metre",
+                    "degrees": "degree"}
+
+    # Simple pass: no restriction on value
+    assert sf.Sofa._verify_value("meter", None, unit_aliases)
+
+    # simple pass: single unit
+    assert sf.Sofa._verify_value("meter", "metre", unit_aliases)
+
+    # complex pass: list of units
+    assert sf.Sofa._verify_value("degrees, degrees, meter",
+                                 "degree, degree, metre", unit_aliases)
+
+    # simple fail: single unit
+    assert not sf.Sofa._verify_value("centimetre", "metre", unit_aliases)
+
+    # complex fail: list of units
+    assert not sf.Sofa._verify_value("rad, rad, metre",
+                                     "degree, degree, metre", unit_aliases)
+
+
 def test_verify_issue_handling(capfd):
     """Test different methods for handling issues during verification"""
 

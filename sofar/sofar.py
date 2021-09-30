@@ -704,7 +704,7 @@ class Sofa():
 
         # ---------------------------------------------------------------------
         # 5. check restrictions on the content of SOFA files
-        data, data_type, api, convention = _sofa_restrictions()
+        data, data_type, api, convention, unit_aliases = _sofa_restrictions()
 
         # general restrictions on data
         current_error = ""
@@ -715,7 +715,7 @@ class Sofa():
 
                 # test if the value is valid
                 test = getattr(self, key)
-                if ref is not None and test not in ref:
+                if not self._verify_value(test, ref, unit_aliases):
                     current_error += \
                         f"- {key} is {test} but must be {', '.join(ref)}\n"
 
@@ -740,7 +740,8 @@ class Sofa():
                         continue
 
                     idx = ref.index(test)
-                    if test_dep != ref_dep[idx]:
+                    if not self._verify_value(test_dep, ref_dep[idx],
+                                              unit_aliases):
                         current_error += (
                             f"- {key_dep} is {test_dep} but must be "
                             f"{ref_dep[idx]} if {key} is {test}\n")
@@ -810,6 +811,47 @@ class Sofa():
                 return
             elif issue_handling == "return":
                 return issues
+
+    @staticmethod
+    def _verify_value(test, ref, unit_aliases):
+        """
+        Check a value agains the SOFA standard for Sofa.verify()
+
+        Parameters
+        ----------
+        test :
+            the value under test
+        ref :
+            the value enforced by the SOFA standard
+        unit_aliases :
+            dict of aliases for units from _sofa_restrictions()
+
+        Returns
+        -------
+        ``True`` if `test` and `ref` agree, ``False`` otherwise
+        """
+
+        value_valid = True
+
+        # Don't check the value if ref is None or test in ref
+        if ref is not None and test not in ref:
+
+            # in case test is a string it might be a unit and unit aliases
+            # according to the SOFA standard must be checked
+            units = test.split(", ") if isinstance(test, str) else []
+            ref = ref.split(", ") if isinstance(ref, str) else ref
+
+            if not units or len(ref) != len(units):
+                value_valid = False
+                return value_valid
+
+            for unit, unit_ref in zip(units, ref):
+                if unit != unit_ref and (unit not in unit_aliases
+                                         or unit_aliases[unit] != unit_ref):
+                    value_valid = False
+                    break
+
+        return value_valid
 
     @staticmethod
     def _verify_handle_issues(warning_msg, error_msg, issue_handling):
@@ -1931,6 +1973,16 @@ def _sofa_restrictions():
     coords_full = coords_min + ["spherical harmonics"]
     units_min = ["metre", "degree, degree, metre"]
     units_full = units_min + [units_min[1]]
+    unit_aliases = {
+        "metres": "metre",
+        "meter": "metre",
+        "meters": "metre",
+        "cubic metres": "cubic metre",
+        "cubic meter": "cubic metre",
+        "cubic meters": "cubic metre",
+        "degrees": "degree",
+        "seconds": "second"
+    }
     # possible values for restricted dimensions in the API
     sh_dimension = ([(N+1)**2 for N in range(200)],
                     "(N+1)**2 where N is the spherical harmonics order")
@@ -2146,4 +2198,4 @@ def _sofa_restrictions():
             "GLOBAL_DataType": ["TF"]}
     }
 
-    return data, data_type, api, convention
+    return data, data_type, api, convention, unit_aliases
