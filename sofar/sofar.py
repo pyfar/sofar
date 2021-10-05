@@ -134,7 +134,7 @@ class Sofa():
                 f"{self.GLOBAL_SOFAConventionsVersion}")
 
     @property
-    def dimensions(self):
+    def list_dimensions(self):
         """
         Print the dimensions of the SOFA object
 
@@ -444,7 +444,7 @@ class Sofa():
         self._dimensions
             The detected dimensions of the data inside the SOFA object.
         self._api
-            The size of the dimensions (see ``self.info("dimensions")``). This
+            The size of the dimensions (see py:func:`~list_dimensions`). This
             specifies the dimensions of the data inside the SOFA object.
         self._custom
             Stores information of custom variables that are not defined by the

@@ -88,7 +88,7 @@ object. They can be seen via
 
 .. code-block:: python
 
-    sofa.dimensions
+    sofa.list_dimensions
     >>> R = 2 receiver (set by ReceiverPosition of dimension RCI, RCM)
     >>> E = 1 emitter (set by EmitterPosition of dimension ECI, ECM)
     >>> M = 1 measurements (set by Data_IR of dimension MRN)
@@ -107,8 +107,8 @@ elevation and radius in degree.
 It is important to be aware of the dimensions and enter data as determined by
 the `shape` printed by ``sofa.info()``. SOFA sets the `dimensions`
 implicitly. This means the dimensions are derived from the data itself, as
-indicated by the output of :code:`sofa.dimensions` above (set by...). In some
-cases, variables can have different shapes. An example for this is the
+indicated by the output of :code:`sofa.list_dimensions` above (set by...). In
+some cases, variables can have different shapes. An example for this is the
 `ReceiverPosition` which can be of shape RCI or RCM.
 
 Adding data to SOFA objects
