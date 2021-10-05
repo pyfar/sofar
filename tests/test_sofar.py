@@ -515,7 +515,7 @@ def test_verify_issue_handling(capfd):
     assert "WARNING" not in issues
 
 
-def test_dimensions(capfd):
+def test_list_dimensions(capfd):
 
     # test FIR Data
     sofa = sf.Sofa("GeneralFIR")
@@ -559,6 +559,19 @@ def test_dimensions(capfd):
     sofa.Data_IR = [1, 2, 3, 4]
     with raises(ValueError, match="Dimensions can not be shown"):
         sofa.list_dimensions
+
+
+def test_get_dimension():
+    """Test getting the size of dimensions"""
+
+    # test FIR Data
+    sofa = sf.Sofa("GeneralFIR")
+    size = sofa.get_dimension("N")
+    assert size == 1
+
+    # test with wrong dimension
+    with raises(ValueError, match="Q is not a valid dimension"):
+        size = sofa.get_dimension("Q")
 
 
 def test_info(capfd):

@@ -163,13 +163,7 @@ class Sofa():
         """
 
         # Check if the dimensions can be updated
-        issues = self.verify(version="match", issue_handling="return")
-        if issues is not None and ("data of wrong type" in issues or
-                                   "variables of wrong shape" in issues or
-                                   not hasattr(self, "_api")):
-            raise ValueError(("Dimensions can not be shown because variables "
-                              "of wrong type or shape were detected. "
-                              "Call Sofa.verify() for more information."))
+        self._update_dimensions()
 
         # get verbose description for dimesion N
         if self.GLOBAL_DataType.startswith("FIR"):
@@ -219,6 +213,49 @@ class Sofa():
             info_str += "\n"
 
         print(info_str)
+
+    def get_dimension(self, dimension):
+        """
+        Get size of a SOFA dimension
+
+        SOFA dimensions specify the shape of the data contained in a SOFA
+        object. For a list of all dimensions see :py:func:`~list_dimensions`.
+
+        Parameters
+        ----------
+        dimension : str
+            The dimension as a string, e.g., ``'N'``.
+
+        Returns
+        -------
+        size : int
+            the size of the queried dimension.
+        """
+
+        # Check if the dimensions can be updated
+        self._update_dimensions()
+
+        if dimension not in self._api:
+            raise ValueError((
+                f"{dimension} is not a valid dimension. "
+                "See Sofa.list_dimensions for a list of valid dimensions."))
+
+        return self._api[dimension]
+
+    def _update_dimensions(self):
+        """
+        Call verify and raise an error if the dimensions could not be updated.
+
+        used in Sofa.list_dimensions and Sofa.get_dimension
+        """
+
+        issues = self.verify(version="match", issue_handling="return")
+        if issues is not None and ("data of wrong type" in issues or
+                                   "variables of wrong shape" in issues or
+                                   not hasattr(self, "_api")):
+            raise ValueError(("Dimensions can not be shown because variables "
+                              "of wrong type or shape were detected. "
+                              "Call Sofa.verify() for more information."))
 
     def info(self, info):
         """
