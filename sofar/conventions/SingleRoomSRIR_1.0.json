@@ -1,1 +1,527 @@
-{"GLOBAL:Conventions": {"default": "SOFA", "flags": "rm", "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:Version": {"default": "2.0", "flags": "rm", "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:SOFAConventions": {"default": "SingleRoomSRIR", "flags": "rm", "dimensions": null, "type": "attribute", "comment": "For measuring SRIRs in a single room with a single excitation source (e.g., a loudspeaker) and a listener containing an arbitrary number of omnidirectional receivers (e.g., a microphone array)."}, "GLOBAL:SOFAConventionsVersion": {"default": "1.0", "flags": "rm", "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:DataType": {"default": "FIR", "flags": "rm", "dimensions": null, "type": "attribute", "comment": "Shall be FIR"}, "GLOBAL:RoomType": {"default": "shoebox", "flags": "m", "dimensions": null, "type": "attribute", "comment": "Shall be 'shoebox' or 'dae'"}, "GLOBAL:Title": {"default": "", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:DateCreated": {"default": "", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:DateModified": {"default": "", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:APIName": {"default": "", "flags": "rm", "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:APIVersion": {"default": "", "flags": "rm", "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:AuthorContact": {"default": "", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:Organization": {"default": "", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:License": {"default": "No license provided, ask the author for permission", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:ApplicationName": {"default": "", "flags": null, "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:ApplicationVersion": {"default": "", "flags": null, "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:Comment": {"default": "", "flags": null, "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:RoomDescription": {"default": "", "flags": null, "dimensions": null, "type": "attribute", "comment": "narrative description of the room"}, "GLOBAL:History": {"default": "", "flags": null, "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:References": {"default": "", "flags": null, "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:Origin": {"default": "", "flags": null, "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:ListenerShortName": {"default": "", "flags": null, "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:ListenerDescription": {"default": "", "flags": null, "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:ReceiverShortName": {"default": "", "flags": null, "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:ReceiverDescription": {"default": "", "flags": null, "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:SourceShortName": {"default": "", "flags": null, "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:SourceDescription": {"default": "", "flags": null, "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:EmitterShortName": {"default": "", "flags": null, "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:EmitterDescription": {"default": "", "flags": null, "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:DatabaseName": {"default": "", "flags": "m", "dimensions": null, "type": "attribute", "comment": "Name of the database. Used for classification of the data."}, "ListenerPosition": {"default": [0, 0, 0], "flags": "m", "dimensions": "MC", "type": "double", "comment": ""}, "ListenerPosition:Type": {"default": "cartesian", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "ListenerPosition:Units": {"default": "metre", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "ListenerView": {"default": [1, 0, 0], "flags": "m", "dimensions": "IC, MC", "type": "double", "comment": ""}, "ListenerUp": {"default": [0, 0, 1], "flags": "m", "dimensions": "IC, MC", "type": "double", "comment": ""}, "ListenerView:Type": {"default": "cartesian", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "ListenerView:Units": {"default": "metre", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "ReceiverPosition": {"default": [0, 0, 0], "flags": "m", "dimensions": "IC, RCI, RCM", "type": "double", "comment": ""}, "ReceiverPosition:Type": {"default": "spherical", "flags": "m", "dimensions": null, "type": "attribute", "comment": "Can be of any type enabling both spatially discrete and spatially continuous representations."}, "ReceiverPosition:Units": {"default": "degree, degree, metre", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "ReceiverView": {"default": [1, 0, 0], "flags": null, "dimensions": "RCI, RCM", "type": "double", "comment": ""}, "ReceiverUp": {"default": [0, 0, 1], "flags": null, "dimensions": "RCI, RCM", "type": "double", "comment": ""}, "ReceiverView:Type": {"default": "cartesian", "flags": null, "dimensions": null, "type": "attribute", "comment": ""}, "ReceiverView:Units": {"default": "metre", "flags": null, "dimensions": null, "type": "attribute", "comment": ""}, "SourcePosition": {"default": [0, 0, 1], "flags": "m", "dimensions": "MC", "type": "double", "comment": ""}, "SourcePosition:Type": {"default": "cartesian", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "SourcePosition:Units": {"default": "metre", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "SourceView": {"default": [1, 0, 0], "flags": "m", "dimensions": "IC, MC", "type": "double", "comment": ""}, "SourceUp": {"default": [0, 0, 1], "flags": "m", "dimensions": "IC, MC", "type": "double", "comment": ""}, "SourceView:Type": {"default": "cartesian", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "SourceView:Units": {"default": "metre", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "EmitterPosition": {"default": [0, 0, 0], "flags": "m", "dimensions": "eCI, eCM", "type": "double", "comment": ""}, "EmitterPosition:Type": {"default": "spherical", "flags": "m", "dimensions": null, "type": "attribute", "comment": "Shall be 'cartesian' or 'spherical', restricting to spatially discrete emitters."}, "EmitterPosition:Units": {"default": "degree, degree, metre", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "EmitterView": {"default": [1, 0, 0], "flags": null, "dimensions": "ECI, ECM", "type": "double", "comment": ""}, "EmitterUp": {"default": [0, 0, 1], "flags": null, "dimensions": "ECI, ECM", "type": "double", "comment": ""}, "EmitterView:Type": {"default": "cartesian", "flags": null, "dimensions": null, "type": "attribute", "comment": "Shall be 'cartesian' or 'spherical', restricting to spatially discrete emitters."}, "EmitterView:Units": {"default": "metre", "flags": null, "dimensions": null, "type": "attribute", "comment": ""}, "RoomCornerA": {"default": [0, 0, 0], "flags": null, "dimensions": "IC, MC", "type": "double", "comment": ""}, "RoomCornerB": {"default": [1, 2, 3], "flags": null, "dimensions": "IC, MC", "type": "double", "comment": ""}, "RoomCorners": {"default": 0, "flags": null, "dimensions": "II", "type": "double", "comment": "The value of this attribute is to be ignored. It only exist to for RoomCorners:Type and RoomCorners:Units"}, "RoomCorners:Type": {"default": "cartesian", "flags": null, "dimensions": null, "type": "attribute", "comment": "Type of coordinate system for RoomCornerA and RoomCornerB"}, "RoomCorners:Units": {"default": "metre", "flags": null, "dimensions": null, "type": "attribute", "comment": "Unit of coordinate system for RoomCornerA and RoomCornerB"}, "Data.IR": {"default": 0, "flags": "m", "dimensions": "mrn", "type": "double", "comment": "Impulse responses"}, "Data.SamplingRate": {"default": 48000, "flags": "m", "dimensions": "I, M", "type": "double", "comment": "Sampling rate of the samples in Data.IR and Data.Delay"}, "Data.SamplingRate:Units": {"default": "hertz", "flags": "m", "dimensions": null, "type": "attribute", "comment": "Unit of the sampling rate"}, "Data.Delay": {"default": 0, "flags": "m", "dimensions": "IR, MR", "type": "double", "comment": "Additional delay of each IR (in samples)"}}
+{
+    "GLOBAL:Conventions": {
+        "default": "SOFA",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:Version": {
+        "default": "2.0",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:SOFAConventions": {
+        "default": "SingleRoomSRIR",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": "For measuring SRIRs in a single room with a single excitation source (e.g., a loudspeaker) and a listener containing an arbitrary number of omnidirectional receivers (e.g., a microphone array)."
+    },
+    "GLOBAL:SOFAConventionsVersion": {
+        "default": "1.0",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:DataType": {
+        "default": "FIR",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": "Shall be FIR"
+    },
+    "GLOBAL:RoomType": {
+        "default": "shoebox",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": "Shall be 'shoebox' or 'dae'"
+    },
+    "GLOBAL:Title": {
+        "default": "",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:DateCreated": {
+        "default": "",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:DateModified": {
+        "default": "",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:APIName": {
+        "default": "",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:APIVersion": {
+        "default": "",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:AuthorContact": {
+        "default": "",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:Organization": {
+        "default": "",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:License": {
+        "default": "No license provided, ask the author for permission",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:ApplicationName": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:ApplicationVersion": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:Comment": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:RoomDescription": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": "narrative description of the room"
+    },
+    "GLOBAL:History": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:References": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:Origin": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:ListenerShortName": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:ListenerDescription": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:ReceiverShortName": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:ReceiverDescription": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:SourceShortName": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:SourceDescription": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:EmitterShortName": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:EmitterDescription": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:DatabaseName": {
+        "default": "",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": "Name of the database. Used for classification of the data."
+    },
+    "ListenerPosition": {
+        "default": [
+            0,
+            0,
+            0
+        ],
+        "flags": "m",
+        "dimensions": "MC",
+        "type": "double",
+        "comment": ""
+    },
+    "ListenerPosition:Type": {
+        "default": "cartesian",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "ListenerPosition:Units": {
+        "default": "metre",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "ListenerView": {
+        "default": [
+            1,
+            0,
+            0
+        ],
+        "flags": "m",
+        "dimensions": "IC, MC",
+        "type": "double",
+        "comment": ""
+    },
+    "ListenerUp": {
+        "default": [
+            0,
+            0,
+            1
+        ],
+        "flags": "m",
+        "dimensions": "IC, MC",
+        "type": "double",
+        "comment": ""
+    },
+    "ListenerView:Type": {
+        "default": "cartesian",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "ListenerView:Units": {
+        "default": "metre",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "ReceiverPosition": {
+        "default": [
+            0,
+            0,
+            0
+        ],
+        "flags": "m",
+        "dimensions": "IC, RCI, RCM",
+        "type": "double",
+        "comment": ""
+    },
+    "ReceiverPosition:Type": {
+        "default": "spherical",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": "Can be of any type enabling both spatially discrete and spatially continuous representations."
+    },
+    "ReceiverPosition:Units": {
+        "default": "degree, degree, metre",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "ReceiverView": {
+        "default": [
+            1,
+            0,
+            0
+        ],
+        "flags": null,
+        "dimensions": "RCI, RCM",
+        "type": "double",
+        "comment": ""
+    },
+    "ReceiverUp": {
+        "default": [
+            0,
+            0,
+            1
+        ],
+        "flags": null,
+        "dimensions": "RCI, RCM",
+        "type": "double",
+        "comment": ""
+    },
+    "ReceiverView:Type": {
+        "default": "cartesian",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "ReceiverView:Units": {
+        "default": "metre",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "SourcePosition": {
+        "default": [
+            0,
+            0,
+            1
+        ],
+        "flags": "m",
+        "dimensions": "MC",
+        "type": "double",
+        "comment": ""
+    },
+    "SourcePosition:Type": {
+        "default": "cartesian",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "SourcePosition:Units": {
+        "default": "metre",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "SourceView": {
+        "default": [
+            1,
+            0,
+            0
+        ],
+        "flags": "m",
+        "dimensions": "IC, MC",
+        "type": "double",
+        "comment": ""
+    },
+    "SourceUp": {
+        "default": [
+            0,
+            0,
+            1
+        ],
+        "flags": "m",
+        "dimensions": "IC, MC",
+        "type": "double",
+        "comment": ""
+    },
+    "SourceView:Type": {
+        "default": "cartesian",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "SourceView:Units": {
+        "default": "metre",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "EmitterPosition": {
+        "default": [
+            0,
+            0,
+            0
+        ],
+        "flags": "m",
+        "dimensions": "eCI, eCM",
+        "type": "double",
+        "comment": ""
+    },
+    "EmitterPosition:Type": {
+        "default": "spherical",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": "Shall be 'cartesian' or 'spherical', restricting to spatially discrete emitters."
+    },
+    "EmitterPosition:Units": {
+        "default": "degree, degree, metre",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "EmitterView": {
+        "default": [
+            1,
+            0,
+            0
+        ],
+        "flags": null,
+        "dimensions": "ECI, ECM",
+        "type": "double",
+        "comment": ""
+    },
+    "EmitterUp": {
+        "default": [
+            0,
+            0,
+            1
+        ],
+        "flags": null,
+        "dimensions": "ECI, ECM",
+        "type": "double",
+        "comment": ""
+    },
+    "EmitterView:Type": {
+        "default": "cartesian",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": "Shall be 'cartesian' or 'spherical', restricting to spatially discrete emitters."
+    },
+    "EmitterView:Units": {
+        "default": "metre",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "RoomCornerA": {
+        "default": [
+            0,
+            0,
+            0
+        ],
+        "flags": null,
+        "dimensions": "IC, MC",
+        "type": "double",
+        "comment": ""
+    },
+    "RoomCornerB": {
+        "default": [
+            1,
+            2,
+            3
+        ],
+        "flags": null,
+        "dimensions": "IC, MC",
+        "type": "double",
+        "comment": ""
+    },
+    "RoomCorners": {
+        "default": 0,
+        "flags": null,
+        "dimensions": "II",
+        "type": "double",
+        "comment": "The value of this attribute is to be ignored. It only exist to for RoomCorners:Type and RoomCorners:Units"
+    },
+    "RoomCorners:Type": {
+        "default": "cartesian",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": "Type of coordinate system for RoomCornerA and RoomCornerB"
+    },
+    "RoomCorners:Units": {
+        "default": "metre",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": "Unit of coordinate system for RoomCornerA and RoomCornerB"
+    },
+    "Data.IR": {
+        "default": 0,
+        "flags": "m",
+        "dimensions": "mrn",
+        "type": "double",
+        "comment": "Impulse responses"
+    },
+    "Data.SamplingRate": {
+        "default": 48000,
+        "flags": "m",
+        "dimensions": "I, M",
+        "type": "double",
+        "comment": "Sampling rate of the samples in Data.IR and Data.Delay"
+    },
+    "Data.SamplingRate:Units": {
+        "default": "hertz",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": "Unit of the sampling rate"
+    },
+    "Data.Delay": {
+        "default": 0,
+        "flags": "m",
+        "dimensions": "IR, MR",
+        "type": "double",
+        "comment": "Additional delay of each IR (in samples)"
+    }
+}

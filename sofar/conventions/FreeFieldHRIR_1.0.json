@@ -1,1 +1,333 @@
-{"GLOBAL:Conventions": {"default": "SOFA", "flags": "rm", "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:Version": {"default": "2.0", "flags": "rm", "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:SOFAConventions": {"default": "FreeFieldHRIR", "flags": "rm", "dimensions": null, "type": "attribute", "comment": "An extension of SimpleFreeFieldHRIR in order to consider more complex data sets described in spatially continuous representation. Each HRTF direction corresponds to an emitter, and a consistent measurement for a single listener and all directions is described by a set of the emitter positions surrounding the listener."}, "GLOBAL:SOFAConventionsVersion": {"default": "1.0", "flags": "rm", "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:APIName": {"default": "", "flags": "rm", "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:APIVersion": {"default": "", "flags": "rm", "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:ApplicationName": {"default": "", "flags": null, "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:ApplicationVersion": {"default": "", "flags": null, "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:AuthorContact": {"default": "", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:Comment": {"default": "", "flags": null, "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:DataType": {"default": "FIR-E", "flags": "rm", "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:History": {"default": "", "flags": null, "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:License": {"default": "No license provided, ask the author for permission", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:ListenerShortName": {"default": "", "flags": "m", "dimensions": null, "type": "attribute", "comment": "ID of the subject from the database"}, "GLOBAL:Organization": {"default": "", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:References": {"default": "", "flags": null, "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:RoomType": {"default": "free field", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:Origin": {"default": "", "flags": null, "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:DateCreated": {"default": "", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:DateModified": {"default": "", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:Title": {"default": "", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "GLOBAL:DatabaseName": {"default": "", "flags": "m", "dimensions": null, "type": "attribute", "comment": "Name of the database to which these data belong"}, "ListenerPosition": {"default": [0, 0, 0], "flags": "m", "dimensions": "IC, MC", "type": "double", "comment": ""}, "ListenerPosition:Type": {"default": "cartesian", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "ListenerPosition:Units": {"default": "metre", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "ReceiverPosition": {"default": [[0, 0.09, 0], [0, -0.09, 0]], "flags": "m", "dimensions": "RCI, RCM", "type": "double", "comment": ""}, "ReceiverPosition:Type": {"default": "cartesian", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "ReceiverPosition:Units": {"default": "metre", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "SourcePosition": {"default": [0, 0, 0], "flags": "m", "dimensions": "IC, MC", "type": "double", "comment": "Source position is assumed to be the ListenerPosition in order to reflect Emitters surrounding the Listener"}, "SourcePosition:Type": {"default": "spherical", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "SourcePosition:Units": {"default": "degree, degree, metre", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "EmitterPosition": {"default": [0, 0, 0], "flags": "m", "dimensions": "IC, ECI, ECM", "type": "double", "comment": "Radius in 'spherical harmonics', Position in 'cartesian' and 'spherical'"}, "EmitterPosition:Type": {"default": "spherical harmonics", "flags": "m", "dimensions": null, "type": "attribute", "comment": "Can be 'spherical harmonics', 'cartesian', or 'spherical'"}, "EmitterPosition:Units": {"default": "degree, degree, metre", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "ListenerUp": {"default": [0, 0, 1], "flags": "m", "dimensions": "IC, MC", "type": "double", "comment": ""}, "ListenerView": {"default": [1, 0, 0], "flags": "m", "dimensions": "IC, MC", "type": "double", "comment": ""}, "ListenerView:Type": {"default": "cartesian", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "ListenerView:Units": {"default": "metre", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "Data.IR": {"default": [0, 0], "flags": "m", "dimensions": "mrne", "type": "double", "comment": ""}, "Data.SamplingRate": {"default": 48000, "flags": "m", "dimensions": "I, M", "type": "double", "comment": ""}, "Data.SamplingRate:Units": {"default": "hertz", "flags": "m", "dimensions": null, "type": "attribute", "comment": ""}, "Data.Delay": {"default": [0, 0], "flags": "m", "dimensions": "IRE, MRE", "type": "double", "comment": "Additional delay of each IR (in samples)"}}
+{
+    "GLOBAL:Conventions": {
+        "default": "SOFA",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:Version": {
+        "default": "2.0",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:SOFAConventions": {
+        "default": "FreeFieldHRIR",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": "An extension of SimpleFreeFieldHRIR in order to consider more complex data sets described in spatially continuous representation. Each HRTF direction corresponds to an emitter, and a consistent measurement for a single listener and all directions is described by a set of the emitter positions surrounding the listener."
+    },
+    "GLOBAL:SOFAConventionsVersion": {
+        "default": "1.0",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:APIName": {
+        "default": "",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:APIVersion": {
+        "default": "",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:ApplicationName": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:ApplicationVersion": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:AuthorContact": {
+        "default": "",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:Comment": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:DataType": {
+        "default": "FIR-E",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:History": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:License": {
+        "default": "No license provided, ask the author for permission",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:ListenerShortName": {
+        "default": "",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": "ID of the subject from the database"
+    },
+    "GLOBAL:Organization": {
+        "default": "",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:References": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:RoomType": {
+        "default": "free field",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:Origin": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:DateCreated": {
+        "default": "",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:DateModified": {
+        "default": "",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:Title": {
+        "default": "",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:DatabaseName": {
+        "default": "",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": "Name of the database to which these data belong"
+    },
+    "ListenerPosition": {
+        "default": [
+            0,
+            0,
+            0
+        ],
+        "flags": "m",
+        "dimensions": "IC, MC",
+        "type": "double",
+        "comment": ""
+    },
+    "ListenerPosition:Type": {
+        "default": "cartesian",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "ListenerPosition:Units": {
+        "default": "metre",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "ReceiverPosition": {
+        "default": [
+            [
+                0,
+                0.09,
+                0
+            ],
+            [
+                0,
+                -0.09,
+                0
+            ]
+        ],
+        "flags": "m",
+        "dimensions": "RCI, RCM",
+        "type": "double",
+        "comment": ""
+    },
+    "ReceiverPosition:Type": {
+        "default": "cartesian",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "ReceiverPosition:Units": {
+        "default": "metre",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "SourcePosition": {
+        "default": [
+            0,
+            0,
+            0
+        ],
+        "flags": "m",
+        "dimensions": "IC, MC",
+        "type": "double",
+        "comment": "Source position is assumed to be the ListenerPosition in order to reflect Emitters surrounding the Listener"
+    },
+    "SourcePosition:Type": {
+        "default": "spherical",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "SourcePosition:Units": {
+        "default": "degree, degree, metre",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "EmitterPosition": {
+        "default": [
+            0,
+            0,
+            0
+        ],
+        "flags": "m",
+        "dimensions": "IC, ECI, ECM",
+        "type": "double",
+        "comment": "Radius in 'spherical harmonics', Position in 'cartesian' and 'spherical'"
+    },
+    "EmitterPosition:Type": {
+        "default": "spherical harmonics",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": "Can be 'spherical harmonics', 'cartesian', or 'spherical'"
+    },
+    "EmitterPosition:Units": {
+        "default": "degree, degree, metre",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "ListenerUp": {
+        "default": [
+            0,
+            0,
+            1
+        ],
+        "flags": "m",
+        "dimensions": "IC, MC",
+        "type": "double",
+        "comment": ""
+    },
+    "ListenerView": {
+        "default": [
+            1,
+            0,
+            0
+        ],
+        "flags": "m",
+        "dimensions": "IC, MC",
+        "type": "double",
+        "comment": ""
+    },
+    "ListenerView:Type": {
+        "default": "cartesian",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "ListenerView:Units": {
+        "default": "metre",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "Data.IR": {
+        "default": [
+            0,
+            0
+        ],
+        "flags": "m",
+        "dimensions": "mrne",
+        "type": "double",
+        "comment": ""
+    },
+    "Data.SamplingRate": {
+        "default": 48000,
+        "flags": "m",
+        "dimensions": "I, M",
+        "type": "double",
+        "comment": ""
+    },
+    "Data.SamplingRate:Units": {
+        "default": "hertz",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "Data.Delay": {
+        "default": [
+            0,
+            0
+        ],
+        "flags": "m",
+        "dimensions": "IRE, MRE",
+        "type": "double",
+        "comment": "Additional delay of each IR (in samples)"
+    }
+}

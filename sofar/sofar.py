@@ -1241,7 +1241,7 @@ def _update_conventions(conventions_path=None):
         convention_dict = _convention_csv2dict(filename_csv)
 
         with open(filename_json, 'w') as file:
-            json.dump(convention_dict, file)
+            json.dump(convention_dict, file, indent=4)
 
     if updated:
         print("... done.")
