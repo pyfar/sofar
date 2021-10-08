@@ -52,6 +52,7 @@ output/*/index.html
 docs/_build
 
 .DS_Store
+.vscode
 *~
 .*.sw[po]
 .build
@@ -62,3 +63,6 @@ docs/_build
 .bootstrap
 .appveyor.token
 *.bak
+
+# Private tests
+tests/private

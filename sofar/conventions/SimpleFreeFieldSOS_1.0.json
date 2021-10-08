@@ -1,0 +1,349 @@
+{
+    "GLOBAL:Conventions": {
+        "default": "SOFA",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:Version": {
+        "default": "1.0",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:SOFAConventions": {
+        "default": "SimpleFreeFieldSOS",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": "This convention set follows SimpleFreeFieldHRIR but the data is stored as second-order section (SOS) coefficients."
+    },
+    "GLOBAL:SOFAConventionsVersion": {
+        "default": "1.0",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:APIName": {
+        "default": "",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:APIVersion": {
+        "default": "",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:ApplicationName": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:ApplicationVersion": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:AuthorContact": {
+        "default": "",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:Comment": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:DataType": {
+        "default": "SOS",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": "Filters described as second-order section (SOS) coefficients"
+    },
+    "GLOBAL:History": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:License": {
+        "default": "No license provided, ask the author for permission",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:Organization": {
+        "default": "",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:References": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:RoomType": {
+        "default": "free field",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:Origin": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:DateCreated": {
+        "default": "",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:DateModified": {
+        "default": "",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:Title": {
+        "default": "",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:DatabaseName": {
+        "default": "",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": "name of the database to which these data belong"
+    },
+    "GLOBAL:ListenerShortName": {
+        "default": "",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": "ID of the subject from the database"
+    },
+    "ListenerPosition": {
+        "default": [
+            0,
+            0,
+            0
+        ],
+        "flags": "m",
+        "dimensions": "IC, MC",
+        "type": "double",
+        "comment": ""
+    },
+    "ListenerPosition:Type": {
+        "default": "cartesian",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "ListenerPosition:Units": {
+        "default": "metre",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "ReceiverPosition": {
+        "default": [
+            [
+                0,
+                0.09,
+                0
+            ],
+            [
+                0,
+                -0.09,
+                0
+            ]
+        ],
+        "flags": "m",
+        "dimensions": "rCI, rCM",
+        "type": "double",
+        "comment": ""
+    },
+    "ReceiverPosition:Type": {
+        "default": "cartesian",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "ReceiverPosition:Units": {
+        "default": "metre",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "SourcePosition": {
+        "default": [
+            0,
+            0,
+            1
+        ],
+        "flags": "m",
+        "dimensions": "IC, MC",
+        "type": "double",
+        "comment": "Source position is assumed to vary for different directions/positions around the listener"
+    },
+    "SourcePosition:Type": {
+        "default": "spherical",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "SourcePosition:Units": {
+        "default": "degree, degree, metre",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "EmitterPosition": {
+        "default": [
+            0,
+            0,
+            0
+        ],
+        "flags": "m",
+        "dimensions": "eCI, eCM",
+        "type": "double",
+        "comment": ""
+    },
+    "EmitterPosition:Type": {
+        "default": "cartesian",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "EmitterPosition:Units": {
+        "default": "metre",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "ListenerUp": {
+        "default": [
+            0,
+            0,
+            1
+        ],
+        "flags": "m",
+        "dimensions": "IC, MC",
+        "type": "double",
+        "comment": ""
+    },
+    "ListenerView": {
+        "default": [
+            1,
+            0,
+            0
+        ],
+        "flags": "m",
+        "dimensions": "IC, MC",
+        "type": "double",
+        "comment": ""
+    },
+    "ListenerView:Type": {
+        "default": "cartesian",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "ListenerView:Units": {
+        "default": "metre",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "Data.SOS": {
+        "default": [
+            [
+                [
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0
+                ],
+                [
+                    0,
+                    0,
+                    0,
+                    1,
+                    0,
+                    0
+                ]
+            ]
+        ],
+        "flags": "m",
+        "dimensions": "mRn",
+        "type": "double",
+        "comment": "Filter coefficients as SOS coefficients."
+    },
+    "Data.SamplingRate": {
+        "default": 48000,
+        "flags": "m",
+        "dimensions": "I",
+        "type": "double",
+        "comment": "Sampling rate of the coefficients in Data.SOS and the delay in Data.Delay"
+    },
+    "Data.SamplingRate:Units": {
+        "default": "hertz",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "Data.Delay": {
+        "default": [
+            0,
+            0
+        ],
+        "flags": "m",
+        "dimensions": "IR, MR",
+        "type": "double",
+        "comment": "Broadband delay (in samples resulting from SamplingRate)"
+    }
+}

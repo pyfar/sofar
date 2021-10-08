@@ -1,90 +1,186 @@
+.. highlight:: shell
+
 ============
 Contributing
 ============
 
-Contributions are welcome, and they are greatly appreciated! Every
-little bit helps, and credit will always be given.
+Contributions are welcome, and they are greatly appreciated! Every little bit
+helps, and credit will always be given.
 
-Bug reports
-===========
+You can contribute in many ways:
 
-When `reporting a bug <https://github.com/f-brinkmann/sofar/issues>`_ please include:
+Types of Contributions
+----------------------
 
-    * Your operating system name and version.
-    * Any details about your local setup that might be helpful in troubleshooting.
-    * Detailed steps to reproduce the bug.
+Report Bugs and Submit Feedback
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Documentation improvements
-==========================
+The best way to report bugs of send feedback is to open an issue at https://github.com/pyfar/sofar/issues.
 
-sofar could always use more documentation, whether as part of the
-official sofar docs, in docstrings, or even on the web in blog posts,
-articles, and such.
+If you are reporting a bug, please include:
 
-Feature requests and feedback
-=============================
-
-The best way to send feedback is to file an issue at https://github.com/f-brinkmann/sofar/issues.
+* Your operating system name and version.
+* Any details about your local setup that might be helpful in troubleshooting.
+* Detailed steps to reproduce the bug.
 
 If you are proposing a feature:
 
 * Explain in detail how it would work.
 * Keep the scope as narrow as possible, to make it easier to implement.
-* Remember that this is a volunteer-driven project, and that code contributions are welcome :)
+* Remember that this is a volunteer-driven project, and that contributions
+  are welcome :)
 
-Development
-===========
+Fix Bugs or Implement Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To set up `sofar` for local development:
+Look through the GitHub issues for bugs. Anything tagged with "bug" or
+"enhancement" is open to whoever wants to implement it. It might be good to
+contact us first, to see if anyone is already working on it.
 
-1. Fork `sofar <https://github.com/f-brinkmann/sofar>`_
-   (look for the "Fork" button).
-2. Clone your fork locally::
+Write Documentation
+~~~~~~~~~~~~~~~~~~~
 
-    git clone git@github.com:your_name_here/sofar.git
+sofar could always use more documentation, whether as part of the
+official sofar docs, in docstrings, or even on the web in blog posts,
+articles, and such.
 
-3. Create a branch for local development::
+Get Started!
+------------
 
-    git checkout -b name-of-your-bugfix-or-feature
+Ready to contribute? Here's how to set up `sofar` for local development.
+
+1. Fork the `sofar` repo on GitHub.
+2. Clone your fork locally and cd into the sofar directory::
+
+    $ git clone https://github.com/pyfar/sofar.git
+    $ cd sofar/
+
+3. Install your local copy into a virtualenv. Assuming you have Anaconda or Miniconda installed, this is how you set up your fork for local development::
+
+    $ conda create --name sofar
+    $ conda activate sofar
+    $ conda install pip
+    $ pip install -e .
+    $ pip install -r requirements_dev.txt
+
+4. Create a branch for local development. Indicate the intention of your branch in its respective name (i.e. `feature/branch-name` or `bugfix/branch-name`)::
+
+    $ git checkout -b name-of-your-bugfix-or-feature
 
    Now you can make your changes locally.
 
-4. When you're done making changes, run all the checks, doc builder and spell checker with `tox <http://tox.readthedocs.io/en/latest/install.html>`_ one command::
+5. When you're done making changes, check that your changes pass flake8 and the
+   tests::
 
-    tox
+    $ flake8 sofar tests
+    $ pytest
 
-5. Commit your changes and push your branch to GitHub::
+   flake8 test must pass without any warnings for `./sofar` and `./tests` using the default or a stricter configuration. Flake8 ignores `E123/E133, E226` and `E241/E242` by default. If necessary adjust the your flake8 and linting configuration in your IDE accordingly.
 
-    git add .
-    git commit -m "Your detailed description of your changes."
-    git push origin name-of-your-bugfix-or-feature
+6. Commit your changes and push your branch to GitHub::
 
-6. Submit a pull request through the GitHub website.
+    $ git add .
+    $ git commit -m "Your detailed description of your changes."
+    $ git push origin name-of-your-bugfix-or-feature
+
+7. Submit a pull request through the GitHub website.
 
 Pull Request Guidelines
 -----------------------
 
-If you need some code review or feedback while you're developing the code just make the pull request.
+Before you submit a pull request, check that it meets these guidelines:
 
-For merging, you should:
+1. The pull request should include tests.
+2. If the pull request adds functionality, the docs should be updated. Put
+   your new functionality into a function with a docstring.
+3. The pull request should work for Python 3.7 and 3.8. Check
+   https://travis-ci.com/pyfar/sofar/pull_requests
+   and make sure that the tests pass for all supported Python versions.
 
-1. Include passing tests (run ``tox``) [1]_.
-2. Update documentation when there's new API, functionality etc.
-3. Add a note to ``CHANGELOG.rst`` about the changes.
-4. Add yourself to ``AUTHORS.rst``.
 
-.. [1] If you don't have all the necessary python versions available locally you can rely on Travis - it will
-       `run the tests <https://travis-ci.org/f-brinkmann/sofar/pull_requests>`_ for each change you add in the pull request.
+Testing Guidelines
+-----------------------
+Sofar uses test-driven development based on `three steps <https://martinfowler.com/bliki/TestDrivenDevelopment.html>`_ and `continuous integration <https://en.wikipedia.org/wiki/Continuous_integration>`_ to test and monitor the code.
+In the following, you'll find a guideline. Note: these instructions are not generally applicable outside of sofar.
 
-       It will be slower though ...
+- The main tool used for testing is `pytest <https://docs.pytest.org/en/stable/index.html>`_.
+- All tests are located in the *tests/* folder.
+- Make sure that all important parts of sofar are covered by the tests. This can be checked using *coverage* (see below).
+- In case of sofar, mainly **state verification** is applied in the tests. This means that the outcome of a function is compared to a desired value (``assert ...``). For more information, it is refered to `Martin Fowler's article <https://martinfowler.com/articles/mocksArentStubs.html.>`_.
 
 Tips
-----
+~~~~~~~~~~~
+Pytest provides several, sophisticated functionalities which could reduce the effort of implementing tests.
 
-To run a subset of tests::
+- Similar tests executing the same code with different variables can be `parametrized <https://docs.pytest.org/en/stable/example/parametrize.html>`_.
+- Feel free to add more recommendations on useful pytest functionalities here. Consider, that a trade-off between easy implemention and good readability of the tests needs to be found.
 
-    tox -e envname -- py.test -k test_myfeature
+You can create an html report on the test `coverage <https://coverage.readthedocs.io/en/coverage-5.5/>`_ by calling
 
-To run all the test environments in *parallel* (you need to ``pip install detox``)::
+    $ pytest --cov=. --cov-report=html
 
-    detox
+
+Writing the Documentation
+-------------------------
+
+Sofar follows the `numpy style guide <https://numpydoc.readthedocs.io/en/latest/format.html>`_ for the docstring. A docstring has to consist at least of
+
+- A short and/or extended summary,
+- the Parameters section, and
+- the Returns section
+
+Optional fields that are often used are
+
+- References,
+- Examples, and
+- Notes
+
+Here are a few tips to make things run smoothly
+
+- Use the tags ``:py:func:``, ``:py:mod:``, and ``:py:class:`` to reference sofar functions, modules, and classes: For example ``:py:func:`~sofar.write_sofa``` for a link that displays only the function name.
+- Code snippets and values as well as external modules, classes, functions are marked by double ticks \`\` to appear in mono spaced font, e.g., ``x=3`` or ``sofar.Signal``.
+- Parameters, returns, and attributes are marked by single ticks \` to appear as emphasized text, e.g., *unit*.
+- Use ``[#]_`` and ``.. [#]`` to get automatically numbered footnotes.
+- Do not use footnotes in the short summary. Only use footnotes in the extended summary if there is a short summary. Otherwise, it messes with the auto-footnotes.
+
+See the `Sphinx homepage <https://www.sphinx-doc.org>`_ for more information.
+
+Building the Documentation
+--------------------------
+
+You can build the documentation of your branch using Sphinx by executing the make script inside the docs folder.
+
+.. code-block:: console
+
+    $ cd docs/
+    $ make html
+
+After Sphinx finishes you can open the generated html using any browser
+
+.. code-block:: console
+
+    $ docs/_build/index.html
+
+Note that some warnings are only shown the first time you build the
+documentation. To show the warnings again use
+
+.. code-block:: console
+
+    $ make clean
+
+before building the documentation.
+
+
+Deploying
+~~~~~~~~~
+
+A reminder for the maintainers on how to deploy.
+Make sure all your changes are committed (including an entry in HISTORY.rst).
+Then run::
+
+$ bumpversion patch # possible: major / minor / patch
+$ git push
+$ git push --tags
+
+Travis will then deploy to PyPI if tests pass.
+

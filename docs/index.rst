@@ -1,22 +1,48 @@
-========
-Contents
-========
+.. |sofar_logo| image:: resources/sofar.png
+   :width: 150
+   :alt: sofar
+
+|sofar_logo|
+
+
+Getting Started
+===============
+
+.. toctree::
+   :maxdepth: 1
+
+   readme
+   examples
+
+
+Documentation
+=============
 
 .. toctree::
    :maxdepth: 2
 
-   readme
-   installation
-   usage
-   reference/index
+   sofar
+
+Contributing
+===============
+
+.. toctree::
+   :maxdepth: 2
+
    contributing
+
+Other
+=====
+.. toctree::
+   :maxdepth: 1
+
    authors
-   changelog
+   history
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
+..
+   (removed because it is contained in the new spinx style)
+   Indices and tables
+   ==================
+   * :ref:`genindex`
+   * :ref:`modindex`
+   * :ref:`search`

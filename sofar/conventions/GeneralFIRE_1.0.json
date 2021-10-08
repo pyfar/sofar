@@ -1,0 +1,270 @@
+{
+    "GLOBAL:Conventions": {
+        "default": "SOFA",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:Version": {
+        "default": "1.0",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:SOFAConventions": {
+        "default": "GeneralFIRE",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": "This conventions stores IRs for general purposes, i.e., only the mandatory, SOFA general metadata are pre-defined"
+    },
+    "GLOBAL:SOFAConventionsVersion": {
+        "default": "1.0",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:APIName": {
+        "default": "",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:APIVersion": {
+        "default": "",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:ApplicationName": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:ApplicationVersion": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:AuthorContact": {
+        "default": "",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:Comment": {
+        "default": "",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:DataType": {
+        "default": "FIRE",
+        "flags": "rm",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": "We use FIR datatype which in addition depends on Emitters (E)"
+    },
+    "GLOBAL:History": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:License": {
+        "default": "No license provided, ask the author for permission",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:Organization": {
+        "default": "",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:References": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:RoomType": {
+        "default": "free field",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": "The room information can be arbitrary"
+    },
+    "GLOBAL:Origin": {
+        "default": "",
+        "flags": null,
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:DateCreated": {
+        "default": "",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:DateModified": {
+        "default": "",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "GLOBAL:Title": {
+        "default": "",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "ListenerPosition": {
+        "default": [
+            0,
+            0,
+            0
+        ],
+        "flags": "m",
+        "dimensions": "IC, MC",
+        "type": "double",
+        "comment": ""
+    },
+    "ListenerPosition:Type": {
+        "default": "cartesian",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "ListenerPosition:Units": {
+        "default": "metre",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "ReceiverPosition": {
+        "default": [
+            0,
+            0,
+            0
+        ],
+        "flags": "m",
+        "dimensions": "rCI, rCM",
+        "type": "double",
+        "comment": ""
+    },
+    "ReceiverPosition:Type": {
+        "default": "cartesian",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "ReceiverPosition:Units": {
+        "default": "metre",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "SourcePosition": {
+        "default": [
+            0,
+            0,
+            1
+        ],
+        "flags": "m",
+        "dimensions": "IC, MC",
+        "type": "double",
+        "comment": ""
+    },
+    "SourcePosition:Type": {
+        "default": "spherical",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "SourcePosition:Units": {
+        "default": "degree, degree, metre",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "EmitterPosition": {
+        "default": [
+            0,
+            0,
+            0
+        ],
+        "flags": "m",
+        "dimensions": "eCI, eCM",
+        "type": "double",
+        "comment": "Each speaker is represented as an emitter. Use EmitterPosition to represent the position of a particular speaker. Size of EmitterPosition determines E"
+    },
+    "EmitterPosition:Type": {
+        "default": "cartesian",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "EmitterPosition:Units": {
+        "default": "metre",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": ""
+    },
+    "Data.IR": {
+        "default": 0,
+        "flags": "m",
+        "dimensions": "mREn",
+        "type": "double",
+        "comment": "Impulse responses"
+    },
+    "Data.SamplingRate": {
+        "default": 48000,
+        "flags": "m",
+        "dimensions": "I",
+        "type": "double",
+        "comment": "Sampling rate of the samples in Data.IR and Data.Delay"
+    },
+    "Data.SamplingRate:Units": {
+        "default": "hertz",
+        "flags": "m",
+        "dimensions": null,
+        "type": "attribute",
+        "comment": "Unit of the sampling rate"
+    },
+    "Data.Delay": {
+        "default": 0,
+        "flags": "m",
+        "dimensions": "IRE, MRE",
+        "type": "double",
+        "comment": "Additional delay of each IR (in samples)"
+    }
+}

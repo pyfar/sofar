@@ -1,0 +1,80 @@
+Proposed
+----------
+
+- Fixed inconsistencies and errors in the csv convention files (see detailed list below).
+- Replaced non-ASCII quotes by `'`
+- Removed empty tabs at line ends (done automatically by my IDE. Sorry, this makes the diffs look a bit messi. Using Meld (https://meldmerge.org/) shows the differences in a more comprehensible way)
+- added a gitignore for compiled conventions stored in mat files
+
+Test of changes
+----------------
+- SOFAstart.m still seems to create the mat convention files without throwing any errors
+- I am currently writing a Python API for SOFA that uses the csv files from APIMO. As part of that, I wrote a verify function that discovered the inconsistencies. It checks the following:
+   - Are all mandatory fields contained?
+   - Are the names of variables and attributes in accordance to the SOFA standard?
+   - Are the data types in accordance with the SOFA standard?
+   - Are the dimensions of the variables consistent and in accordance to the SOFA standard?
+   - Are the values of attributes consistent and in accordance to the SOFA standard?
+  
+Question
+---------
+Should the version number of APIMO be increased to make the fixes more visible.
+
+Detailed list of changes
+-----------------------
+
+**FreeFieldDirectivityTF_1.0**
+- EmitterDescription: change dimensions from 'IC, MS' to 'IS, MS' according to
+  AES69
+- SourceTuningFrequency: change default from ''  (empty string) to 440. This is a variable of
+  type double. It can not have a string as default.
+- EmitterDescription, Description: changed type from "attribute" to "string" as for string variables in SimpleHeadphoneIR
+- EmitterDescription, Description: changed default from Nothing to {''} as for string variables in SimpleHeadphoneIR
+- N:Units: Changed default value from 'Hertz' to 'hertz' to be case sensitive as enforced in AES69
+
+
+**FreeFieldHRTF_1.0, GeneralTF_1.0, GeneralTF_2.0, GeneralTF-E_1.0, SimpleFreeFieldHRTF_2.0**
+- N_LongName, and N_Units: Change to N:LongName, and N:Units. Both fields are
+  attributes which is otherwise denoted by Var:Attribute and not Var_Attribute
+
+**GeneralFIR-E_2.0, GeneralTF-E**
+- ReceiverPosition: Change from 'I, R, M, RM, RCI, RCM' to 'IC, RC, RCM'
+  according to AES69, 4.7.4
+- EmitterPosition: Change from 'I, E, M, EM, ECI, ECM' to 'IC, EC, ECM'
+  according to AES69, 4.7.6
+
+**GeneralFIR_2.0, GeneralTF_2.0**
+- ReceiverPosition: Changed from 'I, R, IM, RM, RCI, RCM', to 'IC, RC, RCM' in
+  analogy to GeneralFIR-E_2.0
+
+**GeneeralTF_1.0, GeneralTF_2.0**
+- N:LongName: made a default value
+
+**SingleRoomDRIR_0.3.csv**
+- Data.IR and Data.Delay: Change default from '[0, 0]' to '[0]' because the
+  ReceiverPosition only has one entry (We could also change the Receiver-
+  Position, but this is the minimal example)
+- Data.IR: Change dimensions from 'mRn' to 'mrn' according to AES69
+- ReceiverPosition: Change dimension from 'rCI, 'rCM'' to 'RCI, RCM' according
+  to AES69
+- ListenerView:Units, SourceView:Units: Added missing default attributes
+
+**SingleRoomSRIR_1.0**
+Has the attributes RoomCorners:Type and RoomCorners:Units but no variable of
+the same name - variables are RoomCornerA and RoomCornerB
+- removed idle attributes and created attributes RoomCornerA:*, and
+  RoomCornerB*
+
+**SingleRoomMimoSRIR_1.0, SingleRoomSRIR_1.0**
+- Corrected type in EmiiterView:Type to EmitterView:Type
+
+**SimpleFreeFieldHRSOS_1.0, SimpleFreeFieldSOS_1.0***
+- N: Added missing default parameter according to AES69
+- N: Changed Field *Dimensions* from 'N' to 'I'. I think this is an error in AES69
+
+**SimpleFreeFieldSOS_1.0**
+- ReceiverPosition, Data_N:SOS: Fields are copoed from SimpleFreeFieldHRSOS containing default values for two receivers. I assume this is not intended.
+
+**FreeFieldHRIR**
+- Convention defined in AES69 but not contained in API_MO
+
