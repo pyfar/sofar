@@ -2155,7 +2155,7 @@ def _sofa_restrictions():
     }
 
     # restrictions arising from GLOBAL_DataType
-    # - if `value` is None it in only checked if the SOFA object has the attr
+    # - if `value` is None it is only checked if the SOFA object has the attr
     # - if `value` is a list, it is also checked if the actual value is in
     #   `value`
     data_type = {
@@ -2172,7 +2172,6 @@ def _sofa_restrictions():
             "N_Units": (["hertz"], "hertz")},
         "SOS": {
             "Data_SOS": None,
-            "N": sos_dimension,
             "Data_Delay": None,
             "Data_SamplingRate": None,
             "Data_SamplingRate_Units": (["hertz"], "hertz")}

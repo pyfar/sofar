@@ -344,8 +344,6 @@ def test_sofa_verify_restrictions_data_missing_attribute(key, msg):
      "N_LongName is f but must be frequency"),
     ("GeneralTF", "N_Units", "hz",
      "N_Units is hz but must be hertz"),
-    ("SimpleFreeFieldSOS", "N", 0,
-     "N is 0 but must be an integer multiple of 6 greater 0")
 ])
 def test_sofa_verify_restrictions_data_type(convention, key, value, msg):
     """Test assertions for values that are restricted by GLOBAL_DataType."""
