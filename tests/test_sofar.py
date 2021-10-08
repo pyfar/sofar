@@ -146,6 +146,14 @@ def test_sofa_delete_attribute():
         delattr(sofa, "new")
 
 
+def test_copy_sofa_object():
+    sofa_org = sf.Sofa("GeneralTF")
+    sofa_cp = sofa_org.copy()
+
+    assert sf.equals(sofa_org, sofa_cp, verbose=False)
+    assert id(sofa_org) != id(sofa_cp)
+
+
 def test_sofa_verify_version():
 
     # test the default "latest"
@@ -336,8 +344,6 @@ def test_sofa_verify_restrictions_data_missing_attribute(key, msg):
      "N_LongName is f but must be frequency"),
     ("GeneralTF", "N_Units", "hz",
      "N_Units is hz but must be hertz"),
-    ("SimpleFreeFieldSOS", "N", 0,
-     "N is 0 but must be an integer multiple of 6 greater 0")
 ])
 def test_sofa_verify_restrictions_data_type(convention, key, value, msg):
     """Test assertions for values that are restricted by GLOBAL_DataType."""
@@ -447,6 +453,29 @@ def test_sofa_verify_restrictions_convention(convention, kwargs, msg):
         sofa.verify()
 
 
+def test_verify_value():
+    # example alias for testing as returned by sf.sofa._sofa_restrictions()
+    unit_aliases = {"meter": "metre",
+                    "degrees": "degree"}
+
+    # Simple pass: no restriction on value
+    assert sf.Sofa._verify_value("meter", None, unit_aliases)
+
+    # simple pass: single unit
+    assert sf.Sofa._verify_value("meter", "metre", unit_aliases)
+
+    # complex pass: list of units
+    assert sf.Sofa._verify_value("degrees, degrees, meter",
+                                 "degree, degree, metre", unit_aliases)
+
+    # simple fail: single unit
+    assert not sf.Sofa._verify_value("centimetre", "metre", unit_aliases)
+
+    # complex fail: list of units
+    assert not sf.Sofa._verify_value("rad, rad, metre",
+                                     "degree, degree, metre", unit_aliases)
+
+
 def test_verify_issue_handling(capfd):
     """Test different methods for handling issues during verification"""
 
@@ -484,29 +513,29 @@ def test_verify_issue_handling(capfd):
     assert "WARNING" not in issues
 
 
-def test_dimensions(capfd):
+def test_list_dimensions(capfd):
 
     # test FIR Data
     sofa = sf.Sofa("GeneralFIR")
-    sofa.dimensions
+    sofa.list_dimensions
     out, _ = capfd.readouterr()
     assert "N = 1 samples (set by Data_IR of dimension MRN)" in out
 
     # test TF Data
     sofa = sf.Sofa("GeneralTF")
-    sofa.dimensions
+    sofa.list_dimensions
     out, _ = capfd.readouterr()
     assert "N = 1 frequencies (set by Data_Real of dimension MRN)" in out
 
     # test SOS Data
     sofa = sf.Sofa("SimpleFreeFieldSOS")
-    sofa.dimensions
+    sofa.list_dimensions
     out, _ = capfd.readouterr()
     assert "N = 6 SOS coefficients (set by Data_SOS of dimension MRN)" in out
 
     # test non spherical harmonics data
     sofa = sf.Sofa("GeneralFIR")
-    sofa.dimensions
+    sofa.list_dimensions
     out, _ = capfd.readouterr()
     assert "E = 1 emitter" in out
     assert "R = 1 receiver" in out
@@ -515,7 +544,7 @@ def test_dimensions(capfd):
     sofa.ReceiverPosition_Type = "spherical harmonics"
     sofa.EmitterPosition_Units = "degree, degree, metre"
     sofa.ReceiverPosition_Units = "degree, degree, metre"
-    sofa.dimensions
+    sofa.list_dimensions
     out, _ = capfd.readouterr()
     assert "E = 1 emitter spherical harmonics coefficients" in out
     assert "R = 1 receiver spherical harmonics coefficients" in out
@@ -524,10 +553,23 @@ def test_dimensions(capfd):
     sofa = sf.Sofa("GeneralFIR")
     sofa.Data_IR = "test"
     with raises(ValueError, match="Dimensions can not be shown"):
-        sofa.dimensions
+        sofa.list_dimensions
     sofa.Data_IR = [1, 2, 3, 4]
     with raises(ValueError, match="Dimensions can not be shown"):
-        sofa.dimensions
+        sofa.list_dimensions
+
+
+def test_get_dimension():
+    """Test getting the size of dimensions"""
+
+    # test FIR Data
+    sofa = sf.Sofa("GeneralFIR")
+    size = sofa.get_dimension("N")
+    assert size == 1
+
+    # test with wrong dimension
+    with raises(ValueError, match="Q is not a valid dimension"):
+        size = sofa.get_dimension("Q")
 
 
 def test_info(capfd):

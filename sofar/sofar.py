@@ -9,6 +9,7 @@ import numpy.testing as npt
 import warnings
 from bs4 import BeautifulSoup
 from netCDF4 import Dataset, stringtochar
+from copy import deepcopy
 import sofar as sf
 
 
@@ -133,7 +134,7 @@ class Sofa():
                 f"{self.GLOBAL_SOFAConventionsVersion}")
 
     @property
-    def dimensions(self):
+    def list_dimensions(self):
         """
         Print the dimensions of the SOFA object
 
@@ -162,13 +163,7 @@ class Sofa():
         """
 
         # Check if the dimensions can be updated
-        issues = self.verify(version="match", issue_handling="return")
-        if issues is not None and ("data of wrong type" in issues or
-                                   "variables of wrong shape" in issues or
-                                   not hasattr(self, "_api")):
-            raise ValueError(("Dimensions can not be shown because variables "
-                              "of wrong type or shape were detected. "
-                              "Call Sofa.verify() for more information."))
+        self._update_dimensions()
 
         # get verbose description for dimesion N
         if self.GLOBAL_DataType.startswith("FIR"):
@@ -218,6 +213,49 @@ class Sofa():
             info_str += "\n"
 
         print(info_str)
+
+    def get_dimension(self, dimension):
+        """
+        Get size of a SOFA dimension
+
+        SOFA dimensions specify the shape of the data contained in a SOFA
+        object. For a list of all dimensions see :py:func:`~list_dimensions`.
+
+        Parameters
+        ----------
+        dimension : str
+            The dimension as a string, e.g., ``'N'``.
+
+        Returns
+        -------
+        size : int
+            the size of the queried dimension.
+        """
+
+        # Check if the dimensions can be updated
+        self._update_dimensions()
+
+        if dimension not in self._api:
+            raise ValueError((
+                f"{dimension} is not a valid dimension. "
+                "See Sofa.list_dimensions for a list of valid dimensions."))
+
+        return self._api[dimension]
+
+    def _update_dimensions(self):
+        """
+        Call verify and raise an error if the dimensions could not be updated.
+
+        used in Sofa.list_dimensions and Sofa.get_dimension
+        """
+
+        issues = self.verify(version="match", issue_handling="return")
+        if issues is not None and ("data of wrong type" in issues or
+                                   "variables of wrong shape" in issues or
+                                   not hasattr(self, "_api")):
+            raise ValueError(("Dimensions can not be shown because variables "
+                              "of wrong type or shape were detected. "
+                              "Call Sofa.verify() for more information."))
 
     def info(self, info):
         """
@@ -443,7 +481,7 @@ class Sofa():
         self._dimensions
             The detected dimensions of the data inside the SOFA object.
         self._api
-            The size of the dimensions (see ``self.info("dimensions")``). This
+            The size of the dimensions (see py:func:`~list_dimensions`). This
             specifies the dimensions of the data inside the SOFA object.
         self._custom
             Stores information of custom variables that are not defined by the
@@ -632,9 +670,12 @@ class Sofa():
         current_error = ""
         for key in keys:
 
-            # check the name (can not be tested within sofar, because it does
-            # not allow to add data with such names. It was tested manually
-            # with third party files).
+            # check the name and warn if it contains underscores. Do not raise
+            # an error because underscores are not explicitly forbidden in the
+            # SOFA standard.
+            # (can not be tested within sofar, because it does not allow to add
+            # data with such names. It was tested manually with third party
+            # files).
             if "_" in key.replace("Data_", ""):
                 current_warning += "- " + key + "\n"
 
@@ -703,7 +744,7 @@ class Sofa():
 
         # ---------------------------------------------------------------------
         # 5. check restrictions on the content of SOFA files
-        data, data_type, api, convention = _sofa_restrictions()
+        data, data_type, api, convention, unit_aliases = _sofa_restrictions()
 
         # general restrictions on data
         current_error = ""
@@ -714,7 +755,7 @@ class Sofa():
 
                 # test if the value is valid
                 test = getattr(self, key)
-                if ref is not None and test not in ref:
+                if not self._verify_value(test, ref, unit_aliases):
                     current_error += \
                         f"- {key} is {test} but must be {', '.join(ref)}\n"
 
@@ -739,7 +780,8 @@ class Sofa():
                         continue
 
                     idx = ref.index(test)
-                    if test_dep != ref_dep[idx]:
+                    if not self._verify_value(test_dep, ref_dep[idx],
+                                              unit_aliases):
                         current_error += (
                             f"- {key_dep} is {test_dep} but must be "
                             f"{ref_dep[idx]} if {key} is {test}\n")
@@ -811,6 +853,47 @@ class Sofa():
                 return issues
 
     @staticmethod
+    def _verify_value(test, ref, unit_aliases):
+        """
+        Check a value agains the SOFA standard for Sofa.verify()
+
+        Parameters
+        ----------
+        test :
+            the value under test
+        ref :
+            the value enforced by the SOFA standard
+        unit_aliases :
+            dict of aliases for units from _sofa_restrictions()
+
+        Returns
+        -------
+        ``True`` if `test` and `ref` agree, ``False`` otherwise
+        """
+
+        value_valid = True
+
+        # Don't check the value if ref is None or test in ref
+        if ref is not None and test not in ref:
+
+            # in case test is a string it might be a unit and unit aliases
+            # according to the SOFA standard must be checked
+            units = test.split(", ") if isinstance(test, str) else []
+            ref = ref.split(", ") if isinstance(ref, str) else ref
+
+            if not units or len(ref) != len(units):
+                value_valid = False
+                return value_valid
+
+            for unit, unit_ref in zip(units, ref):
+                if unit != unit_ref and (unit not in unit_aliases
+                                         or unit_aliases[unit] != unit_ref):
+                    value_valid = False
+                    break
+
+        return value_valid
+
+    @staticmethod
     def _verify_handle_issues(warning_msg, error_msg, issue_handling):
         """Handle warnings and errors from Sofa.verify"""
 
@@ -846,6 +929,10 @@ class Sofa():
             issues = None
 
         return error_occurred, issues
+
+    def copy(self):
+        """Return a copy of the SOFA object."""
+        return deepcopy(self)
 
     def _update_convention(self, version):
         """
@@ -1154,7 +1241,7 @@ def _update_conventions(conventions_path=None):
         convention_dict = _convention_csv2dict(filename_csv)
 
         with open(filename_json, 'w') as file:
-            json.dump(convention_dict, file)
+            json.dump(convention_dict, file, indent=4)
 
     if updated:
         print("... done.")
@@ -1416,8 +1503,15 @@ def write_sofa(filename: str, sofa: Sofa, version="latest", compression=4):
         for key in all_keys:
 
             # skip attributes
-            if ("_" in key and not key.startswith("Data_")) \
-                    or key.count("_") > 1:
+            # Note: This definition of attribute is blurry:
+            # lax definition:
+            #   sofa._convention[key]["type"] == "attribute":
+            # strict definition:
+            #   ("_" in key and not key.startswith("Data_")) or key.count("_") > 1
+            #
+            # The strict definition is implicitly included in the SOFA standard
+            # since underscores only occur for variables starting with Data_
+            if sofa._convention[key]["type"] == "attribute":
                 continue
 
             # get the data and type and shape
@@ -1923,6 +2017,16 @@ def _sofa_restrictions():
     coords_full = coords_min + ["spherical harmonics"]
     units_min = ["metre", "degree, degree, metre"]
     units_full = units_min + [units_min[1]]
+    unit_aliases = {
+        "metres": "metre",
+        "meter": "metre",
+        "meters": "metre",
+        "cubic metres": "cubic metre",
+        "cubic meter": "cubic metre",
+        "cubic meters": "cubic metre",
+        "degrees": "degree",
+        "seconds": "second"
+    }
     # possible values for restricted dimensions in the API
     sh_dimension = ([(N+1)**2 for N in range(200)],
                     "(N+1)**2 where N is the spherical harmonics order")
@@ -2051,7 +2155,7 @@ def _sofa_restrictions():
     }
 
     # restrictions arising from GLOBAL_DataType
-    # - if `value` is None it in only checked if the SOFA object has the attr
+    # - if `value` is None it is only checked if the SOFA object has the attr
     # - if `value` is a list, it is also checked if the actual value is in
     #   `value`
     data_type = {
@@ -2068,7 +2172,6 @@ def _sofa_restrictions():
             "N_Units": (["hertz"], "hertz")},
         "SOS": {
             "Data_SOS": None,
-            "N": sos_dimension,
             "Data_Delay": None,
             "Data_SamplingRate": None,
             "Data_SamplingRate_Units": (["hertz"], "hertz")}
@@ -2138,4 +2241,4 @@ def _sofa_restrictions():
             "GLOBAL_DataType": ["TF"]}
     }
 
-    return data, data_type, api, convention
+    return data, data_type, api, convention, unit_aliases
