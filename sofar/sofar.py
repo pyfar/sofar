@@ -1218,6 +1218,8 @@ def _update_conventions(conventions_path=None):
 
         # download SOFA convention definitions to package diretory
         data = requests.get(url_raw + "/" + convention)
+        # remove trailing tabs
+        data = data.content.replace(b"\t\n", b"\n").replace(b"\r\n", b"\n")
 
         # check if convention needs to be added or updated
         update = False
@@ -1226,15 +1228,16 @@ def _update_conventions(conventions_path=None):
             updated = f"- added new convention: {convention}"
         else:
             with open(filename_csv, "rb") as file:
-                data_current = file.readlines()
-            if b"".join(data_current) != data.content:
+                data_current = b"".join(file.readlines())
+                data_current = data_current.replace(b"\r\n", b"\n")
+            if data_current != data:
                 update = True
                 updated = f"- updated existing convention: {convention}"
 
         # update convention
         if update:
             with open(filename_csv, "wb") as file:
-                file.write(data.content)
+                file.write(data)
             print(updated)
 
         # convert SOFA conventions from csv to json
