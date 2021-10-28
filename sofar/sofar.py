@@ -428,12 +428,22 @@ class Sofa():
         # check input
         if hasattr(self, name):
             raise ValueError(f"Entry {name} already exists")
-        if "_" in name and dtype != "attribute":
-            raise ValueError(
-                "underscores '_' in the name are only allowed for attributes")
         if dtype not in ["attribute", "double", "string"]:
             raise ValueError(
                 f"dtype is {dtype} but must be attribute, double, or string")
+        if "_" in name and dtype != "attribute":
+            raise ValueError(("underscores '_' in the name are only "
+                              "allowed for attributes"))
+        if dtype == "attribute":
+            if name.count("_") != 1 or \
+                    (name.startswith("Data_") and (name.count("_") == 0 or
+                                                   name.count("_") > 2)):
+                raise ValueError((f"The name of {name} must have the "
+                                  "form VariableName_AttributeName"))
+            if not name.startswith("GLOBAL_") and \
+                    name[:name.rindex("_")] not in self._convention:
+                raise ValueError((f"Adding Attribute {name} requires "
+                                  f"variable {name[:name.rindex('_')]}"))
         if dimensions is None and dtype != "attribute":
             raise ValueError(("dimensions must be provided for entries of "
                               "dtype double and string"))
@@ -623,7 +633,61 @@ class Sofa():
                 return issues
 
         # ---------------------------------------------------------------------
-        # 3. Get dimensions (E, R, M, N, S, c, I, and custom)
+        # 3. Verify names of entries
+
+        # check attributes without variables
+        current_error = ""
+        for key in keys:
+
+            if self._convention[key]["type"] != "attribute" or \
+                    key.count("_") == 0:
+                continue
+
+            if (key[:key.rindex("_")] not in self._convention and
+                    not key.startswith("GLOBAL_")):
+                current_error += "- " + key + "\n"
+
+        if current_error:
+            error_msg += "Detected attributes with missing variables:\n"
+            error_msg += current_error
+
+        # check number of underscores
+        current_error = ""
+        for key in keys:
+
+            if self._convention[key]["type"] != "attribute":
+                continue
+
+            # the case above caught attributes with too many underscores
+            if key.count("_") == 0:
+                current_error += "- " + key + "\n"
+
+        if current_error:
+            error_msg += (
+                "Detected attribute names with too many or little underscores."
+                " Names must have the form Variable_Attribute, Data_Attribute "
+                "(one underscore), or Data_Variable_Attribute (two "
+                "underscores):\n")
+            error_msg += current_error
+
+        # check numeric variables
+        current_error = ""
+        for key in keys:
+
+            if self._convention[key]["type"] == "attribute":
+                continue
+
+            if "_" in key.replace("Data_", ""):
+                current_error += "- " + key + "\n"
+
+        if current_error:
+            error_msg += (
+                "Detected variable names with too many underscores."
+                "Underscores are only allowed for the variable Data:\n")
+            error_msg += current_error
+
+        # ---------------------------------------------------------------------
+        # 4. Get dimensions (E, R, M, N, S, c, I, and custom)
 
         # initialize required API fields
         self._protected = False
@@ -665,19 +729,9 @@ class Sofa():
         self._api["S"] = S
 
         # ---------------------------------------------------------------------
-        # 4. verify dimensions and names of data
-        current_warning = ""
+        # 5. verify dimensions of data
         current_error = ""
         for key in keys:
-
-            # check the name and warn if it contains underscores. Do not raise
-            # an error because underscores are not explicitly forbidden in the
-            # SOFA standard.
-            # (can not be tested within sofar, because it does not allow to add
-            # data with such names. It was tested manually with third party
-            # files).
-            if "_" in key.replace("Data_", ""):
-                current_warning += "- " + key + "\n"
 
             # handle dimensions
             dimensions = self._convention[key]["dimensions"]
@@ -732,18 +786,12 @@ class Sofa():
                     f"- {key} has shape {shape_compare} but must "
                     f"have {', '.join(dimensions_verbose)}\n")
 
-        if current_warning:
-            warning_msg += (
-                "Detected data with '_' or '.' in its name (only "
-                "allowed for 'Data_' and SOFA attributes. Writing SOFA "
-                "object to disk might not work):\n")
-            warning_msg += current_warning
         if current_error:
             error_msg += "Detected variables of wrong shape:\n"
             error_msg += current_error
 
         # ---------------------------------------------------------------------
-        # 5. check restrictions on the content of SOFA files
+        # 6. check restrictions on the content of SOFA files
         data, data_type, api, convention, unit_aliases = _sofa_restrictions()
 
         # general restrictions on data
@@ -1218,6 +1266,8 @@ def _update_conventions(conventions_path=None):
 
         # download SOFA convention definitions to package diretory
         data = requests.get(url_raw + "/" + convention)
+        # remove trailing tabs
+        data = data.content.replace(b"\t\n", b"\n").replace(b"\r\n", b"\n")
 
         # check if convention needs to be added or updated
         update = False
@@ -1226,15 +1276,16 @@ def _update_conventions(conventions_path=None):
             updated = f"- added new convention: {convention}"
         else:
             with open(filename_csv, "rb") as file:
-                data_current = file.readlines()
-            if b"".join(data_current) != data.content:
+                data_current = b"".join(file.readlines())
+                data_current = data_current.replace(b"\r\n", b"\n")
+            if data_current != data:
                 update = True
                 updated = f"- updated existing convention: {convention}"
 
         # update convention
         if update:
             with open(filename_csv, "wb") as file:
-                file.write(data.content)
+                file.write(data)
             print(updated)
 
         # convert SOFA conventions from csv to json
