@@ -839,6 +839,8 @@ def test_add_entry():
     # entry violating the naming convention
     with raises(ValueError, match="underscores '_' in the name"):
         sofa.add_variable("Temperature_Celsius", 25.1, "double", "MI")
+    with raises(ValueError, match="(exactly one underscore)"):
+        sofa.add_attribute("Data_Time_measured", "midnight")
     # entry with wrong type
     with raises(ValueError, match="dtype is float but must be"):
         sofa.add_variable("TemperatureCelsius", 25.1, "float", "MI")
@@ -848,6 +850,9 @@ def test_add_entry():
     # invalid dimensins
     with pytest.warns(UserWarning, match="Added custom dimension T"):
         sofa.add_variable("TemperatureCelsius", [25.1, 25.2], "double", "T")
+    # attribute with missing variable
+    with raises(ValueError, match="Adding Attribute Variable"):
+        sofa.add_attribute("Variable_Unit", "Celsius")
 
 
 def test_get_size_and_shape_of_string_var():

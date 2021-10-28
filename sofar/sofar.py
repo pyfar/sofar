@@ -428,12 +428,21 @@ class Sofa():
         # check input
         if hasattr(self, name):
             raise ValueError(f"Entry {name} already exists")
-        if "_" in name and dtype != "attribute":
-            raise ValueError(
-                "underscores '_' in the name are only allowed for attributes")
         if dtype not in ["attribute", "double", "string"]:
             raise ValueError(
                 f"dtype is {dtype} but must be attribute, double, or string")
+        if "_" in name and dtype != "attribute":
+            raise ValueError(("underscores '_' in the name are only "
+                              "allowed for attributes"))
+        if dtype == "attribute":
+            if name.count("_") >= 2 or name.count("_") == 0:
+                raise ValueError((f"The name of {name} must have the "
+                                  "form VariableName_AttributeName "
+                                  "(exactly one underscore)"))
+            if not name.startswith("GLOBAL_") and \
+                    name[:name.rindex("_")] not in self._convention:
+                raise ValueError((f"Adding Attribute {name} requires "
+                                  f"variable {name[:name.rindex('_')]}"))
         if dimensions is None and dtype != "attribute":
             raise ValueError(("dimensions must be provided for entries of "
                               "dtype double and string"))
@@ -623,6 +632,34 @@ class Sofa():
                 return issues
 
         # ---------------------------------------------------------------------
+        # 5. Verify names of entries
+        current_error = ""
+        for key in keys:
+
+            if self._convention[key]["type"] == "attribute":
+                # check if the attribute only has one underscore that separates
+                # the name of the variable from the name of the attribute, i.e.
+                # VariableName_Attribute and not VariableName_Attribute_Name
+                if key[:key.rindex("_")] not in self._convention and \
+                        not key.startswith("GLOBAL_"):
+                    current_error += "- " + key + "\n"
+
+            else:
+                # check the name and raise error if it contains underscores.
+                # (can not be tested within sofar, because it does not allow to add
+                # data with such names. It was tested manually with third party
+                # files).
+                if "_" in key.replace("Data_", ""):
+                    current_error += "- " + key + "\n"
+
+        if current_error:
+            error_msg += (
+                "Detected data with '_' or '.' in its name (only "
+                "allowed for 'Data_' and SOFA attributes. Writing SOFA "
+                "object to disk might not work):\n")
+            error_msg += current_error
+
+        # ---------------------------------------------------------------------
         # 3. Get dimensions (E, R, M, N, S, c, I, and custom)
 
         # initialize required API fields
@@ -665,19 +702,9 @@ class Sofa():
         self._api["S"] = S
 
         # ---------------------------------------------------------------------
-        # 4. verify dimensions and names of data
-        current_warning = ""
+        # 4. verify dimensions of data
         current_error = ""
         for key in keys:
-
-            # check the name and warn if it contains underscores. Do not raise
-            # an error because underscores are not explicitly forbidden in the
-            # SOFA standard.
-            # (can not be tested within sofar, because it does not allow to add
-            # data with such names. It was tested manually with third party
-            # files).
-            if "_" in key.replace("Data_", ""):
-                current_warning += "- " + key + "\n"
 
             # handle dimensions
             dimensions = self._convention[key]["dimensions"]
@@ -732,12 +759,6 @@ class Sofa():
                     f"- {key} has shape {shape_compare} but must "
                     f"have {', '.join(dimensions_verbose)}\n")
 
-        if current_warning:
-            warning_msg += (
-                "Detected data with '_' or '.' in its name (only "
-                "allowed for 'Data_' and SOFA attributes. Writing SOFA "
-                "object to disk might not work):\n")
-            warning_msg += current_warning
         if current_error:
             error_msg += "Detected variables of wrong shape:\n"
             error_msg += current_error
