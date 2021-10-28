@@ -435,10 +435,11 @@ class Sofa():
             raise ValueError(("underscores '_' in the name are only "
                               "allowed for attributes"))
         if dtype == "attribute":
-            if name.count("_") >= 2 or name.count("_") == 0:
+            if name.count("_") != 1 or \
+                    (name.startswith("Data_") and (name.count("_") == 0 or
+                                                   name.count("_") > 2)):
                 raise ValueError((f"The name of {name} must have the "
-                                  "form VariableName_AttributeName "
-                                  "(exactly one underscore)"))
+                                  "form VariableName_AttributeName"))
             if not name.startswith("GLOBAL_") and \
                     name[:name.rindex("_")] not in self._convention:
                 raise ValueError((f"Adding Attribute {name} requires "
@@ -632,35 +633,61 @@ class Sofa():
                 return issues
 
         # ---------------------------------------------------------------------
-        # 5. Verify names of entries
+        # 3. Verify names of entries
+
+        # check attributes without variables
+        current_error = ""
+        for key in keys:
+
+            if self._convention[key]["type"] != "attribute" or \
+                    key.count("_") == 0:
+                continue
+
+            if (key[:key.rindex("_")] not in self._convention and
+                    not key.startswith("GLOBAL_")):
+                current_error += "- " + key + "\n"
+
+        if current_error:
+            error_msg += "Detected attributes with missing variables:\n"
+            error_msg += current_error
+
+        # check number of underscores
+        current_error = ""
+        for key in keys:
+
+            if self._convention[key]["type"] != "attribute":
+                continue
+
+            # the case above caught attributes with too many underscores
+            if key.count("_") == 0:
+                current_error += "- " + key + "\n"
+
+        if current_error:
+            error_msg += (
+                "Detected attribute names with too many or little underscores."
+                " Names must have the form Variable_Attribute, Data_Attribute "
+                "(one underscore), or Data_Variable_Attribute (two "
+                "underscores):\n")
+            error_msg += current_error
+
+        # check numeric variables
         current_error = ""
         for key in keys:
 
             if self._convention[key]["type"] == "attribute":
-                # check if the attribute only has one underscore that separates
-                # the name of the variable from the name of the attribute, i.e.
-                # VariableName_Attribute and not VariableName_Attribute_Name
-                if key[:key.rindex("_")] not in self._convention and \
-                        not key.startswith("GLOBAL_"):
-                    current_error += "- " + key + "\n"
+                continue
 
-            else:
-                # check the name and raise error if it contains underscores.
-                # (can not be tested within sofar, because it does not allow to add
-                # data with such names. It was tested manually with third party
-                # files).
-                if "_" in key.replace("Data_", ""):
-                    current_error += "- " + key + "\n"
+            if "_" in key.replace("Data_", ""):
+                current_error += "- " + key + "\n"
 
         if current_error:
             error_msg += (
-                "Detected data with '_' or '.' in its name (only "
-                "allowed for 'Data_' and SOFA attributes. Writing SOFA "
-                "object to disk might not work):\n")
+                "Detected variable names with too many underscores."
+                "Underscores are only allowed for the variable Data:\n")
             error_msg += current_error
 
         # ---------------------------------------------------------------------
-        # 3. Get dimensions (E, R, M, N, S, c, I, and custom)
+        # 4. Get dimensions (E, R, M, N, S, c, I, and custom)
 
         # initialize required API fields
         self._protected = False
@@ -702,7 +729,7 @@ class Sofa():
         self._api["S"] = S
 
         # ---------------------------------------------------------------------
-        # 4. verify dimensions of data
+        # 5. verify dimensions of data
         current_error = ""
         for key in keys:
 
@@ -764,7 +791,7 @@ class Sofa():
             error_msg += current_error
 
         # ---------------------------------------------------------------------
-        # 5. check restrictions on the content of SOFA files
+        # 6. check restrictions on the content of SOFA files
         data, data_type, api, convention, unit_aliases = _sofa_restrictions()
 
         # general restrictions on data
