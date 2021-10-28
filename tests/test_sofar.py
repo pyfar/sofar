@@ -265,6 +265,51 @@ def test_sofa_verify_wrong_shape():
         sofa.verify()
 
 
+def test_sofa_verify_wrong_name():
+
+    # attribute with missing variable
+    sofa = sf.Sofa("GeneralTF")
+    sofa._protected = False
+    sofa.IR_Type = "pressure"
+    sofa._custom = {"IR_Type": {"default": None,
+                                "flags": None,
+                                "dimensions": None,
+                                "type": "attribute",
+                                "comment": ""}}
+    sofa._protected = True
+
+    with raises(ValueError, match="Detected attributes with missing"):
+        sofa.verify()
+
+    # attribute with no underscore
+    sofa = sf.Sofa("GeneralTF")
+    sofa._protected = False
+    sofa.IRType = "pressure"
+    sofa._custom = {"IRType": {"default": None,
+                               "flags": None,
+                               "dimensions": None,
+                               "type": "attribute",
+                               "comment": ""}}
+    sofa._protected = True
+
+    with raises(ValueError, match="Detected attribute names with too many"):
+        sofa.verify()
+
+    # variable with underscore
+    sofa = sf.Sofa("GeneralTF")
+    sofa._protected = False
+    sofa.IR_Data = 1
+    sofa._custom = {"IR_Data": {"default": None,
+                                "flags": None,
+                                "dimensions": "IM",
+                                "type": "double",
+                                "comment": ""}}
+    sofa._protected = True
+
+    with raises(ValueError, match="Detected variable names with too many"):
+        sofa.verify()
+
+
 # test everything from sofar._sofa_restrictions explicitly to make sure
 # all possible error in SOFA files are caught
 @pytest.mark.parametrize("key,value,msg", [
@@ -839,6 +884,8 @@ def test_add_entry():
     # entry violating the naming convention
     with raises(ValueError, match="underscores '_' in the name"):
         sofa.add_variable("Temperature_Celsius", 25.1, "double", "MI")
+    with raises(ValueError, match="The name of Data"):
+        sofa.add_attribute("Data_Time_measured", "midnight")
     # entry with wrong type
     with raises(ValueError, match="dtype is float but must be"):
         sofa.add_variable("TemperatureCelsius", 25.1, "float", "MI")
@@ -848,6 +895,9 @@ def test_add_entry():
     # invalid dimensins
     with pytest.warns(UserWarning, match="Added custom dimension T"):
         sofa.add_variable("TemperatureCelsius", [25.1, 25.2], "double", "T")
+    # attribute with missing variable
+    with raises(ValueError, match="Adding Attribute Variable"):
+        sofa.add_attribute("Variable_Unit", "Celsius")
 
 
 def test_get_size_and_shape_of_string_var():

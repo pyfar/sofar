@@ -475,6 +475,13 @@
         "type": "double",
         "comment": ""
     },
+    "RoomCorners": {
+        "default": 0,
+        "flags": null,
+        "dimensions": "II",
+        "type": "double",
+        "comment": "The value of this attribute is to be ignored. It only exist to for RoomCorners:Type and RoomCorners:Units"
+    },
     "RoomCorners:Type": {
         "default": "cartesian",
         "flags": "m",
