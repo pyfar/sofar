@@ -1,27 +1,26 @@
-# Config file for automatic testing at travis-ci.org
-
 dist: bionic
 language: python
 python:
-  - 3.7
-  - 3.8
-  - 3.9
+- 3.7
+- 3.8
+- 3.9
 
 # Command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
-  - pip install -U pip
-  - pip install -U tox-travis
+- pip install -U pip
+- pip install -U tox-travis
 
 # Command to run tests, e.g. python setup.py test
 script:
-  - tox
+- tox
 
 # Deploy to PyPI
 deploy:
   provider: pypi
-  username: "__token__"
-  password: pypi-AgEIcHlwaS5vcmcCJDAwMzcxYTJjLTA2ZDUtNDc0Yy05MzI3LTA5NDViNjg0MjRkNwACJXsicGVybWlzc2lvbnMiOiAidXNlciIsICJ2ZXJzaW9uIjogMX0AAAYg68pAqBad0A4A25CtlLm8-ecoy9aMN3cb--kjEAkTXb4
-  distributions: "sdist bdist_wheel"
+  username: __token__
+  password:
+    secure: J263wRkeZyqhp8suO85Q4rgiqY2Hfhtih3B8xkP7P7xIPtgT3HZ57gxTmE5UNRJC/N3S5khG+1yBbtBBhyEoS+Z3mqv8A392N/aL/gTxYPlRJ8iNMso6x9dmqwfF1F9l2QlYdwln9Q0KEJreRXgvy9hkdj+36R37LsgipJJesvzFgPyRXPuj2fj7bl5RpYy3klnuVNftlY0C1yZr3TA7LsUx7B4ATWQ+3+X29dCMMlqXxBRN9mUDR6moMBltpfUPkbr7CdJE9nfmsZZ9dH8EcAf9JginwyJ6HFDluaBGkOoP95lhcMz8h4TvIHix63fT1OszhWNgeXnkNPu3GWKjXLEW58xEMKsExJdq4NKCDFk2c0XJd2FVcaYwHynMjppXnZGp1j6kK/Dwoj6Xfy5ilTy1sgxFr5Cne0xBOTI4V7cWENjZy/AIaUzRcwRZpSDt81y5pXrHohBV3TyawfmJSQ735ZMOHjhnXk/PMgTobxvdhQug9Z+ZB6UeW5iwiSC6SjnxOLQCcBdms5c4f5E6jYgJbeDfAT6TOgQlB7HLcuNaFwR4FnO7qNLm/ksdF/Y85/3lKHeFqqm5vvIA2SRN/gLMfbJHpqze5VTN+xrl4qgRJNySydIinOJWqLZdP6vpyxvXcDRDGcMExNhXNv6DNrHKEpLx+jrq8kup22FFI10=
+  distributions: sdist bdist_wheel
   skip_existing: true
   skip_cleanup: true
   on:
