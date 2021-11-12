@@ -913,7 +913,8 @@ def test_get_size_and_shape_of_string_var():
     assert shape == (1, )
 
     # test with list of strings
-    S, shape = sf.Sofa._get_size_and_shape_of_string_var(["four", "fivee"], "key")
+    S, shape = sf.Sofa._get_size_and_shape_of_string_var(
+        ["four", "fivee"], "key")
     assert S == 5
     assert shape == (2, )
 
