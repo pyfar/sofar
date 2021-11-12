@@ -4,7 +4,7 @@
 
 __author__ = """The pyfar developers"""
 __email__ = 'info@pyfar.org'
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 
 
 from .sofar import (Sofa,
