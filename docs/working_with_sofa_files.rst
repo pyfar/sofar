@@ -1,17 +1,4 @@
-.. _working_with_sofa_files:
-
-.. |source_lateral| image:: resources/working_with_sofa_source_lateral.png
-   :width: 500
-   :alt: source lateral
-
-.. |source_horizontal| image:: resources/working_with_sofa_source_horizontal.png
-   :width: 500
-   :alt: source horizontal
-
-.. |hrir_lateral| image:: resources/working_with_sofa_HRIR_lateral.png
-   :width: 600
-   :alt: HRIR lateral
-
+.. _working_with_sofa:
 
 Working with SOFA files
 -----------------------
@@ -94,17 +81,23 @@ look at the time data and magnitude spectra of a single source position
 |hrir_lateral|
 
 
-or multiple source positoins
-
-.. code:: python
-
-    pf.plot.time_freq_2d(data_ir[mask])
-
-
 Next steps
 ==========
 
-Pyfar also offerst methods for digital signal processing that wont be detailed
+For detailed information about sofar refer to the :ref:`sofar_documentation`.
+Pyfar also offers methods for digital signal processing that wont be detailed
 here. A god way to dive into that is the
 `pyfar documentation <https://pyfar.readthedocs.io/en/latest/>`_ and the
 `pyfar examples notebook <https://mybinder.org/v2/gh/pyfar/pyfar/main?filepath=examples%2Fpyfar_demo.ipynb>`_.
+
+.. |source_lateral| image:: resources/working_with_sofa_source_lateral.png
+   :width: 500
+   :alt: source lateral
+
+.. |source_horizontal| image:: resources/working_with_sofa_source_horizontal.png
+   :width: 500
+   :alt: source horizontal
+
+.. |hrir_lateral| image:: resources/working_with_sofa_HRIR_lateral.png
+   :width: 600
+   :alt: HRIR lateral

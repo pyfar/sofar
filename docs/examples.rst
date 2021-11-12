@@ -205,6 +205,7 @@ Next steps
 ==========
 
 For detailed information about sofar refer to the :ref:`sofar_documentation`.
+For examples on how to work with the data inside SOFA files refer to :ref:`working_with_sofa`.
 
 
 .. _sofaconventions.org: https://sofaconventions.org
