@@ -849,7 +849,8 @@ class Sofa():
         if data_str:
             for key, value in data_type[data_str].items():
 
-                # hard to test. included to detect problems with future conventions
+                # hard to test. included to detect problems with future
+                # conventions
                 if not hasattr(self, key):
                     current_error += (
                         f"- {key} must be contained if"
@@ -1100,7 +1101,8 @@ class Sofa():
         for key in self._convention.keys():
 
             # skip optional fields if requested
-            if not self._mandatory(self._convention[key]["flags"]) and mandatory:
+            if not self._mandatory(self._convention[key]["flags"]) \
+                    and mandatory:
                 continue
 
             # get the default value
@@ -1558,7 +1560,8 @@ def write_sofa(filename: str, sofa: Sofa, version="latest", compression=4):
             # lax definition:
             #   sofa._convention[key]["type"] == "attribute":
             # strict definition:
-            #   ("_" in key and not key.startswith("Data_")) or key.count("_") > 1
+            #   ("_" in key and not key.startswith("Data_")) or \
+            #       key.count("_") > 1
             #
             # The strict definition is implicitly included in the SOFA standard
             # since underscores only occur for variables starting with Data_
