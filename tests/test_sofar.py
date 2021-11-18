@@ -692,6 +692,20 @@ def test_read_sofa():
         sf.read_sofa('sofa.exe')
 
 
+def test_read_sofa_custom_data():
+    """Test if sofa files with custom data are loaded correctly"""
+
+    temp_dir = TemporaryDirectory()
+    filename = os.path.join(temp_dir.name, "test.sofa")
+    sofa = sf.Sofa("SimpleFreeFieldHRIR")
+
+    # GLOBAL attribute
+    sofa.add_attribute('GLOBAL_Warming', 'critical')
+    sf.write_sofa(filename, sofa)
+    sofa = sf.read_sofa(filename)
+    assert sofa.GLOBAL_Warming == 'critical'
+
+
 def test_write_sofa_assertion():
     """Test assertion for wrong filename ending"""
 
