@@ -1441,6 +1441,7 @@ def read_sofa(filename, verify=True, version="latest"):
                 _add_custom_api_entry(sofa, "GLOBAL_" + attr, value, None,
                                       None, "attribute")
                 custom.append("GLOBAL_" + attr)
+                sofa._protected = False
             else:
                 setattr(sofa, "GLOBAL_" + attr, value)
 
@@ -1462,6 +1463,7 @@ def read_sofa(filename, verify=True, version="latest"):
                 _add_custom_api_entry(sofa, var.replace(".", "_"), value, None,
                                       dimensions, dtype)
                 custom.append(var.replace(".", "_"))
+                sofa._protected = False
 
             # load variable attributes
             for attr in [a for a in file[var].ncattrs() if a not in skip]:
@@ -1473,6 +1475,7 @@ def read_sofa(filename, verify=True, version="latest"):
                         sofa, var.replace(".", "_") + "_" + attr, value, None,
                         None, "attribute")
                     custom.append(var.replace(".", "_") + "_" + attr)
+                    sofa._protected = False
                 else:
                     setattr(sofa, var.replace(".", "_") + "_" + attr, value)
 
