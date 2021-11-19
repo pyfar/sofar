@@ -14,7 +14,8 @@ with open('HISTORY.rst') as history_file:
 requirements = [
     'netCDF4',
     'numpy>=1.14.0',
-    'beautifulsoup4'
+    'beautifulsoup4',
+    'requests'
 ]
 
 setup_requirements = ['pytest-runner', ]
