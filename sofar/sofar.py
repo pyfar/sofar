@@ -1064,11 +1064,14 @@ class Sofa():
                 (f"Convention '{convention}' not found. See "
                  "sofar.list_conventions() for available conventions."))
 
+        # get available versions as strings
+        versions = [p.split('_')[-1][:-5] for p in path]
+
         # select the correct version
         if version == "latest":
-            path = path[-1]
+            versions = np.array([float(v) for v in versions])
+            path = path[np.argmax(versions)]
         else:
-            versions = [p.split('_')[1][:-5] for p in path]
             if version not in versions:
                 raise ValueError((
                     f"Version {version} not found. "
