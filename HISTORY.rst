@@ -1,6 +1,10 @@
 History
 =======
 
+0.1.4 (2021-12-03)
+------------------
+* Patch for correctly creating Sofa objects if the path to sofar contains underscores '_'
+
 0.1.3 (2021-11-19)
 ------------------
 * Add missing dependency to setup.py
