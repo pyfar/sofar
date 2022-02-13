@@ -2108,6 +2108,9 @@ def _sofa_restrictions():
             "value": ["free field", "reverberant", "shoebox", "dae"]},
         "GLOBAL_SOFAConventions": {
             "value": _get_conventions(return_type="name")},
+        # check NLongName
+        "N_LongName": {
+            "value": ["frequency"]},
         # Listener ------------------------------------------------------------
         # Check values and consistency of if ListenerPosition Type and Unit
         "ListenerPosition_Type": {
