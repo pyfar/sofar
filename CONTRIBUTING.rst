@@ -175,8 +175,13 @@ Deploying
 ~~~~~~~~~
 
 A reminder for the maintainers on how to deploy.
-Make sure all your changes are committed (including an entry in HISTORY.rst).
-Then run::
+
+- Commit all changes to develop
+- Update HISTORY.rst in develop
+- Check if new contributors should be added to AUTHORS.rst
+- Merge develop into main
+
+Switch to main and run::
 
 $ bumpversion patch # possible: major / minor / patch
 $ git push
