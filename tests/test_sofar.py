@@ -738,8 +738,8 @@ def test_write_sofa_compression():
             assert os.stat(filename).st_size <= filesize
         filesize = os.stat(filename).st_size
 
-
-def test_roundtrip():
+@pytest.mark.parametrize("mandatory", [(False), (True)])
+def test_roundtrip(mandatory):
     """"
     Cyclic test of create, write, read functions
 
@@ -750,14 +750,14 @@ def test_roundtrip():
     """
 
     temp_dir = TemporaryDirectory()
-    names = _get_conventions(return_type="name")
+    names_versions = _get_conventions(return_type="name_version")
 
-    for name in names:
+    for name, version in names_versions:
         print(f"Testing: {name}")
         file = os.path.join(temp_dir.name, name + ".sofa")
-        sofa = sf.Sofa(name)
-        sf.write_sofa(file, sofa)
-        sofa_r = sf.read_sofa(file)
+        sofa = sf.Sofa(name, mandatory, version)
+        sf.write_sofa(file, sofa, version)
+        sofa_r = sf.read_sofa(file, version=version)
         identical = sf.equals(sofa, sofa_r, verbose=True, exclude="DATE")
         assert identical
 
