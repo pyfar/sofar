@@ -2241,7 +2241,7 @@ def _sofa_restrictions():
             "Data_Real": None,
             "Data_Imag": None,
             "N": None,
-            #"N_LongName": (["frequency"], "frequency"),  # optional parameter
+            # "N_LongName": (["frequency"], "frequency"),  # optional parameter
             "N_Units": (["hertz"], "hertz")},
         "SOS": {
             "Data_SOS": None,

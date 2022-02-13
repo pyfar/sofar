@@ -738,6 +738,7 @@ def test_write_sofa_compression():
             assert os.stat(filename).st_size <= filesize
         filesize = os.stat(filename).st_size
 
+
 @pytest.mark.parametrize("mandatory", [(False), (True)])
 def test_roundtrip(mandatory):
     """"
