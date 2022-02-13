@@ -767,6 +767,34 @@ def test_roundtrip(mandatory):
         assert identical
 
 
+def test_roundtrip_multidimensional_string_variable():
+    """
+    Test writing and reading multidimensional string variables (Wringting
+    string variables with one dimension is done in the other roundtrip test).
+    """
+
+    temp_dir = TemporaryDirectory()
+    file = os.path.join(temp_dir.name, "HeadphoneIR.sofa")
+
+    sofa = sf.Sofa("SimpleHeadphoneIR")
+    # add dummy matrix that contains 4 measurements
+    sofa.Data_IR = np.zeros((4, 2, 10))
+    # add (4, 1) string variable
+    sofa.SourceManufacturer = [["someone"], ["else"], ["did"], ["this"]]
+    # remove other string variables for simplicity
+    delattr(sofa, "SourceModel")
+    delattr(sofa, "ReceiverDescription")
+    delattr(sofa, "EmitterDescription")
+    delattr(sofa, "MeasurementDate")
+
+    # read write and assert
+    sf.write_sofa(file, sofa)
+    sofa_r = sf.read_sofa(file)
+
+    identical = sf.equals(sofa, sofa_r, exclude="DATE")
+    assert identical
+
+
 def test_equals_global_parameters():
 
     sofa_a = sf.Sofa("SimpleFreeFieldHRIR")
@@ -1010,15 +1038,26 @@ def test_format_value_for_netcdf():
 
 def test_format_value_from_netcdf():
 
-    # single string
-    value = _format_value_from_netcdf(
-        np.array(["string"], dtype="S6"), "Some_Attribute")
-    assert value == "string"
+    # single string (emulate NetCDF binary format)
+    value_in = np.array(["s", "t", "r"], dtype="S1")
+    value = _format_value_from_netcdf(value_in, "Some_Attribute")
+    assert value == "str"
 
-    # array of strings
-    value = _format_value_from_netcdf(
-        np.array(["string1", "string2"], dtype="S7"), "Some_Attribute")
-    assert all(value == np.array(["string1", "string2"], dtype="U"))
+    # array of strings (emulate NetCDF binary format)
+    value_in = np.array([["s", "t", "r", "1"], ["s", "t", "r", "2"]],
+                        dtype="S1")
+    value = _format_value_from_netcdf(value_in, "Some_Attribute")
+    assert all(value == np.array(["str1", "str2"], dtype="U"))
+
+    # single string (emulate NetCDF ascii encoding)
+    value_in = np.array(["str"], dtype="U")
+    value = _format_value_from_netcdf(value_in, "Some_Attribute")
+    assert value == "str"
+
+    # array of strings (emulate NetCDF binary format)
+    value_in = np.array(["str1", "str2"], dtype="U")
+    value = _format_value_from_netcdf(value_in, "Some_Attribute")
+    assert all(value == np.array(["str1", "str2"], dtype="U"))
 
     # numerical array that can be scalar
     value = _format_value_from_netcdf(

@@ -9,7 +9,7 @@ import numpy as np
 import numpy.testing as npt
 import warnings
 from bs4 import BeautifulSoup
-from netCDF4 import Dataset, stringtochar
+from netCDF4 import Dataset, stringtochar, chartostring
 from copy import deepcopy
 import sofar as sf
 
@@ -1418,7 +1418,7 @@ def read_sofa(filename, verify=True, version="latest"):
     custom = []
 
     # open new NETCDF4 file for reading
-    with Dataset(filename, "r+", format="NETCDF4") as file:
+    with Dataset(filename, "r", format="NETCDF4") as file:
 
         # get convention name and version
         convention = getattr(file, "SOFAConventions")
@@ -1458,10 +1458,6 @@ def read_sofa(filename, verify=True, version="latest"):
 
         # load data
         for var in file.variables.keys():
-
-            # for automatic conversion of string variables
-            if file[var].dtype == "S1":
-                file[var]._Encoding = "ascii"
 
             value = _format_value_from_netcdf(file[var][:], var)
             all_attr.append(var.replace(".", "_"))
@@ -1934,10 +1930,12 @@ def _format_value_from_netcdf(value, key):
         else:
             # Convert to numpy array or scalar
             value = np.asarray(value)
-    elif str(value.dtype)[1] == "S" or str(value.dtype)[1] == "U":
+    elif str(value.dtype)[1] in ["S", "U"]:
         # string arrays are stored in masked arrays with empty strings '' being
         # masked. Convert to regular arrays with unmasked empty strings
-        value = np.asarray(value).astype("U")
+        if str(value.dtype)[1] == "S":
+            value = chartostring(value)
+        value = np.atleast_1d(value).astype("U")
     else:
         raise TypeError(
             f"{key}: value.dtype is {value.dtype} but must be float, S or, U")
