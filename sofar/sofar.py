@@ -1406,7 +1406,8 @@ def read_sofa(filename, verify=True, version="latest"):
     # attributes that are skipped
     skip = ["_Encoding"]
 
-    # init list of custom attributes
+    # init list of all and custom attributes
+    all_attr = []
     custom = []
 
     # open new NETCDF4 file for reading
@@ -1414,7 +1415,9 @@ def read_sofa(filename, verify=True, version="latest"):
 
         # get convention name and version
         convention = getattr(file, "SOFAConventions")
+        all_attr.append("GLOBAL_SOFAConventions")
         version_in = getattr(file, "SOFAConventionsVersion")
+        all_attr.append("GLOBAL_SOFAConventionsVersion")
 
         # check if convention and version exist
         try:
@@ -1436,6 +1439,7 @@ def read_sofa(filename, verify=True, version="latest"):
         for attr in file.ncattrs():
 
             value = getattr(file, attr)
+            all_attr.append("GLOBAL_" + attr)
 
             if not hasattr(sofa, "GLOBAL_" + attr):
                 _add_custom_api_entry(sofa, "GLOBAL_" + attr, value, None,
@@ -1453,6 +1457,7 @@ def read_sofa(filename, verify=True, version="latest"):
                 file[var]._Encoding = "ascii"
 
             value = _format_value_from_netcdf(file[var][:], var)
+            all_attr.append(var.replace(".", "_"))
 
             if hasattr(sofa, var.replace(".", "_")):
                 setattr(sofa, var.replace(".", "_"), value)
@@ -1469,6 +1474,7 @@ def read_sofa(filename, verify=True, version="latest"):
             for attr in [a for a in file[var].ncattrs() if a not in skip]:
 
                 value = getattr(file[var], attr)
+                all_attr.append(var.replace(".", "_") + "_" + attr)
 
                 if not hasattr(sofa, var.replace(".", "_") + "_" + attr):
                     _add_custom_api_entry(
@@ -1479,8 +1485,15 @@ def read_sofa(filename, verify=True, version="latest"):
                 else:
                     setattr(sofa, var.replace(".", "_") + "_" + attr, value)
 
-        # do not allow writing read only attributes any more
-        sofa._protected = True
+    # remove fields from initial Sofa object that were not contained in NetCDF
+    # file (initial Sofa object contained mandatory and optional fields)
+    attrs = [attr for attr in sofa.__dict__.keys() if not attr.startswith("_")]
+    for attr in attrs:
+        if attr not in all_attr:
+            delattr(sofa, attr)
+
+    # do not allow writing read only attributes any more
+    sofa._protected = True
 
     # notice about custom entries
     if custom:
