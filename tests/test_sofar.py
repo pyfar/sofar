@@ -504,7 +504,7 @@ def test_verify_value():
                     "degrees": "degree"}
 
     # Simple pass: no restriction on value
-    assert sf.Sofa._verify_value("meter", None, unit_aliases)
+    assert sf.Sofa._verify_value("goofy", None, unit_aliases)
 
     # simple pass: single unit
     assert sf.Sofa._verify_value("meter", "metre", unit_aliases)
@@ -513,8 +513,12 @@ def test_verify_value():
     assert sf.Sofa._verify_value("degrees, degrees, meter",
                                  "degree, degree, metre", unit_aliases)
 
+    # complex pass: list of units with other separators allowed by AES69
+    assert sf.Sofa._verify_value("degrees,degrees meter",
+                                 "degree, degree, metre", unit_aliases)
+
     # simple fail: single unit
-    assert not sf.Sofa._verify_value("centimetre", "metre", unit_aliases)
+    assert not sf.Sofa._verify_value("centimeter", "metre", unit_aliases)
 
     # complex fail: list of units
     assert not sf.Sofa._verify_value("rad, rad, metre",

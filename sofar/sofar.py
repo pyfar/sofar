@@ -1,4 +1,5 @@
 import os
+import re
 import glob
 import json
 import requests
@@ -927,13 +928,19 @@ class Sofa():
 
             # in case test is a string it might be a unit and unit aliases
             # according to the SOFA standard must be checked
-            units = test.split(", ") if isinstance(test, str) else []
-            ref = ref.split(", ") if isinstance(ref, str) else ref
 
+            # Following the SOFA standard AES69-2020, units may be separated by
+            # `, ` (comma and space), `,` (comma only), and ` ` (space only).
+            # (regexp ', ?' matches ', ' and ',')
+            ref = re.split(', ?| ', ref) if isinstance(ref, str) else ref
+            units = re.split(', ?| ', test) if isinstance(test, str) else []
+
+            # check if number of units agree
             if not units or len(ref) != len(units):
                 value_valid = False
                 return value_valid
 
+            # check if units are valid
             for unit, unit_ref in zip(units, ref):
                 if unit != unit_ref and (unit not in unit_aliases
                                          or unit_aliases[unit] != unit_ref):
