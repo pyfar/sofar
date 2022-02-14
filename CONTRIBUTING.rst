@@ -183,9 +183,13 @@ A reminder for the maintainers on how to deploy.
 
 Switch to main and run::
 
-$ bumpversion patch # possible: major / minor / patch
-$ git push
+$ bumpversion patch --verbose # possible: major / minor / patch
+
+Bumpversion will update all version strings, create and comitt tags by default
+
 $ git push --tags
 
 Travis will then deploy to PyPI if tests pass.
+
+- Merge main back into develop
 
