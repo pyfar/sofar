@@ -1339,6 +1339,30 @@ def _update_conventions(conventions_path=None):
         print("... conventions already up to date.")
 
 
+def _compile_conventions():
+    """
+    Compile SOFA conventions (json files) from source conventions (csv files
+    from SOFA API_MO), i.e., only do step 2 from `_update_conventions`. This is
+    a helper function for debugging and developing and might break sofar.
+    """
+    # as a pure developer function, this is not tested.
+
+    csv_files = sf.sofar._get_conventions("path_source")
+
+    for csv_file in csv_files:
+        # convert SOFA conventions from csv to json
+        convention_dict = sf.sofar._convention_csv2dict(csv_file)
+
+        # get json file name
+        head, tail = os.path.split(csv_file)
+        json_file = os.path.join(
+            head[:-len("source")], tail[:-len("csv")] + "json")
+
+        # write to json file
+        with open(json_file, 'w') as file:
+            json.dump(convention_dict, file, indent=4)
+
+
 def list_conventions():
     """
     List available SOFA conventions by printing to the console.
