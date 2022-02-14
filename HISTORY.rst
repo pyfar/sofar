@@ -2,7 +2,7 @@ History
 =======
 
 
-0.1.5 (2022_02_14)
+0.2.0 (2022_02_14)
 ------------------
 * Feature: Add `Sofa.delete` function to delete optional variables and attributes from SOFA objects
 * Bugfix: sofar.read_sofa added data with default values from the SOFA convention even if the data were not contained in the SOFA-files. This is now fixed.
@@ -14,7 +14,6 @@ History
 0.1.4 (2021-12-03)
 ------------------
 * Bugfix: Patch for correctly creating Sofa objects if the path to sofar contains underscores '_'
-
 
 0.1.3 (2021-11-19)
 ------------------
