@@ -1995,7 +1995,7 @@ def _format_value_from_netcdf(value, key):
         # string arrays are stored in masked arrays with empty strings '' being
         # masked. Convert to regular arrays with unmasked empty strings
         if str(value.dtype)[1] == "S":
-            value = chartostring(value)
+            value = chartostring(value, encoding="ascii")
         value = np.atleast_1d(value).astype("U")
     else:
         raise TypeError(
