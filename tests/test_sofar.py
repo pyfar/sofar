@@ -947,6 +947,19 @@ def test_add_entry():
         sofa.add_attribute("Variable_Unit", "Celsius")
 
 
+def test_delete_entry():
+
+    sofa = sf.Sofa("SimpleHeadphoneIR")
+    assert hasattr(sofa, "GLOBAL_History")
+    assert hasattr(sofa, "SourceManufacturer")
+    # delete one optional attribute and variable
+    sofa.delete("GLOBAL_History")
+    sofa.delete("SourceManufacturer")
+    # check if data were removed
+    assert not hasattr(sofa, "GLOBAL_History")
+    assert not hasattr(sofa, "SourceManufacturer")
+
+
 def test_get_size_and_shape_of_string_var():
 
     # test with string

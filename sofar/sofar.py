@@ -420,6 +420,21 @@ class Sofa():
 
         self._add_entry(name, value, 'attribute', None)
 
+    def delete(self, name):
+        """
+        Delete variable or attribute from SOFA object.
+
+        Note that mandatory data can not be deleted. Call
+        :py:func:`Sofa.info("optional") <sofar.sofar.Sofa.info>` to list all
+        optional variables and attributes.
+
+        Parameters
+        ----------
+        name : str
+            Name of the variable or attribute to be deleted
+        """
+        delattr(self, name)
+
     def _add_entry(self, name, value, dtype, dimensions):
         """
         Add custom data to a SOFA object. See add_variable and add_attribute
