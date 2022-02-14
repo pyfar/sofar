@@ -1355,7 +1355,10 @@ def _get_conventions(return_type):
     return_type : string, optional
         ``'path'``
             Return a list with the full paths and filenames of the convention
-            files
+            files (json files)
+        ``'path_source'``
+            Return a list with the full paths and filenames of the source
+            convention files from API_MO (csv files)
         ``'name'``
             Return a list of the convention names without version
         ``'name_version'``
@@ -1369,10 +1372,16 @@ def _get_conventions(return_type):
     See parameter `return_type`.
     """
     # directory containing the SOFA conventions
-    directory = os.path.join(os.path.dirname(__file__), "conventions")
+    if return_type == "path_source":
+        directory = os.path.join(
+            os.path.dirname(__file__), "conventions", "source")
+        reg_str = "*.csv"
+    else:
+        directory = os.path.join(os.path.dirname(__file__), "conventions")
+        reg_str = "*.json"
 
     # SOFA convention files
-    paths = [file for file in glob.glob(os.path.join(directory, "*.json"))]
+    paths = [file for file in glob.glob(os.path.join(directory, reg_str))]
 
     conventions_str = "Available SOFA conventions:\n"
 
@@ -1386,7 +1395,7 @@ def _get_conventions(return_type):
 
     if return_type is None:
         return
-    elif return_type == "path":
+    elif return_type.startswith("path"):
         return paths
     elif return_type == "name":
         return conventions

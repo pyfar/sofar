@@ -31,6 +31,16 @@ def test_get_conventions(capfd):
     paths = _get_conventions(return_type="path")
     assert isinstance(paths, list)
     assert os.path.isfile(paths[0])
+    assert "source" not in paths[0]
+    assert paths[0].endswith(".json")
+    out, _ = capfd.readouterr()
+    assert out == ""
+
+    paths = _get_conventions(return_type="path_source")
+    assert isinstance(paths, list)
+    assert os.path.isfile(paths[0])
+    assert "source" in paths[0]
+    assert paths[0].endswith(".csv")
     out, _ = capfd.readouterr()
     assert out == ""
 
