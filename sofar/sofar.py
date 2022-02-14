@@ -51,17 +51,29 @@ class Sofa():
         # create SOFA object
         sofa = sf.Sofa("SimpleFreeFieldHRIR")
 
-    Add data
+    Add data as a list
 
     .. code-block:: python
 
         sofa.Data_IR = [1, 1]
 
     Data can be entered as numbers, numpy arrays or lists. Note the following
-    if entering a list
 
-    1. Lists are converted to a numpy array with at least two dimensions.
-    2. Missing dimensions are appended when writing the SOFA object to disk.
+    1. Lists are converted to numpy arrays with at least two dimensions, i.e.,
+       ``sofa.Data_IR`` is converted to a numpy array of shape (1, 2)
+    2. Missing dimensions are appended when writing the SOFA object to disk,
+       i.e., ``sofa.Data_IR`` is written as an array of shape (1, 2, 1) because
+       the SOFA standard AES69-2020 defines it as a three dimensional array
+       with the dimensions (`M: measurements`, `R: receivers`, `N: samples`)
+    3. When reading data from a SOFA file, array data is always returned as
+       numpy arrays and singleton trailing dimensions are discarded (numpy
+       default). I.e., ``sofa.Data_IR`` will again be an array of shape (1, 2)
+       after writing and reading to and from disk.
+    4. One dimensional arrays with only one element will be converted to scalar
+       values. E.g. ``sofa.Data_SamplingRate`` is stored as an array of shape
+       (1, ) inside SOFA files (according to the SOFA standard AES69-2020) but
+       will be a scalar inside SOFA objects after reading from disk.
+
 
     For more examples refer to the `Quick tour of SOFA and sofar` at
     https://sofar.readthedocs.io/en/latest/
@@ -1417,6 +1429,23 @@ def read_sofa(filename, verify=True, version="latest"):
     -------
     sofa : Sofa
         The SOFA object filled with the default values of the convention.
+
+    Notes
+    -----
+
+    1. Missing dimensions are appended when writing the SOFA object to disk.
+       E.g., if ``sofa.Data_IR`` is of shape (1, 2) it is written as an array
+       of shape (1, 2, 1) because the SOFA standard AES69-2020 defines it as a
+       three dimensional array with the dimensions (`M: measurements`,
+       `R: receivers`, `N: samples`)
+    2. When reading data from a SOFA file, array data is always returned as
+       numpy arrays and singleton trailing dimensions are discarded (numpy
+       default). I.e., ``sofa.Data_IR`` will again be an array of shape (1, 2)
+       after writing and reading to and from disk.
+    3. One dimensional arrays with only one element will be converted to scalar
+       values. E.g. ``sofa.Data_SamplingRate`` is stored as an array of shape
+       (1, ) inside SOFA files (according to the SOFA standard AES69-2020) but
+       will be a scalar inside SOFA objects after reading from disk.
     """
 
     # check the filename
@@ -1559,6 +1588,23 @@ def write_sofa(filename: str, sofa: Sofa, version="latest", compression=4):
         The level of compression with ``0`` being no compression and ``9``
         being the best compression. The default of ``9`` optimizes the file
         size but increases the time for writing files to disk.
+
+    Notes
+    -----
+
+    1. Missing dimensions are appended when writing the SOFA object to disk.
+       E.g., if ``sofa.Data_IR`` is of shape (1, 2) it is written as an array
+       of shape (1, 2, 1) because the SOFA standard AES69-2020 defines it as a
+       three dimensional array with the dimensions (`M: measurements`,
+       `R: receivers`, `N: samples`)
+    2. When reading data from a SOFA file, array data is always returned as
+       numpy arrays and singleton trailing dimensions are discarded (numpy
+       default). I.e., ``sofa.Data_IR`` will again be an array of shape (1, 2)
+       after writing and reading to and from disk.
+    3. One dimensional arrays with only one element will be converted to scalar
+       values. E.g. ``sofa.Data_SamplingRate`` is stored as an array of shape
+       (1, ) inside SOFA files (according to the SOFA standard AES69-2020) but
+       will be a scalar inside SOFA objects after reading from disk.
     """
 
     # check the filename
