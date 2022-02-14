@@ -504,7 +504,7 @@ def test_verify_value():
                     "degrees": "degree"}
 
     # Simple pass: no restriction on value
-    assert sf.Sofa._verify_value("meter", None, unit_aliases)
+    assert sf.Sofa._verify_value("goofy", None, unit_aliases)
 
     # simple pass: single unit
     assert sf.Sofa._verify_value("meter", "metre", unit_aliases)
@@ -513,8 +513,12 @@ def test_verify_value():
     assert sf.Sofa._verify_value("degrees, degrees, meter",
                                  "degree, degree, metre", unit_aliases)
 
+    # complex pass: list of units with other separators allowed by AES69
+    assert sf.Sofa._verify_value("degrees,degrees meter",
+                                 "degree, degree, metre", unit_aliases)
+
     # simple fail: single unit
-    assert not sf.Sofa._verify_value("centimetre", "metre", unit_aliases)
+    assert not sf.Sofa._verify_value("centimeter", "metre", unit_aliases)
 
     # complex fail: list of units
     assert not sf.Sofa._verify_value("rad, rad, metre",
@@ -739,7 +743,8 @@ def test_write_sofa_compression():
         filesize = os.stat(filename).st_size
 
 
-def test_roundtrip():
+@pytest.mark.parametrize("mandatory", [(False), (True)])
+def test_roundtrip(mandatory):
     """"
     Cyclic test of create, write, read functions
 
@@ -750,16 +755,44 @@ def test_roundtrip():
     """
 
     temp_dir = TemporaryDirectory()
-    names = _get_conventions(return_type="name")
+    names_versions = _get_conventions(return_type="name_version")
 
-    for name in names:
+    for name, version in names_versions:
         print(f"Testing: {name}")
         file = os.path.join(temp_dir.name, name + ".sofa")
-        sofa = sf.Sofa(name)
-        sf.write_sofa(file, sofa)
-        sofa_r = sf.read_sofa(file)
+        sofa = sf.Sofa(name, mandatory, version)
+        sf.write_sofa(file, sofa, version)
+        sofa_r = sf.read_sofa(file, version=version)
         identical = sf.equals(sofa, sofa_r, verbose=True, exclude="DATE")
         assert identical
+
+
+def test_roundtrip_multidimensional_string_variable():
+    """
+    Test writing and reading multidimensional string variables (Wringting
+    string variables with one dimension is done in the other roundtrip test).
+    """
+
+    temp_dir = TemporaryDirectory()
+    file = os.path.join(temp_dir.name, "HeadphoneIR.sofa")
+
+    sofa = sf.Sofa("SimpleHeadphoneIR")
+    # add dummy matrix that contains 4 measurements
+    sofa.Data_IR = np.zeros((4, 2, 10))
+    # add (4, 1) string variable
+    sofa.SourceManufacturer = [["someone"], ["else"], ["did"], ["this"]]
+    # remove other string variables for simplicity
+    delattr(sofa, "SourceModel")
+    delattr(sofa, "ReceiverDescription")
+    delattr(sofa, "EmitterDescription")
+    delattr(sofa, "MeasurementDate")
+
+    # read write and assert
+    sf.write_sofa(file, sofa)
+    sofa_r = sf.read_sofa(file)
+
+    identical = sf.equals(sofa, sofa_r, exclude="DATE")
+    assert identical
 
 
 def test_equals_global_parameters():
@@ -914,6 +947,19 @@ def test_add_entry():
         sofa.add_attribute("Variable_Unit", "Celsius")
 
 
+def test_delete_entry():
+
+    sofa = sf.Sofa("SimpleHeadphoneIR")
+    assert hasattr(sofa, "GLOBAL_History")
+    assert hasattr(sofa, "SourceManufacturer")
+    # delete one optional attribute and variable
+    sofa.delete("GLOBAL_History")
+    sofa.delete("SourceManufacturer")
+    # check if data were removed
+    assert not hasattr(sofa, "GLOBAL_History")
+    assert not hasattr(sofa, "SourceManufacturer")
+
+
 def test_get_size_and_shape_of_string_var():
 
     # test with string
@@ -1005,15 +1051,26 @@ def test_format_value_for_netcdf():
 
 def test_format_value_from_netcdf():
 
-    # single string
-    value = _format_value_from_netcdf(
-        np.array(["string"], dtype="S6"), "Some_Attribute")
-    assert value == "string"
+    # single string (emulate NetCDF binary format)
+    value_in = np.array(["s", "t", "r"], dtype="S1")
+    value = _format_value_from_netcdf(value_in, "Some_Attribute")
+    assert value == "str"
 
-    # array of strings
-    value = _format_value_from_netcdf(
-        np.array(["string1", "string2"], dtype="S7"), "Some_Attribute")
-    assert all(value == np.array(["string1", "string2"], dtype="U"))
+    # array of strings (emulate NetCDF binary format)
+    value_in = np.array([["s", "t", "r", "1"], ["s", "t", "r", "2"]],
+                        dtype="S1")
+    value = _format_value_from_netcdf(value_in, "Some_Attribute")
+    assert all(value == np.array(["str1", "str2"], dtype="U"))
+
+    # single string (emulate NetCDF ascii encoding)
+    value_in = np.array(["str"], dtype="U")
+    value = _format_value_from_netcdf(value_in, "Some_Attribute")
+    assert value == "str"
+
+    # array of strings (emulate NetCDF binary format)
+    value_in = np.array(["str1", "str2"], dtype="U")
+    value = _format_value_from_netcdf(value_in, "Some_Attribute")
+    assert all(value == np.array(["str1", "str2"], dtype="U"))
 
     # numerical array that can be scalar
     value = _format_value_from_netcdf(

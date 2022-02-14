@@ -1,4 +1,5 @@
 import os
+import re
 import glob
 import json
 import requests
@@ -8,7 +9,7 @@ import numpy as np
 import numpy.testing as npt
 import warnings
 from bs4 import BeautifulSoup
-from netCDF4 import Dataset, stringtochar
+from netCDF4 import Dataset, stringtochar, chartostring
 from copy import deepcopy
 import sofar as sf
 
@@ -50,17 +51,29 @@ class Sofa():
         # create SOFA object
         sofa = sf.Sofa("SimpleFreeFieldHRIR")
 
-    Add data
+    Add data as a list
 
     .. code-block:: python
 
         sofa.Data_IR = [1, 1]
 
     Data can be entered as numbers, numpy arrays or lists. Note the following
-    if entering a list
 
-    1. Lists are converted to a numpy array with at least two dimensions.
-    2. Missing dimensions are appended when writing the SOFA object to disk.
+    1. Lists are converted to numpy arrays with at least two dimensions, i.e.,
+       ``sofa.Data_IR`` is converted to a numpy array of shape (1, 2)
+    2. Missing dimensions are appended when writing the SOFA object to disk,
+       i.e., ``sofa.Data_IR`` is written as an array of shape (1, 2, 1) because
+       the SOFA standard AES69-2020 defines it as a three dimensional array
+       with the dimensions (`M: measurements`, `R: receivers`, `N: samples`)
+    3. When reading data from a SOFA file, array data is always returned as
+       numpy arrays and singleton trailing dimensions are discarded (numpy
+       default). I.e., ``sofa.Data_IR`` will again be an array of shape (1, 2)
+       after writing and reading to and from disk.
+    4. One dimensional arrays with only one element will be converted to scalar
+       values. E.g. ``sofa.Data_SamplingRate`` is stored as an array of shape
+       (1, ) inside SOFA files (according to the SOFA standard AES69-2020) but
+       will be a scalar inside SOFA objects after reading from disk.
+
 
     For more examples refer to the `Quick tour of SOFA and sofar` at
     https://sofar.readthedocs.io/en/latest/
@@ -418,6 +431,21 @@ class Sofa():
         """
 
         self._add_entry(name, value, 'attribute', None)
+
+    def delete(self, name):
+        """
+        Delete variable or attribute from SOFA object.
+
+        Note that mandatory data can not be deleted. Call
+        :py:func:`Sofa.info("optional") <sofar.sofar.Sofa.info>` to list all
+        optional variables and attributes.
+
+        Parameters
+        ----------
+        name : str
+            Name of the variable or attribute to be deleted
+        """
+        delattr(self, name)
 
     def _add_entry(self, name, value, dtype, dimensions):
         """
@@ -927,13 +955,19 @@ class Sofa():
 
             # in case test is a string it might be a unit and unit aliases
             # according to the SOFA standard must be checked
-            units = test.split(", ") if isinstance(test, str) else []
-            ref = ref.split(", ") if isinstance(ref, str) else ref
 
+            # Following the SOFA standard AES69-2020, units may be separated by
+            # `, ` (comma and space), `,` (comma only), and ` ` (space only).
+            # (regexp ', ?' matches ', ' and ',')
+            ref = re.split(', ?| ', ref) if isinstance(ref, str) else ref
+            units = re.split(', ?| ', test) if isinstance(test, str) else []
+
+            # check if number of units agree
             if not units or len(ref) != len(units):
                 value_valid = False
                 return value_valid
 
+            # check if units are valid
             for unit, unit_ref in zip(units, ref):
                 if unit != unit_ref and (unit not in unit_aliases
                                          or unit_aliases[unit] != unit_ref):
@@ -1398,6 +1432,23 @@ def read_sofa(filename, verify=True, version="latest"):
     -------
     sofa : Sofa
         The SOFA object filled with the default values of the convention.
+
+    Notes
+    -----
+
+    1. Missing dimensions are appended when writing the SOFA object to disk.
+       E.g., if ``sofa.Data_IR`` is of shape (1, 2) it is written as an array
+       of shape (1, 2, 1) because the SOFA standard AES69-2020 defines it as a
+       three dimensional array with the dimensions (`M: measurements`,
+       `R: receivers`, `N: samples`)
+    2. When reading data from a SOFA file, array data is always returned as
+       numpy arrays and singleton trailing dimensions are discarded (numpy
+       default). I.e., ``sofa.Data_IR`` will again be an array of shape (1, 2)
+       after writing and reading to and from disk.
+    3. One dimensional arrays with only one element will be converted to scalar
+       values. E.g. ``sofa.Data_SamplingRate`` is stored as an array of shape
+       (1, ) inside SOFA files (according to the SOFA standard AES69-2020) but
+       will be a scalar inside SOFA objects after reading from disk.
     """
 
     # check the filename
@@ -1409,15 +1460,18 @@ def read_sofa(filename, verify=True, version="latest"):
     # attributes that are skipped
     skip = ["_Encoding"]
 
-    # init list of custom attributes
+    # init list of all and custom attributes
+    all_attr = []
     custom = []
 
     # open new NETCDF4 file for reading
-    with Dataset(filename, "r+", format="NETCDF4") as file:
+    with Dataset(filename, "r", format="NETCDF4") as file:
 
         # get convention name and version
         convention = getattr(file, "SOFAConventions")
+        all_attr.append("GLOBAL_SOFAConventions")
         version_in = getattr(file, "SOFAConventionsVersion")
+        all_attr.append("GLOBAL_SOFAConventionsVersion")
 
         # check if convention and version exist
         try:
@@ -1439,6 +1493,7 @@ def read_sofa(filename, verify=True, version="latest"):
         for attr in file.ncattrs():
 
             value = getattr(file, attr)
+            all_attr.append("GLOBAL_" + attr)
 
             if not hasattr(sofa, "GLOBAL_" + attr):
                 _add_custom_api_entry(sofa, "GLOBAL_" + attr, value, None,
@@ -1451,11 +1506,8 @@ def read_sofa(filename, verify=True, version="latest"):
         # load data
         for var in file.variables.keys():
 
-            # for automatic conversion of string variables
-            if file[var].dtype == "S1":
-                file[var]._Encoding = "ascii"
-
             value = _format_value_from_netcdf(file[var][:], var)
+            all_attr.append(var.replace(".", "_"))
 
             if hasattr(sofa, var.replace(".", "_")):
                 setattr(sofa, var.replace(".", "_"), value)
@@ -1472,6 +1524,7 @@ def read_sofa(filename, verify=True, version="latest"):
             for attr in [a for a in file[var].ncattrs() if a not in skip]:
 
                 value = getattr(file[var], attr)
+                all_attr.append(var.replace(".", "_") + "_" + attr)
 
                 if not hasattr(sofa, var.replace(".", "_") + "_" + attr):
                     _add_custom_api_entry(
@@ -1482,8 +1535,15 @@ def read_sofa(filename, verify=True, version="latest"):
                 else:
                     setattr(sofa, var.replace(".", "_") + "_" + attr, value)
 
-        # do not allow writing read only attributes any more
-        sofa._protected = True
+    # remove fields from initial Sofa object that were not contained in NetCDF
+    # file (initial Sofa object contained mandatory and optional fields)
+    attrs = [attr for attr in sofa.__dict__.keys() if not attr.startswith("_")]
+    for attr in attrs:
+        if attr not in all_attr:
+            delattr(sofa, attr)
+
+    # do not allow writing read only attributes any more
+    sofa._protected = True
 
     # notice about custom entries
     if custom:
@@ -1531,6 +1591,23 @@ def write_sofa(filename: str, sofa: Sofa, version="latest", compression=4):
         The level of compression with ``0`` being no compression and ``9``
         being the best compression. The default of ``9`` optimizes the file
         size but increases the time for writing files to disk.
+
+    Notes
+    -----
+
+    1. Missing dimensions are appended when writing the SOFA object to disk.
+       E.g., if ``sofa.Data_IR`` is of shape (1, 2) it is written as an array
+       of shape (1, 2, 1) because the SOFA standard AES69-2020 defines it as a
+       three dimensional array with the dimensions (`M: measurements`,
+       `R: receivers`, `N: samples`)
+    2. When reading data from a SOFA file, array data is always returned as
+       numpy arrays and singleton trailing dimensions are discarded (numpy
+       default). I.e., ``sofa.Data_IR`` will again be an array of shape (1, 2)
+       after writing and reading to and from disk.
+    3. One dimensional arrays with only one element will be converted to scalar
+       values. E.g. ``sofa.Data_SamplingRate`` is stored as an array of shape
+       (1, ) inside SOFA files (according to the SOFA standard AES69-2020) but
+       will be a scalar inside SOFA objects after reading from disk.
     """
 
     # check the filename
@@ -1917,10 +1994,12 @@ def _format_value_from_netcdf(value, key):
         else:
             # Convert to numpy array or scalar
             value = np.asarray(value)
-    elif str(value.dtype)[1] == "S" or str(value.dtype)[1] == "U":
+    elif str(value.dtype)[1] in ["S", "U"]:
         # string arrays are stored in masked arrays with empty strings '' being
         # masked. Convert to regular arrays with unmasked empty strings
-        value = np.asarray(value).astype("U")
+        if str(value.dtype)[1] == "S":
+            value = chartostring(value, encoding="ascii")
+        value = np.atleast_1d(value).astype("U")
     else:
         raise TypeError(
             f"{key}: value.dtype is {value.dtype} but must be float, S or, U")
@@ -2111,6 +2190,9 @@ def _sofa_restrictions():
             "value": ["free field", "reverberant", "shoebox", "dae"]},
         "GLOBAL_SOFAConventions": {
             "value": _get_conventions(return_type="name")},
+        # check NLongName
+        "N_LongName": {
+            "value": ["frequency"]},
         # Listener ------------------------------------------------------------
         # Check values and consistency of if ListenerPosition Type and Unit
         "ListenerPosition_Type": {
@@ -2228,7 +2310,7 @@ def _sofa_restrictions():
             "Data_Real": None,
             "Data_Imag": None,
             "N": None,
-            "N_LongName": (["frequency"], "frequency"),
+            # "N_LongName": (["frequency"], "frequency"),  # optional parameter
             "N_Units": (["hertz"], "hertz")},
         "SOS": {
             "Data_SOS": None,

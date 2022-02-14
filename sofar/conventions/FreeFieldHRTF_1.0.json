@@ -312,7 +312,7 @@
     },
     "N:Units": {
         "default": "hertz",
-        "flags": null,
+        "flags": "m",
         "dimensions": null,
         "type": "attribute",
         "comment": ""
