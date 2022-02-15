@@ -1301,7 +1301,6 @@ def _update_conventions(conventions_path=None):
             continue
 
         filename_csv = os.path.join(conventions_path, "source", convention)
-        filename_json = os.path.join(conventions_path, convention[:-3]+"json")
 
         # download SOFA convention definitions to package diretory
         data = requests.get(url_raw + "/" + convention)
