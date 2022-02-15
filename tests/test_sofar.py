@@ -351,12 +351,15 @@ def test_sofa_verify_restrictions_data_wrong_value(key, value, msg):
     Test assertions for generally restricted data values.
     """
 
-    # invalid data type
     sofa = sf.Sofa("SingleRoomSRIR")
-    sofa.add_variable("RoomVolume", 200, "double", 'II')
-    sofa.add_attribute("RoomVolume_Units", "cubic metre")
-    sofa.add_variable("RoomTemperature", 100, "double", 'II')
-    sofa.add_attribute("RoomTemperature_Units", "Kelvin")
+    # add variables for testing certain dependencies. If cases in case the
+    # variables get added to the convnetion some time later.
+    if not hasattr(sofa, "RoomVolume"):
+        sofa.add_variable("RoomVolume", 200, "double", 'II')
+        sofa.add_attribute("RoomVolume_Units", "cubic metre")
+    if not hasattr(sofa, "RoomTemperature"):
+        sofa.add_variable("RoomTemperature", 100, "double", 'II')
+        sofa.add_attribute("RoomTemperature_Units", "Kelvin")
     sofa._protected = False
     setattr(sofa, key, value)
     sofa._protected = True
@@ -377,12 +380,15 @@ def test_sofa_verify_restrictions_data_missing_attribute(key, msg):
     another field.
     """
 
-    # invalid data type
     sofa = sf.Sofa("SingleRoomSRIR")
-    sofa.add_variable("RoomVolume", 200, "double", 'II')
-    sofa.add_attribute("RoomVolume_Units", "cubic metre")
-    sofa.add_variable("RoomTemperature", 100, "double", 'II')
-    sofa.add_attribute("RoomTemperature_Units", "Kelvin")
+    # add variables for testing certain dependencies. If cases in case the
+    # variables get added to the convnetion some time later.
+    if not hasattr(sofa, "RoomVolume"):
+        sofa.add_variable("RoomVolume", 200, "double", 'II')
+        sofa.add_attribute("RoomVolume_Units", "cubic metre")
+    if not hasattr(sofa, "RoomTemperature"):
+        sofa.add_variable("RoomTemperature", 100, "double", 'II')
+        sofa.add_attribute("RoomTemperature_Units", "Kelvin")
     sofa._protected = False
     delattr(sofa, key)
     sofa._protected = True
