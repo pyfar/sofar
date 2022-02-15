@@ -1,5 +1,7 @@
+# %%
 import sofar as sf
 from sofar.sofar import (_update_conventions,
+                         _compile_conventions,
                          _get_conventions,
                          _format_value_for_netcdf,
                          _format_value_from_netcdf,
@@ -7,6 +9,7 @@ from sofar.sofar import (_update_conventions,
                          _nd_newaxis,
                          _verify_convention_and_version)
 import os
+import json
 from tempfile import TemporaryDirectory
 import pytest
 from pytest import raises
@@ -81,6 +84,38 @@ def test_update_conventions(capfd):
     out, _ = capfd.readouterr()
     assert "added" not in out
     assert "updated" not in out
+
+
+def test_compile_conventions():
+    """Test compiling the json conventions from the csv files."""
+
+    # create temporary directory and copy existing source conventions
+    temp_dir = TemporaryDirectory()
+    os.mkdir(os.path.join(temp_dir.name, "source"))
+    dir_util.copy_tree(os.path.join(
+        os.path.dirname(__file__), "..", "sofar", "conventions", "source"),
+        os.path.join(temp_dir.name, "source"))
+
+    # compile conventions
+    _compile_conventions(temp_dir.name)
+
+    # get list of reference json files
+    paths = _get_conventions("path")
+    conventions = [os.path.split(path)[1] for path in paths]
+    path = os.path.split(paths[0])[0]
+
+    for convention in conventions:
+        # load conventions
+        ref = os.path.join(path, convention)
+        with open(ref, "r") as file:
+            ref_data = json.load(file)
+
+        test = os.path.join(temp_dir.name, convention)
+        with open(test, "r") as file:
+            test_data = json.load(file)
+
+        # compare conventions
+        assert ref_data == test_data
 
 
 def test_create_sofa_object(capfd):
@@ -355,10 +390,10 @@ def test_sofa_verify_restrictions_data_wrong_value(key, value, msg):
     # add variables for testing certain dependencies. If cases in case the
     # variables get added to the convnetion some time later.
     if not hasattr(sofa, "RoomVolume"):
-        sofa.add_variable("RoomVolume", 200, "double", 'II')
+        sofa.add_variable("RoomVolume", 200, "double", 'I')
         sofa.add_attribute("RoomVolume_Units", "cubic metre")
     if not hasattr(sofa, "RoomTemperature"):
-        sofa.add_variable("RoomTemperature", 100, "double", 'II')
+        sofa.add_variable("RoomTemperature", 100, "double", 'I')
         sofa.add_attribute("RoomTemperature_Units", "Kelvin")
     sofa._protected = False
     setattr(sofa, key, value)
@@ -384,10 +419,10 @@ def test_sofa_verify_restrictions_data_missing_attribute(key, msg):
     # add variables for testing certain dependencies. If cases in case the
     # variables get added to the convnetion some time later.
     if not hasattr(sofa, "RoomVolume"):
-        sofa.add_variable("RoomVolume", 200, "double", 'II')
+        sofa.add_variable("RoomVolume", 200, "double", 'I')
         sofa.add_attribute("RoomVolume_Units", "cubic metre")
     if not hasattr(sofa, "RoomTemperature"):
-        sofa.add_variable("RoomTemperature", 100, "double", 'II')
+        sofa.add_variable("RoomTemperature", 100, "double", 'I')
         sofa.add_attribute("RoomTemperature_Units", "Kelvin")
     sofa._protected = False
     delattr(sofa, key)

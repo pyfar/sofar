@@ -1292,7 +1292,7 @@ def _update_conventions(conventions_path=None):
     if not os.path.isdir(os.path.join(conventions_path, "source")):
         os.mkdir(os.path.join(conventions_path, "source"))
 
-    # Loop conventions
+    # Loop and download conventions if they changed
     updated = False
     for convention in conventions:
 
@@ -1327,11 +1327,10 @@ def _update_conventions(conventions_path=None):
                 file.write(data)
             print(updated)
 
-        # convert SOFA conventions from csv to json
-        convention_dict = _convention_csv2dict(filename_csv)
-
-        with open(filename_json, 'w') as file:
-            json.dump(convention_dict, file, indent=4)
+    # compile json files from csv file
+    # (this is also done if nothing changed. It won't affect the content of
+    #  the json files but the time-stamp will be updated)
+    _compile_conventions()
 
     if updated:
         print("... done.")
@@ -1339,26 +1338,40 @@ def _update_conventions(conventions_path=None):
         print("... conventions already up to date.")
 
 
-def _compile_conventions():
+def _compile_conventions(conventions_path=None):
     """
     Compile SOFA conventions (json files) from source conventions (csv files
     from SOFA API_MO), i.e., only do step 2 from `_update_conventions`. This is
     a helper function for debugging and developing and might break sofar.
-    """
-    # as a pure developer function, this is not tested.
 
-    csv_files = sf.sofar._get_conventions("path_source")
+    Parameters
+    ----------
+    conventions_path : str
+        Path to the folder containing the conventions as json files (might be
+        empty) and the source convention as csv files in the subfolder `source`
+        (must not be empty). The default is ``None``, which uses the
+        default location inside the sofar package.
+    """
+    # directory handling
+    if conventions_path is None:
+        conventions_path = os.path.join(os.path.dirname(__file__),
+                                        "conventions")
+    if not os.path.isdir(os.path.join(conventions_path, "source")):
+        raise ValueError("conventions_path must contain the folder 'source'")
+
+    # get list of source conventions
+    csv_files = glob.glob(os.path.join(
+        conventions_path, "source", "*.csv"))
+    csv_files = [os.path.split(csv_file)[1] for csv_file in csv_files]
 
     for csv_file in csv_files:
+
+        # directories for reading and writing
+        json_file = os.path.join(conventions_path, csv_file[:-3] + "json")
+        csv_file = os.path.join(conventions_path, "source", csv_file)
+
         # convert SOFA conventions from csv to json
         convention_dict = sf.sofar._convention_csv2dict(csv_file)
-
-        # get json file name
-        head, tail = os.path.split(csv_file)
-        json_file = os.path.join(
-            head[:-len("source")], tail[:-len("csv")] + "json")
-
-        # write to json file
         with open(json_file, 'w') as file:
             json.dump(convention_dict, file, indent=4)
 
