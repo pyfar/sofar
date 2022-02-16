@@ -272,7 +272,11 @@ class Sofa():
 
     def info(self, info):
         """
-        Print information about a SOFA object
+        Print information about the convention of a SOFA object.
+
+        Prints the variable type (attribute, double, string), shape, flags
+        (mandatory, read only) and comment (if any) for each or selected
+        entries.
 
         Parameters
         ----------
@@ -357,6 +361,76 @@ class Sofa():
         else:
             raise ValueError(f"info='{info}' is invalid")
 
+        print(info_str)
+
+    def inspect(self, file=None):
+        """
+        Get information about data inside a SOFA object.
+
+        Prints the values of all attributes and variables with six or less
+        entries and the shapes and type of all numeric and string variables.
+        When printing the values of arrays, single dimensions are discarded for
+        easy of display, i.e., an array of shape (1, 3, 2) will be displayed as
+        an array of shape (3, 2).
+
+        Parameters
+        ----------
+        file : str
+            Full path of a file under which the information is to be stored in
+            plain text. The default ``None`` does only print the information.
+        """
+
+        # update the private attribute `_convention` to make sure the required
+        # meta data is in place
+        self.verify(version="match")
+
+        # list of all attributes
+        keys = [k for k in self.__dict__.keys() if not k.startswith("_")]
+
+        # start printing the information
+        info_str = (
+            f"{self.GLOBAL_SOFAConventions} "
+            F"{self.GLOBAL_SOFAConventionsVersion} "
+            f"(SOFA version {self.GLOBAL_Version})\n")
+        info_str += "-" * len(info_str) + "\n"
+
+        for key in keys:
+
+            info_str += key + " : "
+            value = getattr(self, key)
+
+            # information for attributes and scalars
+            if self._convention[key]["type"] == "attribute" or value.size == 1:
+                info_str += str(value) + "\n"
+            # information for variables
+            else:
+                # get shape and dimension
+                shape = value.shape
+                dimension = self._dimensions[key]
+
+                # pad shape if required (trailing single dimensions are
+                # discarded following the numpy default)
+                while len(shape) < len(dimension):
+                    shape += (1, )
+
+                # make verbose shape, e.g., '(M=100, R=2, N=128, '
+                shape_verbose = "("
+                for s, d in zip(shape, dimension):
+                    shape_verbose += f"{d}={s}, "
+
+                # add shape information
+                info_str += shape_verbose[:-2] + ")\n"
+                # add value information if not too much
+                if value.size < 7:
+                    info_str += "  " + \
+                        str(np.squeeze(value)).replace("\n", "\n  ") + "\n"
+
+        # write to text file
+        if file is not None:
+            with open(file, 'w') as f_id:
+                f_id.write(info_str + "\n")
+
+        # output to console
         print(info_str)
 
     def add_variable(self, name, value, dtype, dimensions):
