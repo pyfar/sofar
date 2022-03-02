@@ -40,6 +40,19 @@ attributes before saving the data.
 Getting information about SOFA objects
 ======================================
 
+There are a couple of functions to get a quick insight into SOFA objects that
+are explained in more detail below
+
+* ``sofa.info`` gives you information about the convention (what data must be
+  provided, what data is optional, what shapes can the data have). This is
+  helpful when creating a new SOFA object.
+* ``sofa.inspect`` prints the data stored in a SOFA object or at least gives
+  the shape in case of large arrays that would clutter the output. This is
+  helpful when reading data from an existing SOFA object.
+* ``sofa.list_dimensions`` prints the dimensions of the data inside the SOFA
+  object.
+* ``sofa.get_dimension`` returns the size of a specific dimension.
+
 To list all attributes inside a SOFA object, type the following
 
 .. code-block:: python
@@ -117,6 +130,26 @@ variable use
     sofa.get_dimension("N)
     >>> N = 1
 
+Let's assume you downloaded a SOFA file from the `FABIAN database <https://depositonce.tu-berlin.de/handle/11303/6153.5>`_
+and want to quickly inspect it. You could use
+
+.. code-block:: python
+
+    sofa = sf.read_sofa("FABIAN_HRIR_measured_HATO_0.sofa")
+    sofa.inspect()
+    >>> GLOBAL_License : Creative Commons (CC-BY). Visit http://creativecommons.org/licenses/by/4.0/ for licence details.
+    >>> GLOBAL_Organization : Audio Communication Group, TU Berlin, Germany (www.ak.tu-berlin.de)
+    >>> ReceiverPosition : (R=2, C=3, I=1)
+    >>>   [[ 0.      0.0662  0.    ]
+    >>>    [ 0.     -0.0662  0.    ]]
+    >>> Data_IR : (M=11950, R=2, N=256)
+    >>> Data_SamplingRate : 44100.0
+    >>> Data_SamplingRate_Units : hertz
+
+Note that the above does not show the entire information for the sake of
+brevity. This will most likely give you a better idea of the data then
+``sofa.info`` and ``sofa.list_dimensions``.
+
 Adding data to SOFA objects
 ===========================
 
@@ -143,7 +176,7 @@ us, however, delete an optional entry that we do not need at this point
 
 .. code-block:: python
 
-    delattr(sofa, "SourceUp")
+    sofa.delete("SourceUp")
 
 In some cases you might want to add custom data - although third party
 applications most likely won't make use of non-standardized data. Try this

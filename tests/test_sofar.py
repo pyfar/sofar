@@ -695,6 +695,29 @@ def test_info(capfd):
     assert "ListenerPosition_Units\n    type: attribute" in out
 
 
+def test_inspect(capfd):
+
+    temp_dir = TemporaryDirectory()
+    file = os.path.join(temp_dir.name, "info.txt")
+
+    sofa = sf.Sofa("SimpleFreeFieldHRIR")
+
+    # inspect file
+    sofa.inspect(file)
+
+    # check terminal output
+    out, _ = capfd.readouterr()
+    assert "GLOBAL_SOFAConventions : SimpleFreeFieldHRIR" in out
+    assert ("ReceiverPosition : (R=2, C=3, I=1)\n"
+            "  [[ 0.    0.09  0.  ]\n"
+            "   [ 0.   -0.09  0.  ]]") in out
+
+    # check text file
+    with open(file, "r") as f_id:
+        text = f_id.readlines()
+    assert out == "".join(text)
+
+
 def test_read_sofa():
 
     temp_dir = TemporaryDirectory()
