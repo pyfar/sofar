@@ -6,7 +6,7 @@ Working with SOFA files
 The :ref:`quick_tour` showed how to access SOFA files. In many cases you will
 want to have a closer look at the data inside a SOFA file or use it for further
 processing. In this section, you will see examples of how to do that using
-`pyfar <pyfar.org>`.
+`pyfar <https://pyfar.org>`_.
 
 
 Retrieving data for specific source and receiver positions
@@ -33,6 +33,9 @@ Coordinates objects. Lets be lazy and do that
 .. code:: python
 
     import pyfar as pf
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+
     data_ir, source_coordinates, receiver_coordinates = pf.io.read_sofa(
         'FABIAN_HRIR_measured_HATO_0.sofa')
 
@@ -60,7 +63,7 @@ be obtained by
 
 .. code:: python
 
-    mask = source_coordinates.find_slice(
+    _, mask = source_coordinates.find_slice(
         'elevation', unit='deg', value=0, show=True)
 
 Again, we get visual feedback if we want
@@ -79,6 +82,35 @@ look at the time data and magnitude spectra of a single source position
     pf.plot.time_freq(data_ir[index])
 
 |hrir_lateral|
+
+Plotting the entire horizontal plane is also a one liner using
+``pf.plot.time_freq_2d``, however, a few more lines are required for a nicer
+formatting
+
+.. code:: python
+
+    with pf.plot.context():
+
+        plt.subplots(2, 1, figsize=(8, 6), sharex=True)
+
+        angles = source_coordinates.get_sph('top_elev', 'deg')[mask, 0]
+
+        ax, qm, cb = pf.plot.time_freq_2d(data_ir[mask, 0], indices=angles,
+                                        cmap=mpl.cm.get_cmap(name='coolwarm'))
+
+        ax[0].set_title("Left ear HRIR (Horizontal plane)")
+        ax[0].set_xlabel("")
+        ax[0].set_ylim(0, 3)
+        qm[0].set_clim(-1.5, 1.5)
+
+        ax[1].set_title("Left ear HRTFs (Horizontal plane)")
+        ax[1].set_xlabel("Azimuth angle in degrees")
+        ax[1].set_ylim(200, 20e3)
+        qm[1].set_clim(-25, 25)
+
+        plt.tight_layout
+
+|hrir_horizontal_plane|
 
 
 Next steps
@@ -101,3 +133,7 @@ here. A god way to dive into that is the
 .. |hrir_lateral| image:: resources/working_with_sofa_HRIR_lateral.png
    :width: 600
    :alt: HRIR lateral
+
+.. |hrir_horizontal_plane| image:: resources/working_with_sofar_HRIR_horizontal_plane.jpeg
+   :width: 600
+   :alt: HRIR horizontal plane
