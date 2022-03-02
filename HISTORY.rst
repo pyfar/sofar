@@ -1,6 +1,11 @@
 History
 =======
 
+0.3.0 (2022_03_02)
+------------------
+* Feature: Add `sofar.inspect` function to get a quicker and better overview of the data inside a SOFA object
+* Documentation: Add example of plotting HRIRs/HRTFs on the horizontal plane using pyfar>=0.4.0
+
 
 0.2.0 (2022_02_14)
 ------------------

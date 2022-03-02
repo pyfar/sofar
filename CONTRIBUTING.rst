@@ -57,7 +57,7 @@ Ready to contribute? Here's how to set up `sofar` for local development.
 
 3. Install your local copy into a virtualenv. Assuming you have Anaconda or Miniconda installed, this is how you set up your fork for local development::
 
-    $ conda create --name sofar
+    $ conda create --name sofar python
     $ conda activate sofar
     $ conda install pip
     $ pip install -e .
@@ -187,7 +187,7 @@ $ bumpversion patch --verbose # possible: major / minor / patch
 
 Bumpversion will update all version strings, create and comitt tags by default
 
-$ git push --tags
+$ git push --follow-tags
 
 Travis will then deploy to PyPI if tests pass.
 
