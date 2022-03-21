@@ -1517,7 +1517,7 @@ def _get_conventions(return_type):
         raise ValueError(f"return_type {return_type} is invalid")
 
 
-def read_sofa(filename, verify=True, version="latest"):
+def read_sofa(filename, verify=True, version="latest", verbose=True):
     """
     Read SOFA file from disk and convert it to SOFA object.
 
@@ -1546,6 +1546,9 @@ def read_sofa(filename, verify=True, version="latest"):
             the SOFA object
 
         The default is ``'latest'``
+    verbose : bool, optional
+        Print the names of detected custom variables and attributes. The
+        default is ``True``
 
     Returns
     -------
@@ -1665,9 +1668,10 @@ def read_sofa(filename, verify=True, version="latest"):
     sofa._protected = True
 
     # notice about custom entries
-    if custom:
-        warnings.warn(("SOFA file contained custom entries "
-                      f"({', '.join(custom)})"))
+    if custom and verbose:
+        print(("SOFA file contained custom entries\n"
+               "----------------------------------\n"
+               f"{', '.join(custom)}"))
 
     # update api
     if verify:
