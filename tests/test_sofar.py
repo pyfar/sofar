@@ -730,7 +730,7 @@ def test_inspect(capfd):
     assert out == "".join(text)
 
 
-def test_read_sofa():
+def test_read_sofa(capfd):
 
     temp_dir = TemporaryDirectory()
     filename = os.path.join(temp_dir.name, "test.sofa")
@@ -754,13 +754,26 @@ def test_read_sofa():
     sf.write_sofa(filename, sofa)
     with Dataset(filename, "r+", format="NETCDF4") as file:
         setattr(file, "SOFAConventions", "Funky")
-    with raises(ValueError, match="File has unknown convention Funky"):
+    with raises(ValueError, match="Convention 'Funky' does not exist"):
         sf.read_sofa(filename)
 
-    # read file of unknown version
+    # read file of unknown version (stored in file)
     sofa = sf.Sofa("SimpleFreeFieldHRIR")
     sf.write_sofa(filename, sofa)
-    with raises(ValueError, match="Version not found"):
+    with Dataset(filename, "r+", format="NETCDF4") as file:
+        setattr(file, "SOFAConventionsVersion", "0.1")
+    # ValueError when version should be matched
+    with raises(ValueError, match="Version 0.1 does not exist for"):
+        sf.read_sofa(filename, version="match")
+    # output when version should be updated to latest
+    sf.read_sofa(filename, version="latest")
+    out, _ = capfd.readouterr()
+    assert "Updated conventions version from 0.1 to 1.0" in out
+
+    # read file of unknown version (user specified)
+    sofa = sf.Sofa("SimpleFreeFieldHRIR")
+    sf.write_sofa(filename, sofa)
+    with raises(ValueError, match="Version 0.25 does not exist for"):
         sf.read_sofa(filename, version="0.25")
 
     # read file containing a variable with wrong shape
@@ -1205,7 +1218,7 @@ def test_verify_convention_and_version():
     assert version == "1.0"
 
     # test assertions
-    with raises(ValueError, match="Convention Funky does not exist"):
+    with raises(ValueError, match="Convention 'Funky' does not exist"):
         _verify_convention_and_version("latest", "1.0", "Funky")
     with raises(ValueError, match="Version 1.1 does not exist"):
         _verify_convention_and_version("match", "1.1", "GeneralTF")

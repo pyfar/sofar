@@ -7,6 +7,7 @@ from datetime import datetime
 import platform
 import numpy as np
 import numpy.testing as npt
+from packaging.version import parse as version_parse
 import warnings
 from bs4 import BeautifulSoup
 from netCDF4 import Dataset, stringtochar, chartostring
@@ -1552,15 +1553,16 @@ def read_sofa(filename, verify=True, version="latest", verbose=True):
         recommended. If reading a file does not work, try to call `Sofa` with
         ``verify=False``. The default is ``True``.
     version : str, optional
-        The version to which the API is updated.
+        Control if the SOFA file convention is changed.
 
         ``'latest'``
-            Use the latest API and upgrade the SOFA file if required.
+            Update the conventions to the latest version
         ``'match'``
-            Match the version of the sofa file.
+            Do not change the conventions version, i.e. match the version
+            of the SOFA file that is being read.
         str
-            Version string, e.g., ``'1.0'``. Note that this might downgrade
-            the SOFA object
+            Force specific version, e.g., ``'1.0'``. Note that this might
+            downgrade the SOFA object.
 
         The default is ``'latest'``
     verbose : bool, optional
@@ -1613,14 +1615,8 @@ def read_sofa(filename, verify=True, version="latest", verbose=True):
         all_attr.append("GLOBAL_SOFAConventionsVersion")
 
         # check if convention and version exist
-        try:
-            version_out = _verify_convention_and_version(
-                version, version_in, convention)
-        except ValueError as ve:
-            if "Convention" in str(ve):
-                raise ValueError(f"File has unknown convention {convention}")
-            else:
-                raise ValueError("Version not found. Try version=latest")
+        version_out = _verify_convention_and_version(
+            version, version_in, convention)
 
         # get SOFA object with default values
         sofa = sf.Sofa(convention, version=version_out, verify=verify)
@@ -1630,6 +1626,10 @@ def read_sofa(filename, verify=True, version="latest", verbose=True):
 
         # load global attributes
         for attr in file.ncattrs():
+
+            if attr in ["SOFAConventionsVersion", "SOFAConventions"]:
+                # convention and version were already set above
+                continue
 
             value = getattr(file, attr)
             all_attr.append("GLOBAL_" + attr)
@@ -2213,7 +2213,7 @@ def _verify_convention_and_version(version, version_in, convention):
     # check if the convention exists in sofar
     if convention not in _get_conventions("name"):
         raise ValueError(
-            f"Convention {convention} does not exist")
+            f"Convention '{convention}' does not exist")
 
     name_version = _get_conventions("name_version")
 
@@ -2223,6 +2223,10 @@ def _verify_convention_and_version(version, version_in, convention):
                        if versions[0] == convention]
         # get latest version as string
         version_out = str(version_out[np.argmax(version_out)])
+
+        if version_parse(version_out) > version_parse(version_in):
+            print(("Updated conventions version from "
+                   f"{version_in} to {version_out}"))
     else:
         # check which version is wanted
         if version == "match":
@@ -2238,8 +2242,9 @@ def _verify_convention_and_version(version, version_in, convention):
                 version_out = str(float(versions[1]))
 
         if version_out is None:
-            raise ValueError(
-                f"Version {match} does not exist. Try version='latest'")
+            raise ValueError((
+                f"Version {match} does not exist for convention {convention}. "
+                "Try version='latest'"))
 
     return version_out
 
