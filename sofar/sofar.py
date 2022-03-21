@@ -363,7 +363,7 @@ class Sofa():
 
         print(info_str)
 
-    def inspect(self, file=None):
+    def inspect(self, file=None, issue_handling="print"):
         """
         Get information about data inside a SOFA object.
 
@@ -378,11 +378,25 @@ class Sofa():
         file : str
             Full path of a file under which the information is to be stored in
             plain text. The default ``None`` does only print the information.
+        issue_handling : str, optional
+            Defines how issues detected during verification of the SOFA object
+            are handeled (see :py:func:`~sofar.sofar.Sofa.verify`)
+
+            ``'raise'``
+                Warnings and errors are raised if issues are detected
+            ``'print'``
+                Issues are printed without raising warnings and errors
+            ``'return'``
+                Issues are returned as string but neither raised nor printed
+            ``'ignore'``
+                Issues are ignored, i.e., not raised, printed, or returned.
+
+            The default is ``print'``.
         """
 
         # update the private attribute `_convention` to make sure the required
         # meta data is in place
-        self.verify(version="match")
+        self.verify(version="match", issue_handling=issue_handling)
 
         # list of all attributes
         keys = [k for k in self.__dict__.keys() if not k.startswith("_")]
@@ -622,6 +636,8 @@ class Sofa():
                 Issues are printed without raising warnings and errors
             ``'return'``
                 Issues are returned as string but neither raised nor printed
+            ``'ignore'``
+                Issues are ignored, i.e., not raised, printed, or returned.
 
             The default is ``'raise'``.
 
@@ -725,7 +741,7 @@ class Sofa():
         # if an error ocurred up to here, it has to be handled. Otherwise
         # detecting the dimensions might fail. Warnings are not reported until
         # the end
-        if error_msg != "\nERRORS\n------\n":
+        if error_msg != "\nERRORS\n------\n" and issue_handling != "ignore":
             _, issues = self._verify_handle_issues(
                     "\nWARNINGS\n--------\n", error_msg, issue_handling)
 
@@ -994,14 +1010,15 @@ class Sofa():
             error_msg += current_error
 
         # handle warnings and errors
-        error_occurred, issues = self._verify_handle_issues(
-                warning_msg, error_msg, issue_handling)
+        if issue_handling != "ignore":
+            error_occurred, issues = self._verify_handle_issues(
+                    warning_msg, error_msg, issue_handling)
 
-        if error_occurred:
-            if issue_handling == "print":
-                return
-            elif issue_handling == "return":
-                return issues
+            if error_occurred:
+                if issue_handling == "print":
+                    return
+                elif issue_handling == "return":
+                    return issues
 
     @staticmethod
     def _verify_value(test, ref, unit_aliases):

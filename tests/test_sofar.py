@@ -576,6 +576,18 @@ def test_verify_value():
                                      "degree, degree, metre", unit_aliases)
 
 
+def test_sofa_verify_ignore(capfd):
+    """Test the ignore option of Sofa.verify"""
+
+    # test invalid data for netCDF attribute
+    sofa = sf.Sofa("GeneralFIR")
+    sofa.GLOBAL_Comment = [1, 2, 3]
+    issues = sofa.verify(issue_handling="ignore")
+
+    assert issues is None
+    assert capfd.readouterr() == ("", "")
+
+
 def test_verify_issue_handling(capfd):
     """Test different methods for handling issues during verification"""
 
