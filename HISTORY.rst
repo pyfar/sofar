@@ -1,6 +1,13 @@
 History
 =======
 
+0.3.1 (2022-03-21)
+------------------
+* Improvement `sofar.read`: Files with unknown Convention versions can now be read by updating to the latest or a specific version.
+* Improvement `sofar.read`: Reporting custom variables when reading SOFA files from disk is now optional and no longer a warning.
+* Improvement `Sofa.inspect`: SOFA objects that violate the SOFA convention can now be inspected. In this case, the violations are printed as message instead of raising an Error.
+* Improvement `Sofa.verify`: SOFA objects can now be verified without any output in case the output is not desired when calling `Sofa.inspect`.
+
 0.3.0 (2022_03_02)
 ------------------
 * Feature: Add `sofar.inspect` function to get a quicker and better overview of the data inside a SOFA object
