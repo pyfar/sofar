@@ -2244,7 +2244,7 @@ def _verify_convention_and_version(version, version_in, convention):
         if version_out is None:
             raise ValueError((
                 f"Version {match} does not exist for convention {convention}. "
-                "Try version='latest'"))
+                "Try to acces the data with version='latest'"))
 
     return version_out
 
