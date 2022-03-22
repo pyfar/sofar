@@ -946,7 +946,7 @@ class Sofa():
                             isinstance(ref_dep, list)):
                         continue
 
-                    idx = ref.index(test)
+                    idx = ref.index(test.lower())
                     if not self._verify_value(test_dep, ref_dep[idx],
                                               unit_aliases):
                         current_error += (
@@ -975,7 +975,8 @@ class Sofa():
                         f"- {key} must be contained if"
                         f" GLOBAL_DataType={self.GLOBAL_DataType}\n")
 
-                if value is not None and getattr(self, key) not in value[0]:
+                if value is not None and \
+                        getattr(self, key).lower() not in value[0]:
                     current_error += (f"{key} is {getattr(self, key)} but "
                                       f"must be {value[1]}\n")
 
@@ -1044,28 +1045,34 @@ class Sofa():
         value_valid = True
 
         # Don't check the value if ref is None or test in ref
-        if ref is not None and test not in ref:
+        if ref is None or test in ref:
+            return value_valid
 
-            # in case test is a string it might be a unit and unit aliases
-            # according to the SOFA standard must be checked
+        # insensitive case for strings
+        if isinstance(test, str) and test.lower() in ref:
+            return value_valid
 
-            # Following the SOFA standard AES69-2020, units may be separated by
-            # `, ` (comma and space), `,` (comma only), and ` ` (space only).
-            # (regexp ', ?' matches ', ' and ',')
-            ref = re.split(', ?| ', ref) if isinstance(ref, str) else ref
-            units = re.split(', ?| ', test) if isinstance(test, str) else []
+        # in case test is a string it might be a unit and unit aliases
+        # according to the SOFA standard must be checked
 
-            # check if number of units agree
-            if not units or len(ref) != len(units):
+        # Following the SOFA standard AES69-2020, units may be separated by
+        # `, ` (comma and space), `,` (comma only), and ` ` (space only).
+        # (regexp ', ?' matches ', ' and ',')
+        ref = re.split(', ?| ', ref) if isinstance(ref, str) else ref
+        units = re.split(', ?| ', test) if isinstance(test, str) else []
+
+        # check if number of units agree
+        if not units or len(ref) != len(units):
+            value_valid = False
+            return value_valid
+
+        # check if units are valid
+        for unit, unit_ref in zip(units, ref):
+            if unit.lower() != unit_ref and \
+                    (unit.lower() not in unit_aliases
+                     or unit_aliases[unit.lower()] != unit_ref):
                 value_valid = False
-                return value_valid
-
-            # check if units are valid
-            for unit, unit_ref in zip(units, ref):
-                if unit != unit_ref and (unit not in unit_aliases
-                                         or unit_aliases[unit] != unit_ref):
-                    value_valid = False
-                    break
+                break
 
         return value_valid
 

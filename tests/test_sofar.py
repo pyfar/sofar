@@ -625,6 +625,33 @@ def test_verify_issue_handling(capfd):
     assert "WARNING" not in issues
 
 
+def test_case_insensitivity():
+    """
+    Reading applications shall ignore the case of
+    - units and
+    - types of coordinate systems
+    """
+
+    # units -------------------------------------------------------------------
+    # example alias for testing as returned by sf.sofa._sofa_restrictions()
+    unit_aliases = {"meter": "metre",
+                    "degrees": "degree"}
+
+    # case insensitive testing
+    assert sf.Sofa._verify_value("Meter", "meter", unit_aliases)
+    assert sf.Sofa._verify_value("DegrEes, dEgreeS, MeTer",
+                                 "degree, degree, metre", unit_aliases)
+
+    sofa = sf.Sofa("FreeFieldDirectivityTF")
+    sofa.N_Units = "HertZ"
+    assert sofa.verify(issue_handling="return") is None
+
+    # coordinate types --------------------------------------------------------
+    sofa = sf.Sofa("SimpleFreeFieldHRIR")
+    sofa.ListenerPosition_Type = "Cartesian"
+    assert sofa.verify(issue_handling="return") is None
+
+
 def test_list_dimensions(capfd):
 
     # test FIR Data
