@@ -7,6 +7,7 @@ from datetime import datetime
 import platform
 import numpy as np
 import numpy.testing as npt
+from packaging.version import parse as version_parse
 import warnings
 from bs4 import BeautifulSoup
 from netCDF4 import Dataset, stringtochar, chartostring
@@ -363,7 +364,7 @@ class Sofa():
 
         print(info_str)
 
-    def inspect(self, file=None):
+    def inspect(self, file=None, issue_handling="print"):
         """
         Get information about data inside a SOFA object.
 
@@ -378,11 +379,25 @@ class Sofa():
         file : str
             Full path of a file under which the information is to be stored in
             plain text. The default ``None`` does only print the information.
+        issue_handling : str, optional
+            Defines how issues detected during verification of the SOFA object
+            are handeled (see :py:func:`~sofar.sofar.Sofa.verify`)
+
+            ``'raise'``
+                Warnings and errors are raised if issues are detected
+            ``'print'``
+                Issues are printed without raising warnings and errors
+            ``'return'``
+                Issues are returned as string but neither raised nor printed
+            ``'ignore'``
+                Issues are ignored, i.e., not raised, printed, or returned.
+
+            The default is ``print'``.
         """
 
         # update the private attribute `_convention` to make sure the required
         # meta data is in place
-        self.verify(version="match")
+        self.verify(version="match", issue_handling=issue_handling)
 
         # list of all attributes
         keys = [k for k in self.__dict__.keys() if not k.startswith("_")]
@@ -622,6 +637,8 @@ class Sofa():
                 Issues are printed without raising warnings and errors
             ``'return'``
                 Issues are returned as string but neither raised nor printed
+            ``'ignore'``
+                Issues are ignored, i.e., not raised, printed, or returned.
 
             The default is ``'raise'``.
 
@@ -725,7 +742,7 @@ class Sofa():
         # if an error ocurred up to here, it has to be handled. Otherwise
         # detecting the dimensions might fail. Warnings are not reported until
         # the end
-        if error_msg != "\nERRORS\n------\n":
+        if error_msg != "\nERRORS\n------\n" and issue_handling != "ignore":
             _, issues = self._verify_handle_issues(
                     "\nWARNINGS\n--------\n", error_msg, issue_handling)
 
@@ -994,14 +1011,15 @@ class Sofa():
             error_msg += current_error
 
         # handle warnings and errors
-        error_occurred, issues = self._verify_handle_issues(
-                warning_msg, error_msg, issue_handling)
+        if issue_handling != "ignore":
+            error_occurred, issues = self._verify_handle_issues(
+                    warning_msg, error_msg, issue_handling)
 
-        if error_occurred:
-            if issue_handling == "print":
-                return
-            elif issue_handling == "return":
-                return issues
+            if error_occurred:
+                if issue_handling == "print":
+                    return
+                elif issue_handling == "return":
+                    return issues
 
     @staticmethod
     def _verify_value(test, ref, unit_aliases):
@@ -1517,7 +1535,7 @@ def _get_conventions(return_type):
         raise ValueError(f"return_type {return_type} is invalid")
 
 
-def read_sofa(filename, verify=True, version="latest"):
+def read_sofa(filename, verify=True, version="latest", verbose=True):
     """
     Read SOFA file from disk and convert it to SOFA object.
 
@@ -1535,17 +1553,21 @@ def read_sofa(filename, verify=True, version="latest"):
         recommended. If reading a file does not work, try to call `Sofa` with
         ``verify=False``. The default is ``True``.
     version : str, optional
-        The version to which the API is updated.
+        Control if the SOFA file convention is changed.
 
         ``'latest'``
-            Use the latest API and upgrade the SOFA file if required.
+            Update the conventions to the latest version
         ``'match'``
-            Match the version of the sofa file.
+            Do not change the conventions version, i.e. match the version
+            of the SOFA file that is being read.
         str
-            Version string, e.g., ``'1.0'``. Note that this might downgrade
-            the SOFA object
+            Force specific version, e.g., ``'1.0'``. Note that this might
+            downgrade the SOFA object.
 
         The default is ``'latest'``
+    verbose : bool, optional
+        Print the names of detected custom variables and attributes. The
+        default is ``True``
 
     Returns
     -------
@@ -1593,14 +1615,8 @@ def read_sofa(filename, verify=True, version="latest"):
         all_attr.append("GLOBAL_SOFAConventionsVersion")
 
         # check if convention and version exist
-        try:
-            version_out = _verify_convention_and_version(
-                version, version_in, convention)
-        except ValueError as ve:
-            if "Convention" in str(ve):
-                raise ValueError(f"File has unknown convention {convention}")
-            else:
-                raise ValueError("Version not found. Try version=latest")
+        version_out = _verify_convention_and_version(
+            version, version_in, convention)
 
         # get SOFA object with default values
         sofa = sf.Sofa(convention, version=version_out, verify=verify)
@@ -1610,6 +1626,10 @@ def read_sofa(filename, verify=True, version="latest"):
 
         # load global attributes
         for attr in file.ncattrs():
+
+            if attr in ["SOFAConventionsVersion", "SOFAConventions"]:
+                # convention and version were already set above
+                continue
 
             value = getattr(file, attr)
             all_attr.append("GLOBAL_" + attr)
@@ -1665,9 +1685,10 @@ def read_sofa(filename, verify=True, version="latest"):
     sofa._protected = True
 
     # notice about custom entries
-    if custom:
-        warnings.warn(("SOFA file contained custom entries "
-                      f"({', '.join(custom)})"))
+    if custom and verbose:
+        print(("SOFA file contained custom entries\n"
+               "----------------------------------\n"
+               f"{', '.join(custom)}"))
 
     # update api
     if verify:
@@ -2192,7 +2213,7 @@ def _verify_convention_and_version(version, version_in, convention):
     # check if the convention exists in sofar
     if convention not in _get_conventions("name"):
         raise ValueError(
-            f"Convention {convention} does not exist")
+            f"Convention '{convention}' does not exist")
 
     name_version = _get_conventions("name_version")
 
@@ -2202,6 +2223,10 @@ def _verify_convention_and_version(version, version_in, convention):
                        if versions[0] == convention]
         # get latest version as string
         version_out = str(version_out[np.argmax(version_out)])
+
+        if version_parse(version_out) > version_parse(version_in):
+            print(("Updated conventions version from "
+                   f"{version_in} to {version_out}"))
     else:
         # check which version is wanted
         if version == "match":
@@ -2217,8 +2242,9 @@ def _verify_convention_and_version(version, version_in, convention):
                 version_out = str(float(versions[1]))
 
         if version_out is None:
-            raise ValueError(
-                f"Version {match} does not exist. Try version='latest'")
+            raise ValueError((
+                f"Version {match} does not exist for convention {convention}. "
+                "Try to access the data with version='latest'"))
 
     return version_out
 
