@@ -999,7 +999,8 @@ class Sofa():
                             current_error += \
                     (f"- Dimension {dimension} is of size "  # noqa
                      f"{self._api[dimension]} but must be {size} if "
-                     f"GLOBAL_SOFAConventions is {key}\n")
+                     "GLOBAL_SOFAConventions is "
+                     f"{self.GLOBAL_SOFAConventions}\n")
                 else:
                     value = getattr(self, key)
                     if value not in ref:
@@ -2294,6 +2295,10 @@ def _sofa_restrictions():
         Restriction depending on GLOBAL_DataType
     api : dict
         Restrictions on the API depending on specific fields of a SOFA file
+    convention : dict
+        Restrictions for specific conventions
+    unit_aliases : dict
+        Allowed aliases for the standard units
     """
 
     # definition of valid coordinate systems and units
