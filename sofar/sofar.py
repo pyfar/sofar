@@ -1369,18 +1369,21 @@ class Sofa():
         return is_read_only
 
 
-def _update_conventions(conventions_path=None):
+def update_conventions(conventions_path=None, assume_yes=False):
     """
     Update SOFA conventions.
 
-    A SOFA convention defines the kind of data and the data format that is
-    stored in a SOFA file. Updating the conventions is done in two steps:
+    SOFA convention define what data is stored in a SOFA file and how it is
+    stored. Updating makes sure that sofar is using the latest conventions.
+    This is done in three steps
 
     1.
         Download official SOFA conventions as csv files from
         https://github.com/sofacoustics/API_MO/tree/master/API_MO/conventions.
     2.
-        Convert csv files to json files for easier handling
+        Convert csv files to json files to be read by sofar.
+    3.
+        Notify which conventions were newly added or updated.
 
     The csv and json files are stored at sofar/conventions. Sofar works only on
     the json files. To get a list of all currently available SOFA conventions
@@ -1388,15 +1391,38 @@ def _update_conventions(conventions_path=None):
 
     .. note::
         If the official convention contain errors, calling this function might
-        break sofar. Be sure that you want to do this.
+        break sofar. If this is the case sofar must be re-installed, e.g., by
+        running ``pip install --force-reinstall sofar``. Be sure that you want
+        to do this.
 
     Parameters
     ----------
     conventions_path : str, optional
         Path to the folder where the conventions are saved. The default is
         ``None``, which saves the conventions inside the sofar package.
-        Conventions saved under a different path can not be used by sofar.
+        Conventions saved under a different path can not be used by sofar. This
+        parameter was added mostly for testing and debugging.
+    response : bool, optional
+
+        ``True``
+            Updating the conventions must be confirmed by typing "y".
+        ``False``
+            The conventions are updated without confirmation.
+
+        The default is ``True``
     """
+
+    if not assume_yes:
+        # these lines were only tested manually. I was too lazy to write a test
+        # coping with keyboard input
+        print(("Are you sure that you want to update the conventions? "
+               "Read the documentation before continuing. "
+               "If updateing breaks sofar it has to be re-installed"
+               "(y/n)"))
+        response = input()
+        if response != "y":
+            print("Updating the conventions was canceled.")
+            return
 
     # url for parsing and downloading the convention files
     url = ("https://github.com/sofacoustics/API_MO/tree/"
@@ -1469,7 +1495,7 @@ def _update_conventions(conventions_path=None):
 def _compile_conventions(conventions_path=None):
     """
     Compile SOFA conventions (json files) from source conventions (csv files
-    from SOFA API_MO), i.e., only do step 2 from `_update_conventions`. This is
+    from SOFA API_MO), i.e., only do step 2 from `update_conventions`. This is
     a helper function for debugging and developing and might break sofar.
 
     Parameters

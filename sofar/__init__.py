@@ -8,6 +8,7 @@ __version__ = '0.3.1'
 
 
 from .sofar import (Sofa,
+                    update_conventions,
                     list_conventions,
                     read_sofa,
                     write_sofa,
@@ -15,6 +16,7 @@ from .sofar import (Sofa,
 
 
 __all__ = ['Sofa',
+           'update_conventions',
            'list_conventions',
            'read_sofa',
            'write_sofa',

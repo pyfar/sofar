@@ -10,4 +10,4 @@ refer to the :ref:`quick_tour`.
    :members:
    :undoc-members:
    :show-inheritance:
-   :exclude-members: update_conventions
+   :exclude-members:
