@@ -549,6 +549,17 @@ def test_sofa_verify_restrictions_convention(convention, kwargs, msg):
         sofa.verify()
 
 
+def test_sofa_verify_read_and_write_mode():
+
+    # Unit with uppercase is ok when reading but not ok when writing
+    sofa = sf.Sofa("SimpleFreeFieldHRIR")
+    sofa.ListenerPosition_Units = "Meter"
+
+    assert sofa.verify(mode="read", issue_handling="return") is None
+    with raises(ValueError, match="lower case letters when writing"):
+        sofa.verify(mode="write")
+
+
 def test_verify_value():
     # example alias for testing as returned by sf.sofa._sofa_restrictions()
     unit_aliases = {"meter": "metre",
@@ -632,6 +643,19 @@ def test_case_insensitivity():
     - types of coordinate systems
     """
 
+    # data type (must be case sensitive) --------------------------------------
+    sofa = sf.Sofa("SimpleFreeFieldHRIR")
+    sofa._protected = False
+    sofa.GLOBAL_DataType = "fir"
+    sofa._protected = True
+    with raises(ValueError, match="GLOBAL_DataType is fir"):
+        sofa.verify()
+
+    # room type ---------------------------------------------------------------
+    sofa = sf.Sofa("FreeFieldHRIR")
+    sofa.GLOBAL_RoomType = "Free field"
+    assert sofa.verify(issue_handling="return") is None
+
     # units -------------------------------------------------------------------
     # example alias for testing as returned by sf.sofa._sofa_restrictions()
     unit_aliases = {"meter": "metre",
@@ -644,7 +668,7 @@ def test_case_insensitivity():
 
     sofa = sf.Sofa("FreeFieldDirectivityTF")
     sofa.N_Units = "HertZ"
-    assert sofa.verify(issue_handling="return") is None
+    assert sofa.verify(issue_handling="return", mode="read") is None
 
     # coordinate types --------------------------------------------------------
     sofa = sf.Sofa("SimpleFreeFieldHRIR")
@@ -1037,8 +1061,8 @@ def test_add_entry():
     assert sofa.Mood == "good"
     sofa.add_attribute("GLOBAL_Mood", "good")
     assert sofa.GLOBAL_Mood == "good"
-    sofa.add_attribute("Temperature_Units", "degree Celsius")
-    assert sofa.Temperature_Units == "degree Celsius"
+    sofa.add_attribute("Temperature_Units", "degree celsius")
+    assert sofa.Temperature_Units == "degree celsius"
 
     # check if everything can be verified and written, and read correctly
     sf.write_sofa(os.path.join(tmp_dir.name, "tmp.sofa"), sofa)
@@ -1070,7 +1094,7 @@ def test_add_entry():
         sofa.add_variable("TemperatureCelsius", [25.1, 25.2], "double", "T")
     # attribute with missing variable
     with raises(ValueError, match="Adding Attribute Variable"):
-        sofa.add_attribute("Variable_Unit", "Celsius")
+        sofa.add_attribute("Variable_Unit", "celsius")
 
 
 def test_delete_entry():

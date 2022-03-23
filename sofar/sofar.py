@@ -575,7 +575,7 @@ class Sofa():
         _add_custom_api_entry(
             self, name, value, None, dimensions, dtype)
 
-    def verify(self, version="latest", issue_handling="raise"):
+    def verify(self, version="latest", issue_handling="raise", mode="write"):
         """
         Verify a SOFA object against the SOFA standard.
 
@@ -641,6 +641,16 @@ class Sofa():
                 Issues are ignored, i.e., not raised, printed, or returned.
 
             The default is ``'raise'``.
+        mode : str, optional
+            The SOFA standard is more strict for writing data than for reading
+            data.
+
+            ``'write'``
+                All units (e.g. 'meter') must be written be lower case.
+            ``'read'``
+                Units can contain upper case letters (e.g. 'Meter')
+
+            The default is ``'write'``
 
         Returns
         -------
@@ -922,7 +932,7 @@ class Sofa():
 
                 # test if the value is valid
                 test = getattr(self, key)
-                if not self._verify_value(test, ref, unit_aliases):
+                if not self._verify_value(test, ref, unit_aliases, key):
                     current_error += \
                         f"- {key} is {test} but must be {', '.join(ref)}\n"
 
@@ -1004,9 +1014,25 @@ class Sofa():
                      f"{self.GLOBAL_SOFAConventions}\n")
                 else:
                     value = getattr(self, key)
-                    if value not in ref:
+                    # DateType should be checked case sensitive
+                    if (key == "GLOBAL_DataType" and value not in ref) or\
+                            (key != "GLOBAL_DataType" and
+                             value.lower() not in ref):
                         current_error += \
                             f"{key} is {value} but must be {ref}\n"
+
+        # ---------------------------------------------------------------------
+        # 7. check write only restrictions
+        # (units shall be written in lower-case)
+
+        if mode == "write":
+            keys = [k for k in self.__dict__.keys() if k.endswith("Units")]
+            for key in keys:
+                unit = getattr(self, key)
+                if unit.lower() != unit:
+                    current_error += (f"{key} is {unit} but must contain only "
+                                      "lower case letters when writing SOFA "
+                                      "files to disk.")
 
         if current_error:
             error_msg += "Detected violations of the SOFA convention:\n"
@@ -1024,7 +1050,7 @@ class Sofa():
                     return issues
 
     @staticmethod
-    def _verify_value(test, ref, unit_aliases):
+    def _verify_value(test, ref, unit_aliases, key=None):
         """
         Check a value agains the SOFA standard for Sofa.verify()
 
@@ -1036,21 +1062,26 @@ class Sofa():
             the value enforced by the SOFA standard
         unit_aliases :
             dict of aliases for units from _sofa_restrictions()
+        key :
+            The name of the current attribute, e.g., "GLOBAL_DataType"
 
         Returns
         -------
         ``True`` if `test` and `ref` agree, ``False`` otherwise
         """
 
-        value_valid = True
-
         # Don't check the value if ref is None or test in ref
         if ref is None or test in ref:
-            return value_valid
+            return True
 
-        # insensitive case for strings
-        if isinstance(test, str) and test.lower() in ref:
-            return value_valid
+        # testing for strings must be case sensitive for GLOBAL_DataType
+        # and case insensitive for all others cases
+        if isinstance(test, str):
+            test_str = test if key == "GLOBAL_DataType" else test.lower()
+            if test_str in ref:
+                return True
+            elif test_str not in ref and key == "GLOBAL_DataType":
+                return False
 
         # in case test is a string it might be a unit and unit aliases
         # according to the SOFA standard must be checked
@@ -1063,18 +1094,16 @@ class Sofa():
 
         # check if number of units agree
         if not units or len(ref) != len(units):
-            value_valid = False
-            return value_valid
+            return False
 
         # check if units are valid
         for unit, unit_ref in zip(units, ref):
             if unit.lower() != unit_ref and \
                     (unit.lower() not in unit_aliases
                      or unit_aliases[unit.lower()] != unit_ref):
-                value_valid = False
-                break
+                return False
 
-        return value_valid
+        return True
 
     @staticmethod
     def _verify_handle_issues(warning_msg, error_msg, issue_handling):
@@ -1701,7 +1730,7 @@ def read_sofa(filename, verify=True, version="latest", verbose=True):
     # update api
     if verify:
         try:
-            sofa.verify(version)
+            sofa.verify(version, mode="read")
         except: # noqa (No error handling - just improved verbosity)
             raise ValueError((
                 "The SOFA object could not be verified, maybe due to errornous"
@@ -1766,7 +1795,7 @@ def write_sofa(filename: str, sofa: Sofa, version="latest", compression=4):
     zlib = False if compression == 0 else True
 
     # update the dimensions
-    sofa.verify(version)
+    sofa.verify(version, mode="write")
 
     # list of all attribute names
     all_keys = [key for key in sofa.__dict__.keys() if not key.startswith("_")]
