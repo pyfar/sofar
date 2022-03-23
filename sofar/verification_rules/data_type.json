@@ -1,0 +1,35 @@
+{
+    "FIR": {
+        "Data_IR": null,
+        "Data_Delay": null,
+        "Data_SamplingRate": null,
+        "Data_SamplingRate_Units": [
+            [
+                "hertz"
+            ],
+            "hertz"
+        ]
+    },
+    "TF": {
+        "Data_Real": null,
+        "Data_Imag": null,
+        "N": null,
+        "N_Units": [
+            [
+                "hertz"
+            ],
+            "hertz"
+        ]
+    },
+    "SOS": {
+        "Data_SOS": null,
+        "Data_Delay": null,
+        "Data_SamplingRate": null,
+        "Data_SamplingRate_Units": [
+            [
+                "hertz"
+            ],
+            "hertz"
+        ]
+    }
+}

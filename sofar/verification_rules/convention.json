@@ -1,0 +1,108 @@
+{
+    "GeneralFIR": {
+        "GLOBAL_DataType": [
+            "FIR"
+        ]
+    },
+    "GeneralFIR-E": {
+        "GLOBAL_DataType": [
+            "FIR-E"
+        ]
+    },
+    "GeneralFIRE": {
+        "GLOBAL_DataType": [
+            "FIRE"
+        ]
+    },
+    "GeneralTF": {
+        "GLOBAL_DataType": [
+            "TF"
+        ]
+    },
+    "GeneralTF-E": {
+        "GLOBAL_DataType": [
+            "TF-E"
+        ]
+    },
+    "SimpleFreeFieldHRIR": {
+        "GLOBAL_DataType": [
+            "FIR"
+        ],
+        "GLOBAL_RoomType": [
+            "free field"
+        ],
+        "EmitterPosition_Type": [
+            "cartesian",
+            "spherical"
+        ],
+        "API": {
+            "E": 1
+        }
+    },
+    "SimpleFreeFieldHRTF": {
+        "GLOBAL_DataType": [
+            "TF"
+        ],
+        "GLOBAL_RoomType": [
+            "free field"
+        ],
+        "EmitterPosition_Type": [
+            "cartesian",
+            "spherical"
+        ],
+        "API": {
+            "E": 1
+        }
+    },
+    "SimpleFreeFieldHRSOS": {
+        "GLOBAL_DataType": [
+            "SOS"
+        ],
+        "GLOBAL_RoomType": [
+            "free field"
+        ],
+        "EmitterPosition_Type": [
+            "cartesian",
+            "spherical"
+        ],
+        "API": {
+            "E": 1
+        }
+    },
+    "FreeFieldHRIR": {
+        "GLOBAL_DataType": [
+            "FIR-E"
+        ],
+        "GLOBAL_RoomType": [
+            "free field"
+        ]
+    },
+    "FreeFieldHRTF": {
+        "GLOBAL_DataType": [
+            "TF-E"
+        ],
+        "GLOBAL_RoomType": [
+            "free field"
+        ]
+    },
+    "SimpleHeadphoneIR": {
+        "GLOBAL_DataType": [
+            "FIR"
+        ]
+    },
+    "SingleRoomSRIR": {
+        "GLOBAL_DataType": [
+            "FIR"
+        ]
+    },
+    "SingleRoomMIMOSRIR": {
+        "GLOBAL_DataType": [
+            "FIR-E"
+        ]
+    },
+    "FreeFieldDirectivityTF": {
+        "GLOBAL_DataType": [
+            "TF"
+        ]
+    }
+}

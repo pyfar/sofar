@@ -354,7 +354,7 @@ def test_sofa_verify_wrong_name():
         sofa.verify()
 
 
-# test everything from sofar._sofa_restrictions explicitly to make sure
+# test everything from Sofa._verification_rules explicitly to make sure
 # all possible error in SOFA files are caught
 @pytest.mark.parametrize("key,value,msg", [
     ("GLOBAL_DataType", "image", "GLOBAL_DataType is image but must be FIR,"),
@@ -401,7 +401,7 @@ def test_sofa_verify_restrictions_data_wrong_value(key, value, msg):
         sofa.verify()
 
 
-# can't test everything from sofar._sofa_restrictions explicitly because
+# can't test everything from Sofa._verification_rules explicitly because
 # mandatory fields are added by default
 @pytest.mark.parametrize("key,msg", [
     ("ReceiverView", "ReceiverView must be given if ReceiverUp"),
@@ -430,7 +430,7 @@ def test_sofa_verify_restrictions_data_missing_attribute(key, msg):
         sofa.verify()
 
 
-# test everything from sofar._sofa_restrictions explicitly to make sure
+# test everything from Sofa._verification_rules explicitly to make sure
 # all possible error in SOFA files are caught
 @pytest.mark.parametrize("convention,key,value,msg", [
     ("GeneralFIR", "Data_SamplingRate_Units", "hz",
@@ -560,7 +560,7 @@ def test_sofa_verify_read_and_write_mode():
 
 
 def test_verify_value():
-    # example alias for testing as returned by sf.sofa._sofa_restrictions()
+    # example alias for testing as returned by Sofa._verification_rules()
     unit_aliases = {"meter": "metre",
                     "degrees": "degree"}
 
@@ -656,7 +656,7 @@ def test_case_insensitivity():
     assert sofa.verify(issue_handling="return") is None
 
     # units -------------------------------------------------------------------
-    # example alias for testing as returned by sf.sofa._sofa_restrictions()
+    # example alias for testing as returned by Sofa._verification_rules()
     unit_aliases = {"meter": "metre",
                     "degrees": "degree"}
 
