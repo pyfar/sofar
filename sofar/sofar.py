@@ -152,7 +152,12 @@ class Sofa():
         """
         Print the dimensions of the SOFA object
 
-        The SOFA file standard defines the following dimensions:
+        See :py:func:`~Sofa.inspect` to see the shapes of the data inside the
+        SOFA object and :py:func:`~Sofa.get_dimension` to get the size/value
+        of a specific dimensions as integer number.
+
+        The SOFA file standard defines the following dimensions that are used
+        to define the shape of the data entries:
 
         M
             number of measurements
@@ -172,8 +177,6 @@ class Sofa():
         I
             Single dimension. This is always one.
 
-        see :py:func:`~Sofa.info` to see the shapes of the data inside the SOFA
-        object.
         """
 
         # Check if the dimensions can be updated
@@ -2039,8 +2042,14 @@ def _equals_raise_warning(message, verbose):
 
 def _convention_csv2dict(file: str):
     """
-    Read SOFA convention from csv file and convert to json file. The csv files
-    are taken from the official Matlab/Octave SOFA API.
+    Read a SOFA convention as csv file from the official Matlab/Octave API for
+    SOFA (API_MO) and convert them to a Python dictionary. The dictionary can
+    be written for example to a json file using
+
+    import json
+
+    with open(filename, 'w') as file:
+        json.dump(dictionary, file, indent=4)
 
     Parameters
     ----------
