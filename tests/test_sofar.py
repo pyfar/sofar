@@ -565,25 +565,29 @@ def test_verify_value():
                     "degrees": "degree"}
 
     # Simple pass: no restriction on value
-    assert sf.Sofa._verify_value("goofy", None, unit_aliases)
+    assert sf.Sofa._verify_value("goofy", None, unit_aliases, "Some_Units")
 
     # simple pass: single unit
-    assert sf.Sofa._verify_value("meter", "metre", unit_aliases)
+    assert sf.Sofa._verify_value("meter", "metre", unit_aliases, "Some_Units")
 
     # complex pass: list of units
     assert sf.Sofa._verify_value("degrees, degrees, meter",
-                                 "degree, degree, metre", unit_aliases)
+                                 "degree, degree, metre",
+                                 unit_aliases, "Some_Units")
 
     # complex pass: list of units with other separators allowed by AES69
     assert sf.Sofa._verify_value("degrees,degrees meter",
-                                 "degree, degree, metre", unit_aliases)
+                                 "degree, degree, metre",
+                                 unit_aliases, "Some_Units")
 
     # simple fail: single unit
-    assert not sf.Sofa._verify_value("centimeter", "metre", unit_aliases)
+    assert not sf.Sofa._verify_value("centimeter", "metre",
+                                     unit_aliases, "Some_Units")
 
     # complex fail: list of units
     assert not sf.Sofa._verify_value("rad, rad, metre",
-                                     "degree, degree, metre", unit_aliases)
+                                     "degree, degree, metre",
+                                     unit_aliases, "Some_Units")
 
 
 def test_sofa_verify_ignore(capfd):
@@ -661,9 +665,10 @@ def test_case_insensitivity():
                     "degrees": "degree"}
 
     # case insensitive testing
-    assert sf.Sofa._verify_value("Meter", "meter", unit_aliases)
+    assert sf.Sofa._verify_value("Meter", "meter", unit_aliases, "Some_Units")
     assert sf.Sofa._verify_value("DegrEes, dEgreeS, MeTer",
-                                 "degree, degree, metre", unit_aliases)
+                                 "degree, degree, metre",
+                                 unit_aliases, "Some_Units")
 
     sofa = sf.Sofa("FreeFieldDirectivityTF")
     sofa.N_Units = "HertZ"

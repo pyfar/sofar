@@ -162,7 +162,7 @@ data = {
     "RoomVolume_Units": {
         "value": ["cubic metre"]},
     "RoomTemperature_Units": {
-        "value": ["Kelvin"]}
+        "value": ["kelvin"]}
 }
 
 # restrictions arising from GLOBAL_DataType
@@ -174,18 +174,18 @@ data_type = {
         "Data_IR": None,
         "Data_Delay": None,
         "Data_SamplingRate": None,
-        "Data_SamplingRate_Units": (["hertz"], "hertz")},
+        "Data_SamplingRate_Units": "hertz"},
     "TF": {
         "Data_Real": None,
         "Data_Imag": None,
         "N": None,
         # "N_LongName": (["frequency"], "frequency"),  # optional parameter
-        "N_Units": (["hertz"], "hertz")},
+        "N_Units": "hertz"},
     "SOS": {
         "Data_SOS": None,
         "Data_Delay": None,
         "Data_SamplingRate": None,
-        "Data_SamplingRate_Units": (["hertz"], "hertz")}
+        "Data_SamplingRate_Units": "hertz"}
 }
 
 # restrictions on the API

@@ -937,11 +937,11 @@ class Sofa():
             if not hasattr(self, key):
                 continue
 
-            # possible values for the current key
+            # actual and possible values for the current key
+            test = getattr(self, key)
             ref = data[key]["value"]
 
             # test if the value is valid
-            test = getattr(self, key)
             if not self._verify_value(test, ref, unit_aliases, key):
                 current_error += (f"- {key} is {test} "
                                   f"but must be {', '.join(ref)}\n")
@@ -967,7 +967,7 @@ class Sofa():
 
                 idx = ref.index(test.lower())
                 if not self._verify_value(
-                        test_dep, ref_dep[idx], unit_aliases):
+                        test_dep, ref_dep[idx], unit_aliases, key_dep):
                     current_error += (f"- {key_dep} is {test_dep} but must be "
                                       f"{ref_dep[idx]} if {key} is {test}\n")
 
@@ -984,7 +984,7 @@ class Sofa():
             data_str = False
 
         if data_str:
-            for key, value in data_type[data_str].items():
+            for key, ref in data_type[data_str].items():
 
                 # hard to test. included to detect problems with future
                 # conventions
@@ -993,10 +993,14 @@ class Sofa():
                         f"- {key} must be contained if"
                         f" GLOBAL_DataType={self.GLOBAL_DataType}\n")
 
-                if value is not None and \
-                        getattr(self, key).lower() not in value[0]:
-                    current_error += (f"{key} is {getattr(self, key)} but "
-                                      f"must be {value[1]}\n")
+                # no restriction on the value
+                if ref is None:
+                    continue
+
+                # check the value
+                test = getattr(self, key)
+                if not self._verify_value(test, ref, unit_aliases, key):
+                    current_error += (f"{key} is {test} but must be {ref}\n")
 
         # restrictions on the API
         for key, value in api.items():
@@ -1058,7 +1062,7 @@ class Sofa():
                     return issues
 
     @staticmethod
-    def _verify_value(test, ref, unit_aliases, key=None):
+    def _verify_value(test, ref, unit_aliases, key):
         """
         Check a value agains the SOFA standard for Sofa.verify()
 
@@ -1078,37 +1082,66 @@ class Sofa():
         ``True`` if `test` and `ref` agree, ``False`` otherwise
         """
 
-        # Don't check the value if ref is None or test in ref
+        # General case of valid value
         if ref is None or test in ref:
             return True
 
-        # testing for strings must be case sensitive for GLOBAL_DataType
-        # and case insensitive for all others cases
-        if isinstance(test, str):
-            test_str = test if key == "GLOBAL_DataType" else test.lower()
-            if test_str in ref:
+        # only string data should remain for verification
+        if not isinstance(test, str):
+            raise TypeError((
+                "At this point, only string data should remain. Please report "
+                "the issue: github.com/pyfar/sofar/issues"))
+
+        # case sensitive check for DataType and SOFAConventions
+        if key in ["GLOBAL_DataType", "GLOBAL_SOFAConventions"]:
+            if test in ref:
                 return True
-            elif test_str not in ref and key == "GLOBAL_DataType":
+            else:
                 return False
 
-        # in case test is a string it might be a unit and unit aliases
-        # according to the SOFA standard must be checked
+        # general case insensitive test
+        test = test.lower()
+        if test in ref:
+            return True
 
+        # if we are not checking a unit, the test value is invalid
+        if key.endswith("Units"):
+            return sf.Sofa._verify_unit(test, ref, unit_aliases)
+        else:
+            return False
+
+    @staticmethod
+    def _verify_unit(test, ref, unit_aliases):
+        """
+        Verify if a unit string agrees with AES69
+
+        Parameters:
+        -----------
+        test : string
+            Current unit string (single units or multiple units separated by
+            commas, commas plus spaces, or spaces).
+        ref : string, list
+            Unit string in the format of `test` or list containing a string
+            of a single unit (makes it possible to have units with spaces, that
+            will not be split).
+        unit_aliases : dict
+            dict of aliases for units from _verification_rules()
+        """
         # Following the SOFA standard AES69-2020, units may be separated by
         # `, ` (comma and space), `,` (comma only), and ` ` (space only).
         # (regexp ', ?' matches ', ' and ',')
-        ref = re.split(', ?| ', ref) if isinstance(ref, str) else ref
-        units = re.split(', ?| ', test) if isinstance(test, str) else []
+        units_ref = re.split(', ?| ', ref) if isinstance(ref, str) else ref
+        units_test = re.split(', ?| ', test)
 
         # check if number of units agree
-        if not units or len(ref) != len(units):
+        if len(units_ref) != len(units_test):
             return False
 
         # check if units are valid
-        for unit, unit_ref in zip(units, ref):
-            if unit.lower() != unit_ref and \
-                    (unit.lower() not in unit_aliases
-                     or unit_aliases[unit.lower()] != unit_ref):
+        for unit_test, unit_ref in zip(units_test, units_ref):
+            if unit_test != unit_ref and \
+                    (unit_test not in unit_aliases
+                     or unit_aliases[unit_test] != unit_ref):
                 return False
 
         return True
