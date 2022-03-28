@@ -934,41 +934,42 @@ class Sofa():
         current_error = ""
         for key in data.keys():
 
+            if not hasattr(self, key):
+                continue
+
+            # possible values for the current key
             ref = data[key]["value"]
-            if hasattr(self, key):
 
-                # test if the value is valid
-                test = getattr(self, key)
-                if not self._verify_value(test, ref, unit_aliases, key):
-                    current_error += \
-                        f"- {key} is {test} but must be {', '.join(ref)}\n"
+            # test if the value is valid
+            test = getattr(self, key)
+            if not self._verify_value(test, ref, unit_aliases, key):
+                current_error += (f"- {key} is {test} "
+                                  f"but must be {', '.join(ref)}\n")
 
-                # check dependencies
-                if "dependency" not in data[key]:
+            # check dependencies
+            if "dependency" not in data[key]:
+                continue
+
+            for key_dep, ref_dep in data[key]["dependency"].items():
+
+                # check if dependency is contained in SOFA object hard to test,
+                # because mandatory fields are added by sofar. For future cases
+                if not hasattr(self, key_dep):
+                    current_error += (f"- {key_dep} must be given if "
+                                      f"{key} is in SOFA object\n")
                     continue
 
-                for key_dep, ref_dep in data[key]["dependency"].items():
+                # check if dependency has the correct value
+                test_dep = getattr(self, key_dep)
+                if not (isinstance(ref, list) and
+                        isinstance(ref_dep, list)):
+                    continue
 
-                    # check if dependency is contained in SOFA object
-                    # hard to test, because mandatory fields are added by sofar
-                    # this is more to be future proof
-                    if not hasattr(self, key_dep):
-                        current_error += (f"- {key_dep} must be given if "
-                                          f"{key} is in SOFA object\n")
-                        continue
-
-                    # check if dependency has the correct value
-                    test_dep = getattr(self, key_dep)
-                    if not (isinstance(ref, list) and
-                            isinstance(ref_dep, list)):
-                        continue
-
-                    idx = ref.index(test.lower())
-                    if not self._verify_value(test_dep, ref_dep[idx],
-                                              unit_aliases):
-                        current_error += (
-                            f"- {key_dep} is {test_dep} but must be "
-                            f"{ref_dep[idx]} if {key} is {test}\n")
+                idx = ref.index(test.lower())
+                if not self._verify_value(
+                        test_dep, ref_dep[idx], unit_aliases):
+                    current_error += (f"- {key_dep} is {test_dep} but must be "
+                                      f"{ref_dep[idx]} if {key} is {test}\n")
 
         # restriction posed by GLOBAL_DataType
         if self.GLOBAL_DataType.startswith("FIR"):

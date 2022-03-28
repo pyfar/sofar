@@ -71,7 +71,7 @@ are given, e.g., "FIR" refers to the data types "FIR", "FIR-E", and
 For example if the data type is "FIR" (or "FIR-E" or "FIRE") the SOFA file must
 contain "Data_IR", "Data_Delay", and "Data_SamplingRate" (with arbitrary
 values) and "Data_SamplingRate_Units" with the value "hertz". In this case the
-additional entry can be used "hertz" can be used to give feedback to the user.
+additional entry "hertz" can be used to give feedback to the user.
 
 
 data.json
