@@ -1,0 +1,793 @@
+{
+    "GLOBAL_DataType": {
+        "value": [
+            "FIR",
+            "FIR-E",
+            "FIRE",
+            "TF",
+            "TF-E",
+            "TFE",
+            "SOS"
+        ],
+        "specific": {
+            "FIR": {
+                "Data_IR": null,
+                "Data_Delay": null,
+                "Data_SamplingRate": null,
+                "Data_SamplingRate_Units": [
+                    "hertz"
+                ]
+            },
+            "FIR-E": {
+                "Data_IR": null,
+                "Data_Delay": null,
+                "Data_SamplingRate": null,
+                "Data_SamplingRate_Units": [
+                    "hertz"
+                ]
+            },
+            "FIRE": {
+                "Data_IR": null,
+                "Data_Delay": null,
+                "Data_SamplingRate": null,
+                "Data_SamplingRate_Units": [
+                    "hertz"
+                ]
+            },
+            "TF": {
+                "Data_Real": null,
+                "Data_Imag": null,
+                "N": null,
+                "N_Units": [
+                    "hertz"
+                ]
+            },
+            "TF-E": {
+                "Data_Real": null,
+                "Data_Imag": null,
+                "N": null,
+                "N_Units": [
+                    "hertz"
+                ]
+            },
+            "TFE": {
+                "Data_Real": null,
+                "Data_Imag": null,
+                "N": null,
+                "N_Units": [
+                    "hertz"
+                ]
+            },
+            "SOS": {
+                "Data_SOS": null,
+                "Data_Delay": null,
+                "Data_SamplingRate": null,
+                "Data_SamplingRate_Units": [
+                    "hertz"
+                ],
+                "_dimensions": {
+                    "N": {
+                        "value": [
+                            6,
+                            12,
+                            18,
+                            24,
+                            30,
+                            36,
+                            42,
+                            48,
+                            54,
+                            60,
+                            66,
+                            72,
+                            78,
+                            84,
+                            90,
+                            96,
+                            102,
+                            108,
+                            114,
+                            120,
+                            126,
+                            132,
+                            138,
+                            144,
+                            150,
+                            156,
+                            162,
+                            168,
+                            174,
+                            180,
+                            186,
+                            192,
+                            198,
+                            204,
+                            210,
+                            216,
+                            222,
+                            228,
+                            234,
+                            240,
+                            246,
+                            252,
+                            258,
+                            264,
+                            270,
+                            276,
+                            282,
+                            288,
+                            294,
+                            300,
+                            306,
+                            312,
+                            318,
+                            324,
+                            330,
+                            336,
+                            342,
+                            348,
+                            354,
+                            360,
+                            366,
+                            372,
+                            378,
+                            384,
+                            390,
+                            396,
+                            402,
+                            408,
+                            414,
+                            420,
+                            426,
+                            432,
+                            438,
+                            444,
+                            450,
+                            456,
+                            462,
+                            468,
+                            474,
+                            480,
+                            486,
+                            492,
+                            498,
+                            504,
+                            510,
+                            516,
+                            522,
+                            528,
+                            534,
+                            540,
+                            546,
+                            552,
+                            558,
+                            564,
+                            570,
+                            576,
+                            582,
+                            588,
+                            594,
+                            600
+                        ],
+                        "value_str": "an integer multiple of 6 greater 0"
+                    }
+                }
+            }
+        }
+    },
+    "GLOBAL_RoomType": {
+        "value": [
+            "free field",
+            "reverberant",
+            "shoebox",
+            "dae"
+        ],
+        "specific": {
+            "reverberant": {
+                "GLOBAL_RoomDescription": null
+            },
+            "shoebox": {
+                "RoomCornerA": null,
+                "RoomCornerB": null
+            },
+            "dae": {
+                "GLOBAL_RoomGeometry": null
+            }
+        }
+    },
+    "GLOBAL_SOFAConventions": {
+        "value": [
+            "FreeFieldDirectivityTF",
+            "FreeFieldHRIR",
+            "FreeFieldHRTF",
+            "GeneralFIR-E",
+            "GeneralFIRE",
+            "GeneralFIR",
+            "GeneralFIR",
+            "GeneralTF-E",
+            "GeneralTF",
+            "GeneralTF",
+            "MultiSpeakerBRIR",
+            "SimpleFreeFieldHRIR",
+            "SimpleFreeFieldHRSOS",
+            "SimpleFreeFieldHRTF",
+            "SimpleFreeFieldSOS",
+            "SimpleHeadphoneIR",
+            "SingleRoomDRIR",
+            "SingleRoomMIMOSRIR",
+            "SingleRoomSRIR"
+        ],
+        "specific": {
+            "GeneralFIR": {
+                "GLOBAL_DataType": [
+                    "FIR"
+                ]
+            },
+            "GeneralFIR-E": {
+                "GLOBAL_DataType": [
+                    "FIR-E"
+                ]
+            },
+            "GeneralFIRE": {
+                "GLOBAL_DataType": [
+                    "FIRE"
+                ]
+            },
+            "GeneralTF": {
+                "GLOBAL_DataType": [
+                    "TF"
+                ]
+            },
+            "GeneralTF-E": {
+                "GLOBAL_DataType": [
+                    "TF-E"
+                ]
+            },
+            "SimpleFreeFieldHRIR": {
+                "GLOBAL_DataType": [
+                    "FIR"
+                ],
+                "GLOBAL_RoomType": [
+                    "free field"
+                ],
+                "EmitterPosition_Type": [
+                    "cartesian",
+                    "spherical"
+                ],
+                "_dimensions": {
+                    "E": {
+                        "value": [
+                            1
+                        ],
+                        "value_str": "1"
+                    }
+                }
+            },
+            "SimpleFreeFieldHRTF": {
+                "GLOBAL_DataType": [
+                    "TF"
+                ],
+                "GLOBAL_RoomType": [
+                    "free field"
+                ],
+                "EmitterPosition_Type": [
+                    "cartesian",
+                    "spherical"
+                ],
+                "_dimensions": {
+                    "E": {
+                        "value": [
+                            1
+                        ],
+                        "value_str": "1"
+                    }
+                }
+            },
+            "SimpleFreeFieldHRSOS": {
+                "GLOBAL_DataType": [
+                    "SOS"
+                ],
+                "GLOBAL_RoomType": [
+                    "free field"
+                ],
+                "EmitterPosition_Type": [
+                    "cartesian",
+                    "spherical"
+                ],
+                "_dimensions": {
+                    "E": {
+                        "value": [
+                            1
+                        ],
+                        "value_str": "1"
+                    }
+                }
+            },
+            "FreeFieldHRIR": {
+                "GLOBAL_DataType": [
+                    "FIR-E"
+                ],
+                "GLOBAL_RoomType": [
+                    "free field"
+                ]
+            },
+            "FreeFieldHRTF": {
+                "GLOBAL_DataType": [
+                    "TF-E"
+                ],
+                "GLOBAL_RoomType": [
+                    "free field"
+                ]
+            },
+            "SimpleHeadphoneIR": {
+                "GLOBAL_DataType": [
+                    "FIR"
+                ]
+            },
+            "SingleRoomSRIR": {
+                "GLOBAL_DataType": [
+                    "FIR"
+                ]
+            },
+            "SingleRoomMIMOSRIR": {
+                "GLOBAL_DataType": [
+                    "FIR-E"
+                ]
+            },
+            "FreeFieldDirectivityTF": {
+                "GLOBAL_DataType": [
+                    "TF"
+                ]
+            }
+        }
+    },
+    "N_LongName": {
+        "value": [
+            "frequency"
+        ]
+    },
+    "ListenerPosition_Type": {
+        "value": [
+            "cartesian",
+            "spherical"
+        ],
+        "specific": {
+            "cartesian": {
+                "ListenerPosition_Units": [
+                    "metre"
+                ]
+            },
+            "spherical": {
+                "ListenerPosition_Units": [
+                    "degree, degree, metre"
+                ]
+            }
+        }
+    },
+    "ListenerView": {
+        "value": null,
+        "general": [
+            "ListenerView_Type",
+            "ListenerView_Units"
+        ]
+    },
+    "ListenerView_Type": {
+        "value": [
+            "cartesian",
+            "spherical"
+        ],
+        "specific": {
+            "cartesian": {
+                "ListenerView_Units": [
+                    "metre"
+                ]
+            },
+            "spherical": {
+                "ListenerView_Units": [
+                    "degree, degree, metre"
+                ]
+            }
+        }
+    },
+    "ListenerUp": {
+        "value": null,
+        "general": [
+            "ListenerView"
+        ]
+    },
+    "ReceiverPosition_Type": {
+        "value": [
+            "cartesian",
+            "spherical",
+            "spherical harmonics"
+        ],
+        "specific": {
+            "cartesian": {
+                "ReceiverPosition_Units": [
+                    "metre"
+                ]
+            },
+            "spherical": {
+                "ReceiverPosition_Units": [
+                    "degree, degree, metre"
+                ]
+            },
+            "spherical harmonics": {
+                "ReceiverPosition_Units": [
+                    "degree, degree, metre"
+                ],
+                "_dimensions": {
+                    "R": {
+                        "value": [
+                            1,
+                            4,
+                            9,
+                            16,
+                            25,
+                            36,
+                            49,
+                            64,
+                            81,
+                            100,
+                            121,
+                            144,
+                            169,
+                            196,
+                            225,
+                            256,
+                            289,
+                            324,
+                            361,
+                            400,
+                            441,
+                            484,
+                            529,
+                            576,
+                            625,
+                            676,
+                            729,
+                            784,
+                            841,
+                            900,
+                            961,
+                            1024,
+                            1089,
+                            1156,
+                            1225,
+                            1296,
+                            1369,
+                            1444,
+                            1521,
+                            1600,
+                            1681,
+                            1764,
+                            1849,
+                            1936,
+                            2025,
+                            2116,
+                            2209,
+                            2304,
+                            2401,
+                            2500,
+                            2601,
+                            2704,
+                            2809,
+                            2916,
+                            3025,
+                            3136,
+                            3249,
+                            3364,
+                            3481,
+                            3600,
+                            3721,
+                            3844,
+                            3969,
+                            4096,
+                            4225,
+                            4356,
+                            4489,
+                            4624,
+                            4761,
+                            4900,
+                            5041,
+                            5184,
+                            5329,
+                            5476,
+                            5625,
+                            5776,
+                            5929,
+                            6084,
+                            6241,
+                            6400,
+                            6561,
+                            6724,
+                            6889,
+                            7056,
+                            7225,
+                            7396,
+                            7569,
+                            7744,
+                            7921,
+                            8100,
+                            8281,
+                            8464,
+                            8649,
+                            8836,
+                            9025,
+                            9216,
+                            9409,
+                            9604,
+                            9801,
+                            10000
+                        ],
+                        "value_str": "(N+1)**2 where N is the spherical harmonics order"
+                    }
+                }
+            }
+        }
+    },
+    "ReceiverView": {
+        "value": null,
+        "general": [
+            "ReceiverView_Type",
+            "ReceiverView_Units"
+        ]
+    },
+    "ReceiverView_Type": {
+        "value": [
+            "cartesian",
+            "spherical"
+        ],
+        "specific": {
+            "cartesian": {
+                "ReceiverView_Units": [
+                    "metre"
+                ]
+            },
+            "spherical": {
+                "ReceiverView_Units": [
+                    "degree, degree, metre"
+                ]
+            }
+        }
+    },
+    "ReceiverUp": {
+        "value": null,
+        "general": [
+            "ReceiverView"
+        ]
+    },
+    "SourcePosition_Type": {
+        "value": [
+            "cartesian",
+            "spherical"
+        ],
+        "specific": {
+            "cartesian": {
+                "SourcePosition_Units": [
+                    "metre"
+                ]
+            },
+            "spherical": {
+                "SourcePosition_Units": [
+                    "degree, degree, metre"
+                ]
+            }
+        }
+    },
+    "SourceView": {
+        "value": null,
+        "general": [
+            "SourceView_Type",
+            "SourceView_Units"
+        ]
+    },
+    "SourceView_Type": {
+        "value": [
+            "cartesian",
+            "spherical"
+        ],
+        "specific": {
+            "cartesian": {
+                "SourceView_Units": [
+                    "metre"
+                ]
+            },
+            "spherical": {
+                "SourceView_Units": [
+                    "degree, degree, metre"
+                ]
+            }
+        }
+    },
+    "SourceUp": {
+        "value": null,
+        "general": [
+            "SourceView"
+        ]
+    },
+    "EmitterPosition_Type": {
+        "value": [
+            "cartesian",
+            "spherical",
+            "spherical harmonics"
+        ],
+        "specific": {
+            "cartesian": {
+                "EmitterPosition_Units": [
+                    "metre"
+                ]
+            },
+            "spherical": {
+                "EmitterPosition_Units": [
+                    "degree, degree, metre"
+                ]
+            },
+            "spherical harmonics": {
+                "EmitterPosition_Units": [
+                    "degree, degree, metre"
+                ],
+                "_dimensions": {
+                    "E": {
+                        "value": [
+                            1,
+                            4,
+                            9,
+                            16,
+                            25,
+                            36,
+                            49,
+                            64,
+                            81,
+                            100,
+                            121,
+                            144,
+                            169,
+                            196,
+                            225,
+                            256,
+                            289,
+                            324,
+                            361,
+                            400,
+                            441,
+                            484,
+                            529,
+                            576,
+                            625,
+                            676,
+                            729,
+                            784,
+                            841,
+                            900,
+                            961,
+                            1024,
+                            1089,
+                            1156,
+                            1225,
+                            1296,
+                            1369,
+                            1444,
+                            1521,
+                            1600,
+                            1681,
+                            1764,
+                            1849,
+                            1936,
+                            2025,
+                            2116,
+                            2209,
+                            2304,
+                            2401,
+                            2500,
+                            2601,
+                            2704,
+                            2809,
+                            2916,
+                            3025,
+                            3136,
+                            3249,
+                            3364,
+                            3481,
+                            3600,
+                            3721,
+                            3844,
+                            3969,
+                            4096,
+                            4225,
+                            4356,
+                            4489,
+                            4624,
+                            4761,
+                            4900,
+                            5041,
+                            5184,
+                            5329,
+                            5476,
+                            5625,
+                            5776,
+                            5929,
+                            6084,
+                            6241,
+                            6400,
+                            6561,
+                            6724,
+                            6889,
+                            7056,
+                            7225,
+                            7396,
+                            7569,
+                            7744,
+                            7921,
+                            8100,
+                            8281,
+                            8464,
+                            8649,
+                            8836,
+                            9025,
+                            9216,
+                            9409,
+                            9604,
+                            9801,
+                            10000
+                        ],
+                        "value_str": "(N+1)**2 where N is the spherical harmonics order"
+                    }
+                }
+            }
+        }
+    },
+    "EmitterView": {
+        "value": null,
+        "general": [
+            "EmitterView_Type",
+            "EmitterView_Units"
+        ]
+    },
+    "EmitterView_Type": {
+        "value": [
+            "cartesian",
+            "spherical"
+        ],
+        "specific": {
+            "cartesian": {
+                "EmitterView_Units": [
+                    "metre"
+                ]
+            },
+            "spherical": {
+                "EmitterView_Units": [
+                    "degree, degree, metre"
+                ]
+            }
+        }
+    },
+    "EmitterUp": {
+        "value": null,
+        "general": [
+            "EmitterView"
+        ]
+    },
+    "RoomVolume": {
+        "value": null,
+        "general": [
+            "RoomVolume_Units"
+        ]
+    },
+    "RoomTemperature": {
+        "value": null,
+        "general": [
+            "RoomTemperature_Units"
+        ]
+    },
+    "RoomVolume_Units": {
+        "value": [
+            "cubic metre"
+        ]
+    },
+    "RoomTemperature_Units": {
+        "value": [
+            "kelvin"
+        ]
+    }
+}

@@ -568,25 +568,26 @@ def test_verify_value():
     assert sf.Sofa._verify_value("goofy", None, unit_aliases, "Some_Units")
 
     # simple pass: single unit
-    assert sf.Sofa._verify_value("meter", "metre", unit_aliases, "Some_Units")
+    assert sf.Sofa._verify_value(
+        "meter", ["metre"], unit_aliases, "Some_Units")
 
     # complex pass: list of units
     assert sf.Sofa._verify_value("degrees, degrees, meter",
-                                 "degree, degree, metre",
+                                 ["degree, degree, metre"],
                                  unit_aliases, "Some_Units")
 
     # complex pass: list of units with other separators allowed by AES69
     assert sf.Sofa._verify_value("degrees,degrees meter",
-                                 "degree, degree, metre",
+                                 ["degree, degree, metre"],
                                  unit_aliases, "Some_Units")
 
     # simple fail: single unit
-    assert not sf.Sofa._verify_value("centimeter", "metre",
+    assert not sf.Sofa._verify_value("centimeter", ["metre"],
                                      unit_aliases, "Some_Units")
 
     # complex fail: list of units
     assert not sf.Sofa._verify_value("rad, rad, metre",
-                                     "degree, degree, metre",
+                                     ["degree, degree, metre"],
                                      unit_aliases, "Some_Units")
 
 
@@ -665,9 +666,10 @@ def test_case_insensitivity():
                     "degrees": "degree"}
 
     # case insensitive testing
-    assert sf.Sofa._verify_value("Meter", "meter", unit_aliases, "Some_Units")
+    assert sf.Sofa._verify_value(
+        "Meter", ["meter"], unit_aliases, "Some_Units")
     assert sf.Sofa._verify_value("DegrEes, dEgreeS, MeTer",
-                                 "degree, degree, metre",
+                                 ["degree, degree, metre"],
                                  unit_aliases, "Some_Units")
 
     sofa = sf.Sofa("FreeFieldDirectivityTF")
@@ -897,7 +899,9 @@ def test_write_sofa_compression():
         filesize = os.stat(filename).st_size
 
 
-@pytest.mark.parametrize("mandatory", [(False), (True)])
+# mandatory=True can not be tested because some conventions have default values
+# that have optional variables as dependencies
+@pytest.mark.parametrize("mandatory", [(False)])
 def test_roundtrip(mandatory):
     """"
     Cyclic test of create, write, read functions

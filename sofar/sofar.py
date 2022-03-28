@@ -104,7 +104,9 @@ class Sofa():
         self._convention_to_sofa(mandatory)
 
         # add and update the API
-        if verify:
+        # (mandatory=True can not be verified because some conventions have
+        # default values that have optional variables as dependencies)
+        if verify and not mandatory:
             self.verify(version)
 
         self._protected = True
@@ -927,111 +929,78 @@ class Sofa():
 
         # ---------------------------------------------------------------------
         # 6. check restrictions on the content of SOFA files
-        data, data_type, api, convention, unit_aliases = \
-            self._verification_rules()
+        rules, unit_aliases = self._verification_rules()
 
-        # general restrictions on data
         current_error = ""
-        for key in data.keys():
+        for key in rules.keys():
 
             if not hasattr(self, key):
                 continue
 
             # actual and possible values for the current key
             test = getattr(self, key)
-            ref = data[key]["value"]
+            ref = rules[key]["value"]
 
             # test if the value is valid
             if not self._verify_value(test, ref, unit_aliases, key):
                 current_error += (f"- {key} is {test} "
                                   f"but must be {', '.join(ref)}\n")
 
-            # check dependencies
-            if "dependency" not in data[key]:
-                continue
+            # check general dependencies
+            items = rules[key]["general"] \
+                if "general" in rules[key] \
+                else []
 
-            for key_dep, ref_dep in data[key]["dependency"].items():
+            for key_dep in items:
 
                 # check if dependency is contained in SOFA object hard to test,
-                # because mandatory fields are added by sofar. For future cases
+                # for mandatory fields (added by sofar by default).
                 if not hasattr(self, key_dep):
                     current_error += (f"- {key_dep} must be given if "
                                       f"{key} is in SOFA object\n")
                     continue
 
-                # check if dependency has the correct value
-                test_dep = getattr(self, key_dep)
-                if not (isinstance(ref, list) and
-                        isinstance(ref_dep, list)):
-                    continue
+            # check specific dependencies
+            if "specific" in rules[key] and test in rules[key]["specific"]:
+                items = rules[key]["specific"][test].items()
+            else:
+                items = {}.items()
 
-                idx = ref.index(test.lower())
-                if not self._verify_value(
-                        test_dep, ref_dep[idx], unit_aliases, key_dep):
-                    current_error += (f"- {key_dep} is {test_dep} but must be "
-                                      f"{ref_dep[idx]} if {key} is {test}\n")
+            for key_dep, ref_dep in items:
 
-        # restriction posed by GLOBAL_DataType
-        if self.GLOBAL_DataType.startswith("FIR"):
-            data_str = "FIR"
-        elif self.GLOBAL_DataType.startswith("TF"):
-            data_str = "TF"
-        elif self.GLOBAL_DataType.startswith("SOS"):
-            data_str = "SOS"
-        else:
-            # the data type was tested before. This is to prevent redundant
-            # errors in the next for loop
-            data_str = False
-
-        if data_str:
-            for key, ref in data_type[data_str].items():
-
-                # hard to test. included to detect problems with future
-                # conventions
-                if not hasattr(self, key):
-                    current_error += (
-                        f"- {key} must be contained if"
-                        f" GLOBAL_DataType={self.GLOBAL_DataType}\n")
-
-                # no restriction on the value
-                if ref is None:
-                    continue
-
-                # check the value
-                test = getattr(self, key)
-                if not self._verify_value(test, ref, unit_aliases, key):
-                    current_error += (f"{key} is {test} but must be {ref}\n")
-
-        # restrictions on the API
-        for key, value in api.items():
-            if hasattr(self, key) and getattr(self, key) == value["value"]:
-                size = getattr(self, "_api")[value["API"][0]]
-                if size not in value["API"][1]:
-                    current_error += \
-                        (f"- Dimension {value['API'][0]} is of size {size} "
-                         f"but must be {value['API'][2]} if "
-                         f"{key} is {getattr(self, key)}\n")
-
-        # restrictions from the SOFA convention (on the data and API)
-        if self.GLOBAL_SOFAConventions in convention:
-            for key, ref in convention[self.GLOBAL_SOFAConventions].items():
-
-                if key == "API":
-                    for dimension, size in ref.items():
-                        if self._api[dimension] != size:
+                if key_dep == "_dimensions":
+                    # requires specific dimension(s) to have a vertain size
+                    for dim in rules[key]["specific"][test]["_dimensions"]:
+                        # possible sizes
+                        dim_ref = rules[key]["specific"][test]["_dimensions"][dim]["value"]  # noqa
+                        # current size
+                        dim_act = self._api[dim]
+                        # verbose error string for possible sizes
+                        dim_str = rules[key]["specific"][test]["_dimensions"][dim]["value_str"]  # noqa
+                        # perform the check
+                        if dim_act not in dim_ref:
                             current_error += \
-                    (f"- Dimension {dimension} is of size "  # noqa
-                     f"{self._api[dimension]} but must be {size} if "
-                     "GLOBAL_SOFAConventions is "
-                     f"{self.GLOBAL_SOFAConventions}\n")
+                                (f"- Dimension {dim} is of size {dim_act} "
+                                 f"but must be {dim_str} if {key} is {test}\n")
                 else:
-                    value = getattr(self, key)
-                    # DateType should be checked case sensitive
-                    if (key == "GLOBAL_DataType" and value not in ref) or\
-                            (key != "GLOBAL_DataType" and
-                             value.lower() not in ref):
-                        current_error += \
-                            f"{key} is {value} but must be {ref}\n"
+
+                    # check if dependency is contained in SOFA object
+                    if not hasattr(self, key_dep):
+                        current_error += (f"- {key_dep} must be given if "
+                                          f"{key} is {test}\n")
+                        continue
+
+                    # check if dependency has the correct value
+                    if ref_dep is None:
+                        continue
+
+                    test_dep = getattr(self, key_dep)
+
+                    if not self._verify_value(
+                            test_dep, ref_dep, unit_aliases, key_dep):
+                        current_error += (
+                            f"- {key_dep} is {test_dep} but must be "
+                            f"{', '.join(ref_dep)} if {key} is {test}\n")
 
         # ---------------------------------------------------------------------
         # 7. check write only restrictions
@@ -1050,7 +1019,8 @@ class Sofa():
             error_msg += "Detected violations of the SOFA convention:\n"
             error_msg += current_error
 
-        # handle warnings and errors
+        # ---------------------------------------------------------------------
+        # 8. handle warnings and errors
         if issue_handling != "ignore":
             error_occurred, issues = self._verify_handle_issues(
                     warning_msg, error_msg, issue_handling)
@@ -1126,11 +1096,21 @@ class Sofa():
             will not be split).
         unit_aliases : dict
             dict of aliases for units from _verification_rules()
+
+        Returns
+        -------
+        verified : bool
         """
+        # check format of reference units
+        if not isinstance(ref, list) \
+                or len(ref) != 1 \
+                or not isinstance(ref[0], str):
+            raise TypeError("ref must be a list of length 1 containing a str")
+
         # Following the SOFA standard AES69-2020, units may be separated by
         # `, ` (comma and space), `,` (comma only), and ` ` (space only).
         # (regexp ', ?' matches ', ' and ',')
-        units_ref = re.split(', ?| ', ref) if isinstance(ref, str) else ref
+        units_ref = re.split(', ?| ', ref[0])
         units_test = re.split(', ?| ', test)
 
         # check if number of units agree
@@ -1145,6 +1125,39 @@ class Sofa():
                 return False
 
         return True
+
+    @staticmethod
+    def _get_reference_unit(test, unit_aliases):
+        """
+        Return units in reference for, .e.g.,
+        "meter" is converted to "metre" and
+        "degrees degrees,meter" is converted to "degree, degree, metre"
+
+        Parameters:
+        -----------
+        test : string
+            Current unit string MUST be valid (single units or multiple units
+            separated by commas, commas plus spaces, or spaces).
+        unit_aliases : dict
+            dict of aliases for units from _verification_rules()
+
+        Returns
+        -------
+        reference_units : str
+        """
+        # Following the SOFA standard AES69-2020, units may be separated by
+        # `, ` (comma and space), `,` (comma only), and ` ` (space only).
+        # (regexp ', ?' matches ', ' and ',')
+        units_test = re.split(', ?| ', test.lower())
+
+        # check if units are valid
+        units = []
+        for unit_test in units_test:
+            if unit_test in unit_aliases:
+                unit_test = unit_aliases[unit_test]
+            units.append(unit_test)
+
+        return ", ".join(units)
 
     @staticmethod
     def _verify_handle_issues(warning_msg, error_msg, issue_handling):
@@ -1204,18 +1217,12 @@ class Sofa():
 
         base = os.path.join(os.path.dirname(__file__), "verification_rules")
 
-        with open(os.path.join(base, "data.json"), "r") as file:
-            data = json.load(file)
-        with open(os.path.join(base, "data_type.json"), "r") as file:
-            data_type = json.load(file)
-        with open(os.path.join(base, "api.json"), "r") as file:
-            api = json.load(file)
-        with open(os.path.join(base, "convention.json"), "r") as file:
-            convention = json.load(file)
+        with open(os.path.join(base, "rules.json"), "r") as file:
+            rules = json.load(file)
         with open(os.path.join(base, "unit_aliases.json"), "r") as file:
             unit_aliases = json.load(file)
 
-        return data, data_type, api, convention, unit_aliases
+        return rules, unit_aliases
 
     def copy(self):
         """Return a copy of the SOFA object."""
