@@ -1,4 +1,4 @@
-# %%
+from multiprocessing.sharedctypes import Value
 import sofar as sf
 from sofar.sofar import (_compile_conventions,
                          _get_conventions,
@@ -351,6 +351,22 @@ def test_sofa_verify_wrong_name():
     sofa._protected = True
 
     with raises(ValueError, match="Detected variable names with too many"):
+        sofa.verify()
+
+    # variables with reserved names
+    sofa = sf.Sofa("GeneralTF")
+    sofa.add_variable("APIfunk", 1, "double", "I")
+    with raises(ValueError, match="with reserved key words"):
+        sofa.verify()
+
+    sofa = sf.Sofa("GeneralTF")
+    sofa.add_variable("PRIVATEtreasure", 1, "double", "I")
+    with raises(ValueError, match="with reserved key words"):
+        sofa.verify()
+
+    sofa = sf.Sofa("GeneralTF")
+    sofa.add_variable("GLOBALdata", 1, "double", "I")
+    with raises(ValueError, match="with reserved key words"):
         sofa.verify()
 
 

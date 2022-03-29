@@ -823,6 +823,24 @@ class Sofa():
                 "Underscores are only allowed for the variable Data:\n")
             error_msg += current_error
 
+        # check reserved names
+        current_error = ""
+        for key in keys:
+
+            # AES69-2020 Sec. 4.7.1
+            if key.startswith("PRIVATE") or key.startswith("API"):
+                current_error += "- " + key + "\n"
+            if (key.startswith("GLOBAL") and not key.startswith("GLOBAL_")) or\
+                    (key.startswith("GLOBAL") and
+                     self._convention[key]["type"] != "attribute"):
+                current_error += "- " + key + "\n"
+
+        if current_error:
+            error_msg += (
+                "Detected variable or attribute with reserved key words "
+                "PRIVATE, API, or GLOBAL:\n")
+            error_msg += current_error
+
         # ---------------------------------------------------------------------
         # 4. Get dimensions (E, R, M, N, S, c, I, and custom)
 
