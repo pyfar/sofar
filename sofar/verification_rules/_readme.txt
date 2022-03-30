@@ -12,21 +12,30 @@ folder and explained below.
    variable that lists it with a lower case letter. E.g. if Data_IR shall have
    the dimension "mrn" the and the actual shape of Data_IR is (10, 2, 128),
    then M=10, R=2, and N=128.
-4. Variable and attribute names must not start with an underscore
-5. SOFA is case insensitive when checking the values of attributes with the
-   following exception.
-6. Units, i.e., all attributes that end with "Units" shall contain only lower
-   case letters when writing but may contain upper case characters when Reading
-   data.
-7. Different spelling of the units are allowed (see unit_aliases.json)
-8. Strings containing multiple units can be separated by commas, commas and
-   spaces, or spaces, e.g., "meter,meter,meter", "meter, meter, meter",
-   "meter meter meter", or mixtures thereof
-9. All validation rules from rules.json must be checked (see below)
+4. Variable and attribute names may not contain underscores and the keywords
+   'API', 'GLOBAL', and 'PRIVATE'.
+   Note: AES69 uses colons to denote attributes (e.g., 'SourcePosition:Units'
+   denotes the attribute 'Units' belonging to the variable 'SourcePosition')
+   and dots to denote hierarchies (e.g., 'Data.Real' and 'Data.Imag' are
+   variables of the group 'Data'). In addition AES69does not have a keyword to
+   specify global attribute. Some APIs (API_MO and sofar) can not use dots and
+   colons in the names (they use underscores instead) and require the keyword
+   'GLOBAL' to highlight global attributes, e.g., 'GLOBAL_SOFAConventions'.
+   The verification of this rule might thus vary across toolboxes.
+5. Some attributes can only have a limited number of entries. Examples for this
+   are names of coordinate systems, units, and room types. For instance the
+   used coordinate system can only be 'cartesian', 'spherical', or
+   'spherical harmonics'. A special case are units, where multiple spellings
+   are allowed (e.g. 'meter' and 'metre') and that can be separated either by
+   commas, commas plus spaces, or spaces (e.g. 'meter, meter, degree' or
+   'meter,meter degree'). All restricted values should be validated insensitive
+   of the case, however, units shall be written in lowercase only.
+6. All validation rules from rules.json must be checked (see below)
 
 The json files inside this folder contain rules for validating SOFA files.
-The rules were manually extracted from the SOFA Standard AES69-2020 and are
-distributed across five files
+The rules were manually extracted from the SOFA Standard AES69-2020. Note that
+the json files are written with `write_validation_rules.py` where additional
+comments on the rules can be found.
 
 
 data.json
