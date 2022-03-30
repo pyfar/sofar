@@ -1,10 +1,9 @@
 {
+    "metre": "metre",
     "metres": "metre",
     "meter": "metre",
     "meters": "metre",
-    "cubic metres": "cubic metre",
-    "cubic meter": "cubic metre",
-    "cubic meters": "cubic metre",
+    "cubic": "cubic",
     "degrees": "degree",
     "seconds": "second"
 }

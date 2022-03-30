@@ -1058,8 +1058,9 @@ class Sofa():
                             f"{', '.join(ref_dep)} if {key} is {test}\n")
 
         # ---------------------------------------------------------------------
-        # 7. check write only restrictions
-        # (units shall be written in lower-case)
+        # 7. check write only restrictions: units shall be in lower-case
+        # (could be tested in _verify_unit but this way a more verbose error
+        # message can be generated)
 
         if mode == "write":
             keys = [k for k in self.__dict__.keys() if k.endswith("Units")]
@@ -1143,12 +1144,10 @@ class Sofa():
         Parameters:
         -----------
         test : string
-            Current unit string (single units or multiple units separated by
-            commas, commas plus spaces, or spaces).
-        ref : string, list
-            Unit string in the format of `test` or list containing a string
-            of a single unit (makes it possible to have units with spaces, that
-            will not be split).
+            Current LOWER case unit string (single units or multiple units
+            separated by commas, commas plus spaces, or spaces).
+        ref : list
+            List of length one containing the LOWER reference case unit string.
         unit_aliases : dict
             dict of aliases for units from _verification_rules()
 
@@ -1174,10 +1173,16 @@ class Sofa():
 
         # check if units are valid
         for unit_test, unit_ref in zip(units_test, units_ref):
-            if unit_test != unit_ref and \
-                    (unit_test not in unit_aliases
-                     or unit_aliases[unit_test] != unit_ref):
+            if unit_test not in unit_aliases \
+                    or unit_aliases[unit_test] != unit_ref:
                 return False
+
+        # separate check for "cubic metre" (Since multi unit strings can be
+        # separated by spaces, "cubic metre" is considered as such and is
+        # split into a list ["cubic", "metre"])
+        if "cubic" in units_test and (len(units_test) != 2 or
+                                      unit_aliases[units_test[1]] != "metre"):
+            return False
 
         return True
 
@@ -1191,8 +1196,9 @@ class Sofa():
         Parameters:
         -----------
         test : string
-            Current unit string MUST be valid (single units or multiple units
-            separated by commas, commas plus spaces, or spaces).
+            Current unit string MUST be valid, i.e., tested with
+            Sofa._verify_unit (single units or multiple units separated by
+            commas, commas plus spaces, or spaces).
         unit_aliases : dict
             dict of aliases for units from _verification_rules()
 
@@ -1205,14 +1211,12 @@ class Sofa():
         # (regexp ', ?' matches ', ' and ',')
         units_test = re.split(', ?| ', test.lower())
 
-        # check if units are valid
-        units = []
-        for unit_test in units_test:
-            if unit_test in unit_aliases:
-                unit_test = unit_aliases[unit_test]
-            units.append(unit_test)
+        # get list of reference units
+        units = [unit_aliases[u] for u in units_test]
+        # get reference unit string
+        units = ", ".join(units) if units[0] != "cubic" else " ".join(units)
 
-        return ", ".join(units)
+        return units
 
     @staticmethod
     def _verify_handle_issues(warning_msg, error_msg, issue_handling):

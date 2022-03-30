@@ -12,20 +12,26 @@ For a more detailed information about the json files referr to _readme.txt
 # %%
 import json
 import os
-from sofar.sofar import _get_conventions
+from sofar.utils import _get_conventions
 
 # definition of valid coordinate systems and units
 coords_min = ["cartesian", "spherical"]
 coords_full = coords_min + ["spherical harmonics"]
 units_min = ["metre", "degree, degree, metre"]
 units_full = units_min + [units_min[1]]
+
+# allowed alternative versions of units
+# NOTE: AES69 allows multi-unit strings to be seprated by comma, comma plus
+#       space and space. This means that the unit "cubic metre" will be tested
+#       as a multi unit string and is thus also split in the aliases.
+#       A separate test for verifying that "cubic" is followed be "metre" must
+#       be performed.
 unit_aliases = {
+    "metre": "metre",
     "metres": "metre",
     "meter": "metre",
     "meters": "metre",
-    "cubic metres": "cubic metre",
-    "cubic meter": "cubic metre",
-    "cubic meters": "cubic metre",
+    "cubic": "cubic",
     "degrees": "degree",
     "seconds": "second"
 }
