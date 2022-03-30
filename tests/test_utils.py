@@ -1,3 +1,4 @@
+import shutil
 import sofar as sf
 from sofar.utils import (_compile_conventions,
                          _get_conventions)
@@ -8,7 +9,6 @@ import pytest
 from pytest import raises
 import numpy as np
 from copy import deepcopy
-from distutils import dir_util
 
 
 def test_list_conventions(capfd):
@@ -54,24 +54,25 @@ def test_update_conventions(capfd):
 
     # create temporary directory and copy existing conventions
     temp_dir = TemporaryDirectory()
-    dir_util.copy_tree(
+    work_dir = os.path.join(temp_dir.name, "conventions")
+    shutil.copytree(
         os.path.join(os.path.dirname(__file__), "..", "sofar", "conventions"),
-        temp_dir.name)
+        work_dir)
 
     # modify and delete selected conventions to verbose feedback
-    os.remove(os.path.join(temp_dir.name, "source", "GeneralTF_2.0.csv"))
+    os.remove(os.path.join(work_dir, "source", "GeneralTF_2.0.csv"))
     with open(os.path.join(
-            temp_dir.name, "source", "GeneralFIR_2.0.csv"), "w") as fid:
+            work_dir, "source", "GeneralFIR_2.0.csv"), "w") as fid:
         fid.write("test")
 
     # first run to test if conventions were updated
-    sf.update_conventions(conventions_path=temp_dir.name, assume_yes=True)
+    sf.update_conventions(conventions_path=work_dir, assume_yes=True)
     out, _ = capfd.readouterr()
     assert "added new convention: GeneralTF_2.0.csv" in out
     assert "updated existing convention: GeneralFIR_2.0.csv" in out
 
     # second run to make sure that up to date conventions are not overwritten
-    sf.update_conventions(conventions_path=temp_dir.name, assume_yes=True)
+    sf.update_conventions(conventions_path=work_dir, assume_yes=True)
     out, _ = capfd.readouterr()
     assert "added" not in out
     assert "updated" not in out
@@ -82,8 +83,7 @@ def test__compile_conventions():
 
     # create temporary directory and copy existing source conventions
     temp_dir = TemporaryDirectory()
-    os.mkdir(os.path.join(temp_dir.name, "source"))
-    dir_util.copy_tree(os.path.join(
+    shutil.copytree(os.path.join(
         os.path.dirname(__file__), "..", "sofar", "conventions", "source"),
         os.path.join(temp_dir.name, "source"))
 
