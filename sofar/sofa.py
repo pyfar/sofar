@@ -1001,6 +1001,12 @@ class Sofa():
                 current_error += (f"- {key} is {test} "
                                   f"but must be {', '.join(ref)}\n")
 
+            # get lower case value for of test for verifying specific
+            # dependencies
+            if isinstance(test, str) and test.lower() in \
+                    ["cartesian", "spherical", "spherical harmonics"]:
+                test = test.lower()
+
             # check general dependencies
             items = rules[key]["general"] \
                 if "general" in rules[key] \
@@ -1027,11 +1033,13 @@ class Sofa():
                     # requires specific dimension(s) to have a vertain size
                     for dim in rules[key]["specific"][test]["_dimensions"]:
                         # possible sizes
-                        dim_ref = rules[key]["specific"][test]["_dimensions"][dim]["value"]  # noqa
+                        dim_ref = \
+                            rules[key]["specific"][test]["_dimensions"][dim]["value"]  # noqa
                         # current size
                         dim_act = self._api[dim]
                         # verbose error string for possible sizes
-                        dim_str = rules[key]["specific"][test]["_dimensions"][dim]["value_str"]  # noqa
+                        dim_str = \
+                            rules[key]["specific"][test]["_dimensions"][dim]["value_str"]  # noqa
                         # perform the check
                         if dim_act not in dim_ref:
                             current_error += \
@@ -1144,10 +1152,11 @@ class Sofa():
         Parameters:
         -----------
         test : string
-            Current LOWER case unit string (single units or multiple units
-            separated by commas, commas plus spaces, or spaces).
+            Current unit string (single units or multiple units separated by
+            commas, commas plus spaces, or spaces).
         ref : list
-            List of length one containing the LOWER reference case unit string.
+            List of length one containing the LOWER reference case unit string,
+            i.e., only the keys from unit_aliases are allowed words.
         unit_aliases : dict
             dict of aliases for units from _verification_rules()
 
