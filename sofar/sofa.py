@@ -623,8 +623,9 @@ class Sofa():
 
         This function updates the API, and checks the following
 
-        - Are all mandatory fields contained? If not mandatory fields are added
-          with their default value and a warning is raised.
+        - Are all mandatory data contained? If `issue_handling` is ``"raise"``
+          missing mandatory data raises an error. Otherwise mandatory data are
+          added with their default value and a warning is given.
         - Are the names of variables and attributes in accordance to the SOFA
           standard?
         - Are the data types in accordance with the SOFA standard?
@@ -682,8 +683,6 @@ class Sofa():
                 Issues are printed without raising warnings and errors
             ``'return'``
                 Issues are returned as string but neither raised nor printed
-            ``'ignore'``
-                Issues are ignored, i.e., not raised, printed, or returned.
 
             The default is ``'raise'``.
         mode : str, optional
@@ -720,23 +719,29 @@ class Sofa():
 
         # ---------------------------------------------------------------------
         # 1. check if the mandatory attributes are contained
-        current_warning = ""
+        missing = ""
         keys = [key for key in self.__dict__.keys() if not key.startswith("_")]
 
         for key in self._convention.keys():
             if self._mandatory(self._convention[key]["flags"]) \
                     and key not in keys:
-                # add missing data with default value
-                self._protected = False
-                setattr(self, key, self._convention[key]["default"])
-                self._protected = True
+
+                if issue_handling != "raise":
+                    # add missing data with default value
+                    self._protected = False
+                    setattr(self, key, self._convention[key]["default"])
+                    self._protected = True
 
                 # prepare to raise warning
-                current_warning += "- " + key + "\n"
+                missing += "- " + key + "\n"
 
-        if current_warning:
-            warning_msg += "Added mandatory data with default values:\n"
-            warning_msg += current_warning
+        if missing:
+            if issue_handling == "raise":
+                error_msg += "Detected missing mandatory data:\n"
+                error_msg += missing
+            else:
+                warning_msg += "Added mandatory data with default values:\n"
+                warning_msg += missing
 
         # ---------------------------------------------------------------------
         # 2. verify data type
@@ -989,16 +994,19 @@ class Sofa():
         current_error = ""
         for key in rules.keys():
 
-            if not hasattr(self, key):
+            # convert to sofar format
+            key_sofar = key.replace(".", "_").replace(":", "_")
+
+            if not hasattr(self, key_sofar):
                 continue
 
             # actual and possible values for the current key
-            test = getattr(self, key)
+            test = getattr(self, key_sofar)
             ref = rules[key]["value"]
 
             # test if the value is valid
-            if not self._verify_value(test, ref, unit_aliases, key):
-                current_error += (f"- {key} is {test} "
+            if not self._verify_value(test, ref, unit_aliases, key_sofar):
+                current_error += (f"- {key_sofar} is {test} "
                                   f"but must be {', '.join(ref)}\n")
 
             # get lower case value for of test for verifying specific
@@ -1008,21 +1016,23 @@ class Sofa():
                 test = test.lower()
 
             # check general dependencies
-            items = rules[key]["general"] \
-                if "general" in rules[key] \
-                else []
+            items = rules[key]["general"] if "general" in rules[key] else []
 
             for key_dep in items:
+
+                # convert key to sofar format
+                key_dep = key_dep.replace(".", "_").replace(":", "_")
 
                 # check if dependency is contained in SOFA object hard to test,
                 # for mandatory fields (added by sofar by default).
                 if not hasattr(self, key_dep):
                     current_error += (f"- {key_dep} must be given if "
-                                      f"{key} is in SOFA object\n")
+                                      f"{key_sofar} is in SOFA object\n")
                     continue
 
             # check specific dependencies
-            if "specific" in rules[key] and test in rules[key]["specific"]:
+            if "specific" in rules[key] \
+                    and test in rules[key]["specific"]:
                 items = rules[key]["specific"][test].items()
             else:
                 items = {}.items()
@@ -1044,26 +1054,31 @@ class Sofa():
                         if dim_act not in dim_ref:
                             current_error += \
                                 (f"- Dimension {dim} is of size {dim_act} "
-                                 f"but must be {dim_str} if {key} is {test}\n")
+                                 f"but must be {dim_str} if {key_sofar} "
+                                 f"is {test}\n")
                 else:
 
+                    # convert name from NetCDF format to sofar format
+                    key_dep_sofar = key_dep.replace(".", "_").replace(":", "_")
+
                     # check if dependency is contained in SOFA object
-                    if not hasattr(self, key_dep):
-                        current_error += (f"- {key_dep} must be given if "
-                                          f"{key} is {test}\n")
+                    if not hasattr(self, key_dep_sofar):
+                        current_error += (f"- {key_dep_sofar} must be given if"
+                                          f" {key_sofar} is {test}\n")
                         continue
 
                     # check if dependency has the correct value
                     if ref_dep is None:
                         continue
 
-                    test_dep = getattr(self, key_dep)
+                    # convert name from NetCDF format to sofar format
+                    test_dep = getattr(self, key_dep_sofar)
 
                     if not self._verify_value(
-                            test_dep, ref_dep, unit_aliases, key_dep):
+                            test_dep, ref_dep, unit_aliases, key_dep_sofar):
                         current_error += (
-                            f"- {key_dep} is {test_dep} but must be "
-                            f"{', '.join(ref_dep)} if {key} is {test}\n")
+                            f"- {key_dep_sofar} is {test_dep} but must be "
+                            f"{', '.join(ref_dep)} if {key_sofar} is {test}\n")
 
         # ---------------------------------------------------------------------
         # 7. check write only restrictions: units shall be in lower-case
@@ -1075,9 +1090,9 @@ class Sofa():
             for key in keys:
                 unit = getattr(self, key)
                 if unit.lower() != unit:
-                    current_error += (f"{key} is {unit} but must contain only "
-                                      "lower case letters when writing SOFA "
-                                      "files to disk.")
+                    current_error += (f"- {key} is {unit} but must contain "
+                                      "only lower case letters when writing "
+                                      "SOFA files to disk.")
 
         if current_error:
             error_msg += "Detected violations of the SOFA convention:\n"

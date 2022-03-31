@@ -5,7 +5,8 @@ from pytest import raises
 import numpy as np
 
 
-def test_sofa_verify_version():
+def test_version():
+    """Test upgrading, downgrading, and keeping specific versions"""
 
     # test the default "latest"
     sofa = sf.Sofa("GeneralTF", version="1.0")
@@ -28,19 +29,27 @@ def test_sofa_verify_version():
     assert str(sofa.GLOBAL_SOFAConventionsVersion) == "1.0"
 
 
-def test_sofa_verify_missing_default_attributes():
+def test_missing_default_attributes(capfd):
 
     # test missing default attribute
     sofa = sf.Sofa("GeneralTF")
     sofa._protected = False
     delattr(sofa, "GLOBAL_Conventions")
     sofa._protected = True
-    with pytest.warns(UserWarning, match="Added mandatory data with default"):
-        sofa.verify()
+
+    # raises error
+    with raises(ValueError, match="Detected missing mandatory data"):
+        sofa.verify(issue_handling="raise")
+
+    # prints warning and adds data
+    sofa.verify(issue_handling="print")
+    out, _ = capfd.readouterr()
+
+    assert "Added mandatory data with default values" in out
     assert sofa.GLOBAL_Conventions == "SOFA"
 
 
-def test_sofa_verify_data_types(capfd):
+def test_data_types(capfd):
 
     # test invalid data for netCDF attribute
     sofa = sf.Sofa("GeneralFIR")
@@ -107,7 +116,7 @@ def test_sofa_verify_data_types(capfd):
     sofa.verify()
 
 
-def test_sofa_verify_wrong_shape():
+def test_wrong_shape():
 
     # test attribute with wrong shape
     sofa = sf.Sofa("GeneralTF")
@@ -116,7 +125,7 @@ def test_sofa_verify_wrong_shape():
         sofa.verify()
 
 
-def test_sofa_verify_wrong_name():
+def test_wrong_name():
 
     # attribute with missing variable
     sofa = sf.Sofa("GeneralTF")
@@ -203,20 +212,20 @@ def test_sofa_verify_wrong_name():
     ("RoomVolume_Units", "square metre", ""),      # message tested above
     ("RoomTemperature_Units", "Celsius", ""),      # message tested above
 ])
-def test_sofa_verify_restrictions_data_wrong_value(key, value, msg):
+def test_restrictions_data_wrong_value(key, value, msg):
     """
     Test assertions for generally restricted data values.
     """
 
     sofa = sf.Sofa("SingleRoomSRIR")
     # add variables for testing certain dependencies. If cases in case the
-    # variables get added to the convnetion some time later.
+    # variables get added to the convetion some time later.
     if not hasattr(sofa, "RoomVolume"):
         sofa.add_variable("RoomVolume", 200, "double", 'I')
         sofa.add_attribute("RoomVolume_Units", "cubic metre")
     if not hasattr(sofa, "RoomTemperature"):
         sofa.add_variable("RoomTemperature", 100, "double", 'I')
-        sofa.add_attribute("RoomTemperature_Units", "Kelvin")
+        sofa.add_attribute("RoomTemperature_Units", "kelvin")
     sofa._protected = False
     setattr(sofa, key, value)
     sofa._protected = True
@@ -231,7 +240,7 @@ def test_sofa_verify_restrictions_data_wrong_value(key, value, msg):
     ("RoomVolume_Units", ""),                      # message tested above
     ("RoomTemperature_Units", ""),                 # message tested above
 ])
-def test_sofa_verify_restrictions_data_missing_attribute(key, msg):
+def test_restrictions_data_missing_attribute(key, msg):
     """
     Test assertions for removing optional fields that become mandatory due to
     another field.
@@ -263,7 +272,7 @@ def test_sofa_verify_restrictions_data_missing_attribute(key, msg):
     ("GeneralTF", "N_Units", "hz",
      "N_Units is hz but must be hertz"),
 ])
-def test_sofa_verify_restrictions_data_type(convention, key, value, msg):
+def test_restrictions_data_type(convention, key, value, msg):
     """Test assertions for values that are restricted by GLOBAL_DataType."""
 
     sofa = sf.Sofa(convention)
@@ -272,7 +281,7 @@ def test_sofa_verify_restrictions_data_type(convention, key, value, msg):
         sofa.verify()
 
 
-def test_sofa_verify_restrictions_api_spherical_harmonics():
+def test_restrictions_api_spherical_harmonics():
     """
     Test assertions for incorrect number of emitters/receiver in case of
     spherical harmonics coordinate systems
@@ -295,7 +304,7 @@ def test_sofa_verify_restrictions_api_spherical_harmonics():
         sofa.verify()
 
 
-def test_sofa_verify_restrictions_api_second_order_sections():
+def test_restrictions_api_second_order_sections():
     """
     Test assertions for incorrect number of N in case of
     SOS data type
@@ -361,7 +370,7 @@ def test_sofa_verify_restrictions_api_second_order_sections():
     ("FreeFieldDirectivityTF", [("GLOBAL_DataType", "TF-E")],
      "GLOBAL_DataType is TF-E"),
 ])
-def test_sofa_verify_restrictions_convention(convention, kwargs, msg):
+def test_restrictions_convention(convention, kwargs, msg):
 
     sofa = sf.Sofa(convention)
     sofa._protected = False
@@ -371,7 +380,7 @@ def test_sofa_verify_restrictions_convention(convention, kwargs, msg):
         sofa.verify()
 
 
-def test_sofa_verify_read_and_write_mode():
+def test_read_and_write_mode():
 
     # Unit with uppercase is ok when reading but not ok when writing
     sofa = sf.Sofa("SimpleFreeFieldHRIR")
@@ -414,7 +423,7 @@ def test_verify_value():
                                      unit_aliases, "Some_Units")
 
 
-def test_sofa_verify_ignore(capfd):
+def test_ignore(capfd):
     """Test the ignore option of Sofa.verify"""
 
     # test invalid data for netCDF attribute
@@ -426,7 +435,7 @@ def test_sofa_verify_ignore(capfd):
     assert capfd.readouterr() == ("", "")
 
 
-def test_verify_issue_handling(capfd):
+def test_issue_handling(capfd):
     """Test different methods for handling issues during verification"""
 
     error_msg = "\nERRORS\n------\n"

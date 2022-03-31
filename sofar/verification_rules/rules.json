@@ -1,5 +1,5 @@
 {
-    "GLOBAL_DataType": {
+    "GLOBAL:DataType": {
         "value": [
             "FIR",
             "FIR-E",
@@ -11,58 +11,58 @@
         ],
         "specific": {
             "FIR": {
-                "Data_IR": null,
-                "Data_Delay": null,
-                "Data_SamplingRate": null,
-                "Data_SamplingRate_Units": [
+                "Data.IR": null,
+                "Data.Delay": null,
+                "Data.SamplingRate": null,
+                "Data.SamplingRate:Units": [
                     "hertz"
                 ]
             },
             "FIR-E": {
-                "Data_IR": null,
-                "Data_Delay": null,
-                "Data_SamplingRate": null,
-                "Data_SamplingRate_Units": [
+                "Data.IR": null,
+                "Data.Delay": null,
+                "Data.SamplingRate": null,
+                "Data.SamplingRate:Units": [
                     "hertz"
                 ]
             },
             "FIRE": {
-                "Data_IR": null,
-                "Data_Delay": null,
-                "Data_SamplingRate": null,
-                "Data_SamplingRate_Units": [
+                "Data.IR": null,
+                "Data.Delay": null,
+                "Data.SamplingRate": null,
+                "Data.SamplingRate:Units": [
                     "hertz"
                 ]
             },
             "TF": {
-                "Data_Real": null,
-                "Data_Imag": null,
+                "Data.Real": null,
+                "Data.Imag": null,
                 "N": null,
-                "N_Units": [
+                "N:Units": [
                     "hertz"
                 ]
             },
             "TF-E": {
-                "Data_Real": null,
-                "Data_Imag": null,
+                "Data.Real": null,
+                "Data.Imag": null,
                 "N": null,
-                "N_Units": [
+                "N:Units": [
                     "hertz"
                 ]
             },
             "TFE": {
-                "Data_Real": null,
-                "Data_Imag": null,
+                "Data.Real": null,
+                "Data.Imag": null,
                 "N": null,
-                "N_Units": [
+                "N:Units": [
                     "hertz"
                 ]
             },
             "SOS": {
-                "Data_SOS": null,
-                "Data_Delay": null,
-                "Data_SamplingRate": null,
-                "Data_SamplingRate_Units": [
+                "Data.SOS": null,
+                "Data.Delay": null,
+                "Data.SamplingRate": null,
+                "Data.SamplingRate:Units": [
                     "hertz"
                 ],
                 "_dimensions": {
@@ -175,7 +175,7 @@
             }
         }
     },
-    "GLOBAL_RoomType": {
+    "GLOBAL:RoomType": {
         "value": [
             "free field",
             "reverberant",
@@ -184,18 +184,18 @@
         ],
         "specific": {
             "reverberant": {
-                "GLOBAL_RoomDescription": null
+                "GLOBAL:RoomDescription": null
             },
             "shoebox": {
                 "RoomCornerA": null,
                 "RoomCornerB": null
             },
             "dae": {
-                "GLOBAL_RoomGeometry": null
+                "GLOBAL:RoomGeometry": null
             }
         }
     },
-    "GLOBAL_SOFAConventions": {
+    "GLOBAL:SOFAConventions": {
         "value": [
             "FreeFieldDirectivityTF",
             "FreeFieldHRIR",
@@ -219,38 +219,38 @@
         ],
         "specific": {
             "GeneralFIR": {
-                "GLOBAL_DataType": [
+                "GLOBAL:DataType": [
                     "FIR"
                 ]
             },
             "GeneralFIR-E": {
-                "GLOBAL_DataType": [
+                "GLOBAL:DataType": [
                     "FIR-E"
                 ]
             },
             "GeneralFIRE": {
-                "GLOBAL_DataType": [
+                "GLOBAL:DataType": [
                     "FIRE"
                 ]
             },
             "GeneralTF": {
-                "GLOBAL_DataType": [
+                "GLOBAL:DataType": [
                     "TF"
                 ]
             },
             "GeneralTF-E": {
-                "GLOBAL_DataType": [
+                "GLOBAL:DataType": [
                     "TF-E"
                 ]
             },
             "SimpleFreeFieldHRIR": {
-                "GLOBAL_DataType": [
+                "GLOBAL:DataType": [
                     "FIR"
                 ],
-                "GLOBAL_RoomType": [
+                "GLOBAL:RoomType": [
                     "free field"
                 ],
-                "EmitterPosition_Type": [
+                "EmitterPosition:Type": [
                     "cartesian",
                     "spherical"
                 ],
@@ -264,13 +264,13 @@
                 }
             },
             "SimpleFreeFieldHRTF": {
-                "GLOBAL_DataType": [
+                "GLOBAL:DataType": [
                     "TF"
                 ],
-                "GLOBAL_RoomType": [
+                "GLOBAL:RoomType": [
                     "free field"
                 ],
-                "EmitterPosition_Type": [
+                "EmitterPosition:Type": [
                     "cartesian",
                     "spherical"
                 ],
@@ -284,13 +284,13 @@
                 }
             },
             "SimpleFreeFieldHRSOS": {
-                "GLOBAL_DataType": [
+                "GLOBAL:DataType": [
                     "SOS"
                 ],
-                "GLOBAL_RoomType": [
+                "GLOBAL:RoomType": [
                     "free field"
                 ],
-                "EmitterPosition_Type": [
+                "EmitterPosition:Type": [
                     "cartesian",
                     "spherical"
                 ],
@@ -304,61 +304,61 @@
                 }
             },
             "FreeFieldHRIR": {
-                "GLOBAL_DataType": [
+                "GLOBAL:DataType": [
                     "FIR-E"
                 ],
-                "GLOBAL_RoomType": [
+                "GLOBAL:RoomType": [
                     "free field"
                 ]
             },
             "FreeFieldHRTF": {
-                "GLOBAL_DataType": [
+                "GLOBAL:DataType": [
                     "TF-E"
                 ],
-                "GLOBAL_RoomType": [
+                "GLOBAL:RoomType": [
                     "free field"
                 ]
             },
             "SimpleHeadphoneIR": {
-                "GLOBAL_DataType": [
+                "GLOBAL:DataType": [
                     "FIR"
                 ]
             },
             "SingleRoomSRIR": {
-                "GLOBAL_DataType": [
+                "GLOBAL:DataType": [
                     "FIR"
                 ]
             },
             "SingleRoomMIMOSRIR": {
-                "GLOBAL_DataType": [
+                "GLOBAL:DataType": [
                     "FIR-E"
                 ]
             },
             "FreeFieldDirectivityTF": {
-                "GLOBAL_DataType": [
+                "GLOBAL:DataType": [
                     "TF"
                 ]
             }
         }
     },
-    "N_LongName": {
+    "N:LongName": {
         "value": [
             "frequency"
         ]
     },
-    "ListenerPosition_Type": {
+    "ListenerPosition:Type": {
         "value": [
             "cartesian",
             "spherical"
         ],
         "specific": {
             "cartesian": {
-                "ListenerPosition_Units": [
+                "ListenerPosition:Units": [
                     "metre"
                 ]
             },
             "spherical": {
-                "ListenerPosition_Units": [
+                "ListenerPosition:Units": [
                     "degree, degree, metre"
                 ]
             }
@@ -367,23 +367,23 @@
     "ListenerView": {
         "value": null,
         "general": [
-            "ListenerView_Type",
-            "ListenerView_Units"
+            "ListenerView:Type",
+            "ListenerView:Units"
         ]
     },
-    "ListenerView_Type": {
+    "ListenerView:Type": {
         "value": [
             "cartesian",
             "spherical"
         ],
         "specific": {
             "cartesian": {
-                "ListenerView_Units": [
+                "ListenerView:Units": [
                     "metre"
                 ]
             },
             "spherical": {
-                "ListenerView_Units": [
+                "ListenerView:Units": [
                     "degree, degree, metre"
                 ]
             }
@@ -395,7 +395,7 @@
             "ListenerView"
         ]
     },
-    "ReceiverPosition_Type": {
+    "ReceiverPosition:Type": {
         "value": [
             "cartesian",
             "spherical",
@@ -403,17 +403,17 @@
         ],
         "specific": {
             "cartesian": {
-                "ReceiverPosition_Units": [
+                "ReceiverPosition:Units": [
                     "metre"
                 ]
             },
             "spherical": {
-                "ReceiverPosition_Units": [
+                "ReceiverPosition:Units": [
                     "degree, degree, metre"
                 ]
             },
             "spherical harmonics": {
-                "ReceiverPosition_Units": [
+                "ReceiverPosition:Units": [
                     "degree, degree, metre"
                 ],
                 "_dimensions": {
@@ -529,23 +529,23 @@
     "ReceiverView": {
         "value": null,
         "general": [
-            "ReceiverView_Type",
-            "ReceiverView_Units"
+            "ReceiverView:Type",
+            "ReceiverView:Units"
         ]
     },
-    "ReceiverView_Type": {
+    "ReceiverView:Type": {
         "value": [
             "cartesian",
             "spherical"
         ],
         "specific": {
             "cartesian": {
-                "ReceiverView_Units": [
+                "ReceiverView:Units": [
                     "metre"
                 ]
             },
             "spherical": {
-                "ReceiverView_Units": [
+                "ReceiverView:Units": [
                     "degree, degree, metre"
                 ]
             }
@@ -557,19 +557,19 @@
             "ReceiverView"
         ]
     },
-    "SourcePosition_Type": {
+    "SourcePosition:Type": {
         "value": [
             "cartesian",
             "spherical"
         ],
         "specific": {
             "cartesian": {
-                "SourcePosition_Units": [
+                "SourcePosition:Units": [
                     "metre"
                 ]
             },
             "spherical": {
-                "SourcePosition_Units": [
+                "SourcePosition:Units": [
                     "degree, degree, metre"
                 ]
             }
@@ -578,23 +578,23 @@
     "SourceView": {
         "value": null,
         "general": [
-            "SourceView_Type",
-            "SourceView_Units"
+            "SourceView:Type",
+            "SourceView:Units"
         ]
     },
-    "SourceView_Type": {
+    "SourceView:Type": {
         "value": [
             "cartesian",
             "spherical"
         ],
         "specific": {
             "cartesian": {
-                "SourceView_Units": [
+                "SourceView:Units": [
                     "metre"
                 ]
             },
             "spherical": {
-                "SourceView_Units": [
+                "SourceView:Units": [
                     "degree, degree, metre"
                 ]
             }
@@ -606,7 +606,7 @@
             "SourceView"
         ]
     },
-    "EmitterPosition_Type": {
+    "EmitterPosition:Type": {
         "value": [
             "cartesian",
             "spherical",
@@ -614,17 +614,17 @@
         ],
         "specific": {
             "cartesian": {
-                "EmitterPosition_Units": [
+                "EmitterPosition:Units": [
                     "metre"
                 ]
             },
             "spherical": {
-                "EmitterPosition_Units": [
+                "EmitterPosition:Units": [
                     "degree, degree, metre"
                 ]
             },
             "spherical harmonics": {
-                "EmitterPosition_Units": [
+                "EmitterPosition:Units": [
                     "degree, degree, metre"
                 ],
                 "_dimensions": {
@@ -740,23 +740,23 @@
     "EmitterView": {
         "value": null,
         "general": [
-            "EmitterView_Type",
-            "EmitterView_Units"
+            "EmitterView:Type",
+            "EmitterView:Units"
         ]
     },
-    "EmitterView_Type": {
+    "EmitterView:Type": {
         "value": [
             "cartesian",
             "spherical"
         ],
         "specific": {
             "cartesian": {
-                "EmitterView_Units": [
+                "EmitterView:Units": [
                     "metre"
                 ]
             },
             "spherical": {
-                "EmitterView_Units": [
+                "EmitterView:Units": [
                     "degree, degree, metre"
                 ]
             }
@@ -771,21 +771,21 @@
     "RoomVolume": {
         "value": null,
         "general": [
-            "RoomVolume_Units"
+            "RoomVolume:Units"
         ]
     },
     "RoomTemperature": {
         "value": null,
         "general": [
-            "RoomTemperature_Units"
+            "RoomTemperature:Units"
         ]
     },
-    "RoomVolume_Units": {
+    "RoomVolume:Units": {
         "value": [
             "cubic metre"
         ]
     },
-    "RoomTemperature_Units": {
+    "RoomTemperature:Units": {
         "value": [
             "kelvin"
         ]

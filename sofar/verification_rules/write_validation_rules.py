@@ -54,44 +54,44 @@ rules = {
     # Global --------------------------------------------------------------
     # Check value of GLOBAL_DataType (AES69-2020 Annex C)
     # (FIRE and TFE are legacy data types from SOFA version 1.0)
-    "GLOBAL_DataType": {
+    "GLOBAL:DataType": {
         "value": ["FIR", "FIR-E", "FIRE", "TF", "TF-E", "TFE", "SOS"],
         "specific":  {
             "FIR": {
-                "Data_IR": None,
-                "Data_Delay": None,
-                "Data_SamplingRate": None,
-                "Data_SamplingRate_Units": ["hertz"]},
+                "Data.IR": None,
+                "Data.Delay": None,
+                "Data.SamplingRate": None,
+                "Data.SamplingRate:Units": ["hertz"]},
             "FIR-E": {
-                "Data_IR": None,
-                "Data_Delay": None,
-                "Data_SamplingRate": None,
-                "Data_SamplingRate_Units": ["hertz"]},
+                "Data.IR": None,
+                "Data.Delay": None,
+                "Data.SamplingRate": None,
+                "Data.SamplingRate:Units": ["hertz"]},
             "FIRE": {
-                "Data_IR": None,
-                "Data_Delay": None,
-                "Data_SamplingRate": None,
-                "Data_SamplingRate_Units": ["hertz"]},
+                "Data.IR": None,
+                "Data.Delay": None,
+                "Data.SamplingRate": None,
+                "Data.SamplingRate:Units": ["hertz"]},
             "TF": {
-                "Data_Real": None,
-                "Data_Imag": None,
+                "Data.Real": None,
+                "Data.Imag": None,
                 "N": None,
-                "N_Units": ["hertz"]},
+                "N:Units": ["hertz"]},
             "TF-E": {
-                "Data_Real": None,
-                "Data_Imag": None,
+                "Data.Real": None,
+                "Data.Imag": None,
                 "N": None,
-                "N_Units": ["hertz"]},
+                "N:Units": ["hertz"]},
             "TFE": {
-                "Data_Real": None,
-                "Data_Imag": None,
+                "Data.Real": None,
+                "Data.Imag": None,
                 "N": None,
-                "N_Units": ["hertz"]},
+                "N:Units": ["hertz"]},
             "SOS": {
-                "Data_SOS": None,
-                "Data_Delay": None,
-                "Data_SamplingRate": None,
-                "Data_SamplingRate_Units": ["hertz"],
+                "Data.SOS": None,
+                "Data.Delay": None,
+                "Data.SamplingRate": None,
+                "Data.SamplingRate:Units": ["hertz"],
                 # Checking the dimension of N if having SOS data
                 # (assuming up to 100 second order sections)
                 "_dimensions": {
@@ -100,96 +100,96 @@ rules = {
                         "value_str": sos_dimension[1]}
                 }}}},
     # Specified in AES69-2020 SEction 4.7.7 and Table 6
-    "GLOBAL_RoomType": {
+    "GLOBAL:RoomType": {
         "value": ["free field", "reverberant", "shoebox", "dae"],
         "specific": {
             "reverberant": {
-                "GLOBAL_RoomDescription": None},
+                "GLOBAL:RoomDescription": None},
             "shoebox": {
                 "RoomCornerA": None,
                 "RoomCornerB": None},
             "dae": {
-                "GLOBAL_RoomGeometry": None}}},
+                "GLOBAL:RoomGeometry": None}}},
     # Specified in AES69-2020 Annex D
-    "GLOBAL_SOFAConventions": {
+    "GLOBAL:SOFAConventions": {
         "value": _get_conventions(return_type="name"),
         "specific": {
             "GeneralFIR": {
-                "GLOBAL_DataType": ["FIR"]},
+                "GLOBAL:DataType": ["FIR"]},
             "GeneralFIR-E": {
-                "GLOBAL_DataType": ["FIR-E"]},
+                "GLOBAL:DataType": ["FIR-E"]},
             "GeneralFIRE": {  # SOFA version 1.0 legacy
-                "GLOBAL_DataType": ["FIRE"]},
+                "GLOBAL:DataType": ["FIRE"]},
             "GeneralTF": {
-                "GLOBAL_DataType": ["TF"]},
+                "GLOBAL:DataType": ["TF"]},
             "GeneralTF-E": {
-                "GLOBAL_DataType": ["TF-E"]},
+                "GLOBAL:DataType": ["TF-E"]},
             "SimpleFreeFieldHRIR": {
-                "GLOBAL_DataType": ["FIR"],
-                "GLOBAL_RoomType": ["free field"],
-                "EmitterPosition_Type": coords_min,
+                "GLOBAL:DataType": ["FIR"],
+                "GLOBAL:RoomType": ["free field"],
+                "EmitterPosition:Type": coords_min,
                 "_dimensions": {
                     "E": {
                         "value": [1],
                         "value_str": "1"}}},
             "SimpleFreeFieldHRTF": {
-                "GLOBAL_DataType": ["TF"],
-                "GLOBAL_RoomType": ["free field"],
-                "EmitterPosition_Type": coords_min,
+                "GLOBAL:DataType": ["TF"],
+                "GLOBAL:RoomType": ["free field"],
+                "EmitterPosition:Type": coords_min,
                 "_dimensions": {
                     "E": {
                         "value": [1],
                         "value_str": "1"}}},
             "SimpleFreeFieldHRSOS": {
-                "GLOBAL_DataType": ["SOS"],
-                "GLOBAL_RoomType": ["free field"],
-                "EmitterPosition_Type": coords_min,
+                "GLOBAL:DataType": ["SOS"],
+                "GLOBAL:RoomType": ["free field"],
+                "EmitterPosition:Type": coords_min,
                 "_dimensions": {
                     "E": {
                         "value": [1],
                         "value_str": "1"}}},
             "FreeFieldHRIR": {
-                "GLOBAL_DataType": ["FIR-E"],
-                "GLOBAL_RoomType": ["free field"]},
+                "GLOBAL:DataType": ["FIR-E"],
+                "GLOBAL:RoomType": ["free field"]},
             "FreeFieldHRTF": {
-                "GLOBAL_DataType": ["TF-E"],
-                "GLOBAL_RoomType": ["free field"]},
+                "GLOBAL:DataType": ["TF-E"],
+                "GLOBAL:RoomType": ["free field"]},
             "SimpleHeadphoneIR": {
-                "GLOBAL_DataType": ["FIR"]},
+                "GLOBAL:DataType": ["FIR"]},
             "SingleRoomSRIR": {
-                "GLOBAL_DataType": ["FIR"]},
+                "GLOBAL:DataType": ["FIR"]},
             "SingleRoomMIMOSRIR": {
-                "GLOBAL_DataType": ["FIR-E"]},
+                "GLOBAL:DataType": ["FIR-E"]},
             "FreeFieldDirectivityTF": {
-                "GLOBAL_DataType": ["TF"]}}},
+                "GLOBAL:DataType": ["TF"]}}},
     # check NLongName (AES69-2020 Tables C.3 and C.4)
-    "N_LongName": {
+    "N:LongName": {
         "value": ["frequency"]},
     # Listener ------------------------------------------------------------
     # Possible values and dependencies are specified in
     # AES69-2020 Section 4.7.3
     # ---------------------------------------------------------------------
     # Check values and consistency of if ListenerPosition Type and Unit
-    "ListenerPosition_Type": {
+    "ListenerPosition:Type": {
         "value": coords_min,
         "specific": {
             coords_min[0]: {
-                "ListenerPosition_Units": [units_min[0]]},
+                "ListenerPosition:Units": [units_min[0]]},
             coords_min[1]: {
-                "ListenerPosition_Units": [units_min[1]]}
+                "ListenerPosition:Units": [units_min[1]]}
         }},
     # Check if dependencies of ListenerView are contained
     "ListenerView": {
         "value": None,
-        "general": ["ListenerView_Type", "ListenerView_Units"]},
+        "general": ["ListenerView:Type", "ListenerView:Units"]},
     # Check values and consistency of if ListenerView Type and Unit
-    "ListenerView_Type": {
+    "ListenerView:Type": {
         "value": coords_min,
         "specific": {
             coords_min[0]: {
-                "ListenerView_Units": [units_min[0]]},
+                "ListenerView:Units": [units_min[0]]},
             coords_min[1]: {
-                "ListenerView_Units": [units_min[1]]}
+                "ListenerView:Units": [units_min[1]]}
         }},
     # Check if dependencies of ListenerUp are contained
     "ListenerUp": {
@@ -200,15 +200,15 @@ rules = {
     # AES69-2020 Section 4.7.4
     # ---------------------------------------------------------------------
     # Check values and consistency of if ReceiverPosition Type and Unit
-    "ReceiverPosition_Type": {
+    "ReceiverPosition:Type": {
         "value": coords_full,
         "specific": {
             coords_full[0]: {
-                "ReceiverPosition_Units": [units_full[0]]},
+                "ReceiverPosition:Units": [units_full[0]]},
             coords_full[1]: {
-                "ReceiverPosition_Units": [units_full[1]]},
+                "ReceiverPosition:Units": [units_full[1]]},
             coords_full[2]: {
-                "ReceiverPosition_Units": [units_full[2]],
+                "ReceiverPosition:Units": [units_full[2]],
                 "_dimensions": {
                     # Check dimension R if using spherical harmonics for the
                     # receiver (assuming SH orders < 100)
@@ -219,15 +219,15 @@ rules = {
     # Check if dependencies of ReceiverView are contained
     "ReceiverView": {
         "value": None,
-        "general": ["ReceiverView_Type", "ReceiverView_Units"]},
+        "general": ["ReceiverView:Type", "ReceiverView:Units"]},
     # Check values and consistency of if ReceiverView Type and Unit
-    "ReceiverView_Type": {
+    "ReceiverView:Type": {
         "value": coords_min,
         "specific": {
             coords_min[0]: {
-                "ReceiverView_Units": [units_min[0]]},
+                "ReceiverView:Units": [units_min[0]]},
             coords_min[1]: {
-                "ReceiverView_Units": [units_min[1]]}
+                "ReceiverView:Units": [units_min[1]]}
             }},
     # Check if dependencies of ReceiverUp are contained
     "ReceiverUp": {
@@ -238,26 +238,26 @@ rules = {
     # AES69-2020 Section 4.7.5
     # ---------------------------------------------------------------------
     # Check values and consistency of if SourcePosition Type and Unit
-    "SourcePosition_Type": {
+    "SourcePosition:Type": {
         "value": coords_min,
         "specific": {
             coords_min[0]: {
-                "SourcePosition_Units": [units_min[0]]},
+                "SourcePosition:Units": [units_min[0]]},
             coords_min[1]: {
-                "SourcePosition_Units": [units_min[1]]}
+                "SourcePosition:Units": [units_min[1]]}
             }},
     # Check if dependencies of SourceView are contained
     "SourceView": {
         "value": None,
-        "general": ["SourceView_Type", "SourceView_Units"]},
+        "general": ["SourceView:Type", "SourceView:Units"]},
     # Check values and consistency of if SourceView Type and Unit
-    "SourceView_Type": {
+    "SourceView:Type": {
         "value": coords_min,
         "specific": {
             coords_min[0]: {
-                "SourceView_Units": [units_min[0]]},
+                "SourceView:Units": [units_min[0]]},
             coords_min[1]: {
-                "SourceView_Units": [units_min[1]]}
+                "SourceView:Units": [units_min[1]]}
             }},
     # Check if dependencies of SourceUp are contained
     "SourceUp": {
@@ -268,15 +268,15 @@ rules = {
     # AES69-2020 Section 4.7.6
     # ---------------------------------------------------------------------
     # Check values and consistency of if EmitterPosition Type and Unit
-    "EmitterPosition_Type": {
+    "EmitterPosition:Type": {
         "value": coords_full,
         "specific": {
             coords_full[0]: {
-                "EmitterPosition_Units": [units_full[0]]},
+                "EmitterPosition:Units": [units_full[0]]},
             coords_full[1]: {
-                "EmitterPosition_Units": [units_full[1]]},
+                "EmitterPosition:Units": [units_full[1]]},
             coords_full[2]: {
-                "EmitterPosition_Units": [units_full[2]],
+                "EmitterPosition:Units": [units_full[2]],
                 "_dimensions": {
                     # Check dimension R if using spherical harmonics for the
                     # receiver (assuming SH orders < 100)
@@ -287,15 +287,15 @@ rules = {
     # Check if dependencies of EmitterView are contained
     "EmitterView": {
         "value": None,
-        "general": ["EmitterView_Type", "EmitterView_Units"]},
+        "general": ["EmitterView:Type", "EmitterView:Units"]},
     # Check values and consistency of if EmitterView Type and Unit
-    "EmitterView_Type": {
+    "EmitterView:Type": {
         "value": coords_min,
         "specific": {
             coords_min[0]: {
-                "EmitterView_Units": [units_min[0]]},
+                "EmitterView:Units": [units_min[0]]},
             coords_min[1]: {
-                "EmitterView_Units": [units_min[1]]}
+                "EmitterView:Units": [units_min[1]]}
             }},
     # Check if dependencies of EmitterUp are contained
     "EmitterUp": {
@@ -307,13 +307,13 @@ rules = {
     # ---------------------------------------------------------------------
     "RoomVolume": {
         "value": None,
-        "general": ["RoomVolume_Units"]},
+        "general": ["RoomVolume:Units"]},
     "RoomTemperature": {
         "value": None,
-        "general": ["RoomTemperature_Units"]},
-    "RoomVolume_Units": {
+        "general": ["RoomTemperature:Units"]},
+    "RoomVolume:Units": {
         "value": ["cubic metre"]},
-    "RoomTemperature_Units": {
+    "RoomTemperature:Units": {
         "value": ["kelvin"]}
 }
 
