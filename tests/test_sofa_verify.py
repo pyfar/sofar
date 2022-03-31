@@ -4,7 +4,176 @@ import pytest
 from pytest import raises
 import numpy as np
 
+rules, unit_aliases = sf.Sofa._verification_rules()
 
+
+def complete_sofa(convention="GeneralTF"):
+    """
+    Generate SOFA file with all required data for testing verification rules.
+    """
+
+    sofa = sf.Sofa(convention)
+    # Listener meta data
+    sofa.add_variable("ListenerView", [1, 0, 0], "double", "IC")
+    sofa.add_attribute("ListenerView_Type", "cartesian")
+    sofa.add_attribute("ListenerView_Units", "metre")
+    sofa.add_variable("ListenerUp", [0, 0, 1], "double", "IC")
+    # Receiver meta data
+    sofa.add_variable("ReceiverView", [1, 0, 0], "double", "IC")
+    sofa.add_attribute("ReceiverView_Type", "cartesian")
+    sofa.add_attribute("ReceiverView_Units", "metre")
+    sofa.add_variable("ReceiverUp", [0, 0, 1], "double", "IC")
+    # Source meta data
+    sofa.add_variable("SourceView", [1, 0, 0], "double", "IC")
+    sofa.add_attribute("SourceView_Type", "cartesian")
+    sofa.add_attribute("SourceView_Units", "metre")
+    sofa.add_variable("SourceUp", [0, 0, 1], "double", "IC")
+    # Emitter meta data
+    sofa.add_variable("EmitterView", [1, 0, 0], "double", "IC")
+    sofa.add_attribute("EmitterView_Type", "cartesian")
+    sofa.add_attribute("EmitterView_Units", "metre")
+    sofa.add_variable("EmitterUp", [0, 0, 1], "double", "IC")
+    # Room meta data
+    sofa.add_attribute("GLOBAL_RoomShortName", "Hall")
+    sofa.add_attribute("GLOBAL_RoomDescription", "Wooden floor")
+    sofa.add_attribute("GLOBAL_RoomLocation", "some where nice")
+    sofa.add_variable("RoomTemperature", 0, "double", "I")
+    sofa.add_attribute("RoomTemperature_Units", "kelvin")
+    sofa.add_attribute("GLOBAL_RoomGeometry", "some/file")
+    sofa.add_variable("RoomVolume", 200, "double", "I")
+    sofa.add_attribute("RoomVolume_Units", "cubic metre")
+    sofa.add_variable("RoomCornerA", [0, 0, 0], "double", "IC")
+    sofa.add_variable("RoomCornerB", [1, 1, 1], "double", "IC")
+    sofa.add_variable("RoomCorners", 0, "double", "I")
+    sofa.add_attribute("RoomCorners_Type", "cartesian")
+    sofa.add_attribute("RoomCorners_Units", "metre")
+
+    sofa.verify()
+    return sofa
+
+
+# general tests ---------------------------------------------------------------
+def test_verify_value():
+    # example alias for testing as returned by Sofa._verification_rules()
+    unit_aliases = {"meter": "metre",
+                    "degrees": "degree"}
+
+    # Simple pass: no restriction on value
+    assert sf.Sofa._verify_value("goofy", None, unit_aliases, "Some_Units")
+
+    # simple pass: single unit
+    assert sf.Sofa._verify_value(
+        "meter", ["metre"], unit_aliases, "Some_Units")
+
+    # complex pass: list of units
+    assert sf.Sofa._verify_value("degrees, degrees, meter",
+                                 ["degree, degree, metre"],
+                                 unit_aliases, "Some_Units")
+
+    # complex pass: list of units with other separators allowed by AES69
+    assert sf.Sofa._verify_value("degrees,degrees meter",
+                                 ["degree, degree, metre"],
+                                 unit_aliases, "Some_Units")
+
+    # simple fail: single unit
+    assert not sf.Sofa._verify_value("centimeter", ["metre"],
+                                     unit_aliases, "Some_Units")
+
+    # complex fail: list of units
+    assert not sf.Sofa._verify_value("rad, rad, metre",
+                                     ["degree, degree, metre"],
+                                     unit_aliases, "Some_Units")
+
+
+def test_issue_handling(capfd):
+    """Test different methods for handling issues during verification"""
+
+    error_msg = "\nERRORS\n------\n"
+    warning_msg = "\nWARNINGS\n--------\n"
+
+    # no issue
+    issue_handling = "raise"
+    error_occurred, issues = sf.Sofa._verify_handle_issues(
+        warning_msg, error_msg, issue_handling)
+    assert not error_occurred
+    assert issues is None
+
+    # raise
+    issue_handling = "raise"
+    with pytest.warns(UserWarning, match="warning"):
+        sf.Sofa._verify_handle_issues(
+            warning_msg + "warning", error_msg, issue_handling)
+    with raises(ValueError, match="error"):
+        sf.Sofa._verify_handle_issues(
+            warning_msg, error_msg + "error", issue_handling)
+
+    # report warning
+    issue_handling = "report"
+    with pytest.warns(None) as warning:
+        _, issues = sf.Sofa._verify_handle_issues(
+            warning_msg + "warning", error_msg, issue_handling)
+    assert "warning" in issues
+    assert "ERROR" not in issues
+    assert len(warning) == 0
+    # report error
+    _, issues = sf.Sofa._verify_handle_issues(
+            warning_msg, error_msg + "error", issue_handling)
+    assert "error" in issues
+    assert "WARNING" not in issues
+
+    # test invalid data for netCDF attribute
+    issue_handling = "ignore"
+    sofa = sf.Sofa("GeneralFIR")
+    sofa.GLOBAL_Comment = [1, 2, 3]
+    issues = sofa.verify(issue_handling=issue_handling)
+
+    assert issues is None
+    assert capfd.readouterr() == ("", "")
+
+
+def test_case_insensitivity():
+    """
+    Reading applications shall ignore the case of
+    - units and
+    - types of coordinate systems
+    """
+
+    # data type (must be case sensitive) --------------------------------------
+    sofa = sf.Sofa("SimpleFreeFieldHRIR")
+    sofa._protected = False
+    sofa.GLOBAL_DataType = "fir"
+    sofa._protected = True
+    with raises(ValueError, match="GLOBAL_DataType is fir"):
+        sofa.verify()
+
+    # room type ---------------------------------------------------------------
+    sofa = sf.Sofa("FreeFieldHRIR")
+    sofa.GLOBAL_RoomType = "Free field"
+    assert sofa.verify() is None
+
+    # units -------------------------------------------------------------------
+    # example alias for testing as returned by Sofa._verification_rules()
+    unit_aliases = {"meter": "metre",
+                    "degrees": "degree"}
+
+    # case insensitive testing
+    assert sf.Sofa._verify_value(
+        "Meter", ["meter"], unit_aliases, "Some_Units")
+    assert sf.Sofa._verify_value("DegrEes, dEgreeS, MeTer",
+                                 ["degree, degree, metre"],
+                                 unit_aliases, "Some_Units")
+
+    sofa = sf.Sofa("FreeFieldDirectivityTF")
+    sofa.N_Units = "HertZ"
+    assert sofa.verify(issue_handling="return", mode="read") is None
+
+    # coordinate types --------------------------------------------------------
+    sofa = sf.Sofa("SimpleFreeFieldHRIR")
+    sofa.ListenerPosition_Type = "Cartesian"
+    assert sofa.verify(issue_handling="return") is None
+
+
+# 0. update conventions -------------------------------------------------------
 def test_version():
     """Test upgrading, downgrading, and keeping specific versions"""
 
@@ -29,6 +198,7 @@ def test_version():
     assert str(sofa.GLOBAL_SOFAConventionsVersion) == "1.0"
 
 
+# 1. check if the mandatory attributes are contained --------------------------
 def test_missing_default_attributes(capfd):
 
     # test missing default attribute
@@ -49,6 +219,7 @@ def test_missing_default_attributes(capfd):
     assert sofa.GLOBAL_Conventions == "SOFA"
 
 
+# 2. verify data type ---------------------------------------------------------
 def test_data_types(capfd):
 
     # test invalid data for netCDF attribute
@@ -116,15 +287,7 @@ def test_data_types(capfd):
     sofa.verify()
 
 
-def test_wrong_shape():
-
-    # test attribute with wrong shape
-    sofa = sf.Sofa("GeneralTF")
-    sofa.ListenerPosition = 1
-    with raises(ValueError, match=("- ListenerPosition has shape")):
-        sofa.verify()
-
-
+# 3. Verify names of entries --------------------------------------------------
 def test_wrong_name():
 
     # attribute with missing variable
@@ -186,107 +349,215 @@ def test_wrong_name():
         sofa.verify()
 
 
-# test everything from Sofa._verification_rules explicitly to make sure
-# all possible error in SOFA files are caught
-@pytest.mark.parametrize("key,value,msg", [
-    ("GLOBAL_DataType", "image", "GLOBAL_DataType is image but must be FIR,"),
-    ("GLOBAL_SOFAConventions", "FIR", ""),         # message tested above
-    ("GLOBAL_RoomType", "Living room", ""),        # message tested above
-    ("ListenerPosition_Type", "cylindrical", ""),  # message tested above
-    ("ListenerPosition_Units", "A",
-     "ListenerPosition_Units is A but must be metre if ListenerPosition_Type"),
-    ("ListenerView_Type", "cylindrical", ""),      # message tested above
-    ("ListenerView_Units", "A", ""),               # message tested above
-    ("ReceiverPosition_Type", "cylindrical", ""),  # message tested above
-    ("ReceiverPosition_Units", "A", ""),           # message tested above
-    ("ReceiverView_Type", "cylindrical", ""),      # message tested above
-    ("ReceiverView_Units", "A", ""),               # message tested above
-    ("SourcePosition_Type", "cylindrical", ""),    # message tested above
-    ("SourcePosition_Units", "A", ""),             # message tested above
-    ("SourceView_Type", "cylindrical", ""),        # message tested above
-    ("SourceView_Units", "A", ""),                 # message tested above
-    ("EmitterPosition_Type", "cylindrical", ""),   # message tested above
-    ("EmitterPosition_Units", "A", ""),            # message tested above
-    ("EmitterView_Type", "cylindrical", ""),       # message tested above
-    ("EmitterView_Units", "A", ""),                # message tested above
-    ("RoomVolume_Units", "square metre", ""),      # message tested above
-    ("RoomTemperature_Units", "Celsius", ""),      # message tested above
-])
-def test_restrictions_data_wrong_value(key, value, msg):
-    """
-    Test assertions for generally restricted data values.
-    """
+# 4 + 5. get and verify dimensions of data ------------------------------------
+def test_wrong_shape():
 
-    sofa = sf.Sofa("SingleRoomSRIR")
-    # add variables for testing certain dependencies. If cases in case the
-    # variables get added to the convetion some time later.
-    if not hasattr(sofa, "RoomVolume"):
-        sofa.add_variable("RoomVolume", 200, "double", 'I')
-        sofa.add_attribute("RoomVolume_Units", "cubic metre")
-    if not hasattr(sofa, "RoomTemperature"):
-        sofa.add_variable("RoomTemperature", 100, "double", 'I')
-        sofa.add_attribute("RoomTemperature_Units", "kelvin")
-    sofa._protected = False
-    setattr(sofa, key, value)
-    sofa._protected = True
-    with raises(ValueError, match=msg):
+    # test attribute with wrong shape
+    sofa = sf.Sofa("GeneralTF")
+    sofa.ListenerPosition = 1
+    with raises(ValueError, match=("- ListenerPosition has shape")):
         sofa.verify()
 
 
-# can't test everything from Sofa._verification_rules explicitly because
-# mandatory fields are added by default
-@pytest.mark.parametrize("key,msg", [
-    ("ReceiverView", "ReceiverView must be given if ReceiverUp"),
-    ("RoomVolume_Units", ""),                      # message tested above
-    ("RoomTemperature_Units", ""),                 # message tested above
-])
-def test_restrictions_data_missing_attribute(key, msg):
+# 6. check restrictions on the content of SOFA files --------------------------
+def test_rules_error_messages():
     """
-    Test assertions for removing optional fields that become mandatory due to
-    another field.
+    Test the exact error messages raised by violated rules from rules.json. The
+    remaining test check only if errors are raised.
     """
 
-    sofa = sf.Sofa("SingleRoomSRIR")
-    # add variables for testing certain dependencies. If cases in case the
-    # variables get added to the convnetion some time later.
-    if not hasattr(sofa, "RoomVolume"):
-        sofa.add_variable("RoomVolume", 200, "double", 'I')
-        sofa.add_attribute("RoomVolume_Units", "cubic metre")
-    if not hasattr(sofa, "RoomTemperature"):
-        sofa.add_variable("RoomTemperature", 100, "double", 'I')
-        sofa.add_attribute("RoomTemperature_Units", "Kelvin")
-    sofa._protected = False
-    delattr(sofa, key)
-    sofa._protected = True
-    with raises(ValueError, match=msg):
+    # wrong value
+    sofa = complete_sofa()
+    sofa.GLOBAL_RoomType = "pentagon"
+    error = "GLOBAL_RoomType is pentagon but must be free field, reverberant"
+    with raises(ValueError, match=error):
         sofa.verify()
 
-
-# test everything from Sofa._verification_rules explicitly to make sure
-# all possible error in SOFA files are caught
-@pytest.mark.parametrize("convention,key,value,msg", [
-    ("GeneralFIR", "Data_SamplingRate_Units", "hz",
-     "Data_SamplingRate_Units is hz but must be hertz"),
-    ("GeneralTF", "N_LongName", "f",
-     "N_LongName is f but must be frequency"),
-    ("GeneralTF", "N_Units", "hz",
-     "N_Units is hz but must be hertz"),
-])
-def test_restrictions_data_type(convention, key, value, msg):
-    """Test assertions for values that are restricted by GLOBAL_DataType."""
-
-    sofa = sf.Sofa(convention)
-    setattr(sofa, key, value)
-    with raises(ValueError, match=msg):
+    # missing general dependency
+    sofa = complete_sofa()
+    sofa.delete("ListenerView_Type")
+    error = "ListenerView_Type must be given if ListenerView is in SOFA object"
+    with raises(ValueError, match=error):
         sofa.verify()
 
+    # wrong dimensions
+    sofa = sf.Sofa("SimpleFreeFieldHRSOS")
+    sofa.Data_SOS = np.zeros((1, 2, 1))
+    error = ("Dimension N is of size 1 but must be an integer multiple of 6 "
+             "greater 0 if GLOBAL_DataType is SOS")
+    with raises(ValueError, match=error):
+        sofa.verify()
 
-def test_restrictions_api_spherical_harmonics():
-    """
-    Test assertions for incorrect number of emitters/receiver in case of
-    spherical harmonics coordinate systems
-    """
+    # missing specific dependency
+    sofa = complete_sofa()
+    sofa.GLOBAL_RoomType = "reverberant"
+    sofa.delete("GLOBAL_RoomDescription")
+    error = ("GLOBAL_RoomDescription must be given "
+             "if GLOBAL_RoomType is reverberant")
+    with raises(ValueError, match=error):
+        sofa.verify()
 
+    # wrong value for specific dependency
+    sofa = complete_sofa()
+    sofa.ListenerPosition_Type = "spherical"
+    error = ("ListenerPosition_Units is metre but must be degree, degree, "
+             "metre if ListenerPositionType is spherical")
+
+
+def test_rules_values():
+    """Test all rules that restrict data to certain values"""
+
+    # key: name of variable or attribute for testing the rule
+    for key in rules:
+        if "value" not in rules[key]:
+            continue
+
+        key_sf = key.replace(".", "_").replace(":", "_")
+        print(f"Testing: {key_sf}")
+        sofa = complete_sofa()
+
+        # test invalid value
+        sofa._protected = False
+        setattr(sofa, key_sf, "wurst")
+        sofa._protected = True
+
+        with raises(ValueError):
+            sofa.verify()
+
+
+def test_rules_general():
+    """Test all rules that restrict data to certain values"""
+
+    # key: name of variable or attribute for testing the rule
+    for key in rules:
+        if "general" not in rules[key]:
+            continue
+
+        for sub in rules[key]["general"]:
+
+            sub_sf = sub.replace(".", "_").replace(":", "_")
+
+            sofa = complete_sofa()
+            sofa.delete(sub_sf)
+            with raises(ValueError):
+                sofa.verify()
+
+
+def test_rules_specific():
+    """
+    Test all specific rules except for GLOBAL:DataType and
+    GLOBAL:SOFAConventions, and restrictions on dimensions (tested below).
+    Specific rules require certain variables or attributes to exist depending
+    on a parent variable or attribute and sometines also restrict the value for
+    the child.
+    """
+    keys = [k for k in rules.keys() if "specific" in rules[k] and k not in
+            ["GLOBAL:DataType", "GLOBAL:SOFAConventions"]]
+
+    # key: name of variable or attribute for testing specific dependency
+    for key in keys:
+        key_sf = key.replace(".", "_").replace(":", "_")
+
+        # key_value: value of the variable or attribute that triggers the
+        # specific dependency
+        for value_key in rules[key]["specific"]:
+
+            # sub: name of variable or attribute for which a specific
+            # dependency is checked
+            for sub in rules[key]["specific"][value_key]:
+
+                if sub.startswith("_"):
+                    continue
+
+                sub_sf = sub.replace(".", "_").replace(":", "_")
+                print(f"testing: {key}={value_key}, dependency {sub}")
+                sofa = complete_sofa()
+
+                # set key to correct value
+                sofa._protected = False
+                setattr(sofa, key_sf, value_key)
+                sofa._protected = False
+
+                # test a wrong value sor sub
+                value_sub = rules[key]["specific"][value_key][sub]
+                if value_sub is not None:
+                    setattr(sofa, sub_sf, "wurst")
+                    with raises(ValueError, match=f"{sub_sf} is wurst"):
+                        sofa.verify()
+
+                # test deleting sub
+                sofa._protected = False
+                delattr(sofa, sub_sf)
+                sofa._protected = True
+                with raises(ValueError):
+                    sofa.verify()
+
+
+def test_specific_rules_global_data_type():
+    """Test all specific rules for GLOBAL_DataType"""
+
+    for data_type in rules["GLOBAL:DataType"]["specific"]:
+
+        if data_type in ["FIR", "FIR-E", "FIRE", "TF", "TF-E"]:
+            convention = "General" + data_type
+        elif data_type == "SOS":
+            convention = "SimpleFreeFieldSOS"
+        elif data_type == "FIRE":
+            convention = "MultiSpeakerBRIR"
+
+        for key in rules["GLOBAL:DataType"]["specific"][data_type]:
+            if key.startswith("_"):
+                continue
+
+            key_sf = key.replace(".", "_").replace(":", "_")
+            print(f"Testing: {data_type}, {key}")
+            sofa = sf.Sofa(convention)
+
+            # test a wrong value
+            value = rules["GLOBAL:DataType"]["specific"][data_type][key]
+            if value is not None:
+                setattr(sofa, key_sf, "wurst")
+                with raises(ValueError, match=f"{key_sf} is wurst"):
+                    sofa.verify()
+
+            # test deleting the attribute
+            sofa._protected = False
+            delattr(sofa, key_sf)
+            sofa._protected = True
+            with raises(ValueError, match="missing"):
+                sofa.verify()
+
+
+def test_specific_rules_convention():
+
+    for convention in rules["GLOBAL:SOFAConventions"]["specific"]:
+        for key in rules["GLOBAL:SOFAConventions"]["specific"][convention]:
+            if key.startswith("_"):
+                continue
+
+            key_sf = key.replace(".", "_").replace(":", "_")
+            print(f"Testing: {convention}, {key_sf}")
+            sofa = sf.Sofa(convention)
+
+            # test a wrong value
+            sofa._protected = False
+            setattr(sofa, key_sf, "wurst")
+            sofa._protected = True
+
+            with raises(ValueError, match=f"{key_sf} is wurst"):
+                sofa.verify()
+
+            # test deleting the attribute
+            sofa._protected = False
+            delattr(sofa, key_sf)
+            sofa._protected = True
+            with raises(ValueError, match="missing"):
+                sofa.verify()
+
+
+def test_specific_rules_dimensions():
+
+    # test dimensions for spherical harmonics coordinates
     sofa = sf.Sofa("GeneralFIR-E")
     sofa.ReceiverPosition_Type = "spherical harmonics"
     sofa.ReceiverPosition_Units = "degree, degree, metre"
@@ -303,83 +574,23 @@ def test_restrictions_api_spherical_harmonics():
     with raises(ValueError, match="Dimension E is of size 2 but must be"):
         sofa.verify()
 
-
-def test_restrictions_api_second_order_sections():
-    """
-    Test assertions for incorrect number of N in case of
-    SOS data type
-    """
-
+    # test dimensions for SOS data type
     sofa = sf.Sofa("SimpleFreeFieldHRSOS")
     sofa.Data_SOS = np.zeros((1, 2, 1))
     with raises(ValueError, match="Dimension N is of size 1 but must be"):
         sofa.verify()
 
-
-@pytest.mark.parametrize('convention,kwargs,msg', [
-    ("GeneralFIR", [("GLOBAL_DataType", "FIR-E")], "GLOBAL_DataType is FIR-E"),
-    ("GeneralFIR-E", [("GLOBAL_DataType", "FIR")], "GLOBAL_DataType is FIR"),
-    ("GeneralFIRE", [("GLOBAL_DataType", "FIR")], "GLOBAL_DataType is FIR"),
-    ("GeneralTF", [("GLOBAL_DataType", "TF-E")], "GLOBAL_DataType is TF-E"),
-    ("GeneralTF-E", [("GLOBAL_DataType", "TF")], "GLOBAL_DataType is TF"),
-
-    ("SimpleFreeFieldHRIR", [("GLOBAL_DataType", "FIR-E")],
-     "GLOBAL_DataType is FIR-E"),
-    ("SimpleFreeFieldHRIR", [("GLOBAL_RoomType", "echoic")],
-     "GLOBAL_RoomType is echoic"),
-    ("SimpleFreeFieldHRIR", [("EmitterPosition", np.zeros((2, 3)))],
-     "Dimension E is of size 2 but must be 1 if GLOBAL"),
-    ("SimpleFreeFieldHRIR",
-     [("EmitterPosition_Type", "spherical harmonics"),
-      ("EmitterPosition_Units", "degree, degree, metre")],
-     "EmitterPosition_Type is spherical harmonics"),
-
-    ("SimpleFreeFieldHRTF", [("GLOBAL_DataType", "TF-E")],
-     "GLOBAL_DataType is TF-E"),
-    ("SimpleFreeFieldHRTF", [("GLOBAL_RoomType", "echoic")],
-     "GLOBAL_RoomType is echoic"),
-    ("SimpleFreeFieldHRTF", [("EmitterPosition", np.zeros((2, 3)))],
-     "Dimension E is of size 2 but must be 1 if GLOBAL"),
-    ("SimpleFreeFieldHRTF",
-     [("EmitterPosition_Type", "spherical harmonics"),
-      ("EmitterPosition_Units", "degree, degree, metre")],
-     "EmitterPosition_Type is spherical harmonics"),
-
-    # DataType for SimpleFreeFieldHRSOS can not be checked. It raises an error
-    # beforehands
-    ("SimpleFreeFieldHRSOS", [("GLOBAL_RoomType", "echoic")],
-     "GLOBAL_RoomType is echoic"),
-    ("SimpleFreeFieldHRSOS", [("EmitterPosition", np.zeros((2, 3)))],
-     "Dimension E is of size 2 but must be 1 if GLOBAL"),
-    ("SimpleFreeFieldHRSOS",
-     [("EmitterPosition_Type", "spherical harmonics"),
-      ("EmitterPosition_Units", "degree, degree, metre")],
-     "EmitterPosition_Type is spherical harmonics"),
-
-    # Can not be tested, because it is not yet defined
-    # ("FreeFieldHRIR", [("GLOBAL_DataType", "FIR")],
-    #  "GLOBAL_DataType is FIR"),
-    ("FreeFieldHRTF", [("GLOBAL_DataType", "TF")],
-     "GLOBAL_DataType is TF"),
-    ("SimpleHeadphoneIR", [("GLOBAL_DataType", "FIR-E")],
-     "GLOBAL_DataType is FIR-E"),
-    ("SingleRoomSRIR", [("GLOBAL_DataType", "FIR-E")],
-     "GLOBAL_DataType is FIR-E"),
-    ("SingleRoomMIMOSRIR", [("GLOBAL_DataType", "FIR")],
-     "GLOBAL_DataType is FIR"),
-    ("FreeFieldDirectivityTF", [("GLOBAL_DataType", "TF-E")],
-     "GLOBAL_DataType is TF-E"),
-])
-def test_restrictions_convention(convention, kwargs, msg):
-
-    sofa = sf.Sofa(convention)
-    sofa._protected = False
-    for key_value in kwargs:
-        setattr(sofa, key_value[0], key_value[1])
-    with raises(ValueError, match=msg):
-        sofa.verify()
+    # test dimensions for SimpleFreeFieldHRIR
+    for convention in ["SimpleFreeFieldHRIR",
+                       "SimpleFreeFieldHRTF",
+                       "SimpleFreeFieldHRSOS"]:
+        sofa = sf.Sofa(convention)
+        sofa.EmitterPosition = [[1, 0, 0], [0, 1, 0]]
+        with raises(ValueError, match="Dimension E is of size 2 but must be"):
+            sofa.verify()
 
 
+# 7. check write only restrictions --------------------------------------------
 def test_read_and_write_mode():
 
     # Unit with uppercase is ok when reading but not ok when writing
@@ -389,126 +600,3 @@ def test_read_and_write_mode():
     assert sofa.verify(mode="read", issue_handling="return") is None
     with raises(ValueError, match="lower case letters when writing"):
         sofa.verify(mode="write")
-
-
-def test_verify_value():
-    # example alias for testing as returned by Sofa._verification_rules()
-    unit_aliases = {"meter": "metre",
-                    "degrees": "degree"}
-
-    # Simple pass: no restriction on value
-    assert sf.Sofa._verify_value("goofy", None, unit_aliases, "Some_Units")
-
-    # simple pass: single unit
-    assert sf.Sofa._verify_value(
-        "meter", ["metre"], unit_aliases, "Some_Units")
-
-    # complex pass: list of units
-    assert sf.Sofa._verify_value("degrees, degrees, meter",
-                                 ["degree, degree, metre"],
-                                 unit_aliases, "Some_Units")
-
-    # complex pass: list of units with other separators allowed by AES69
-    assert sf.Sofa._verify_value("degrees,degrees meter",
-                                 ["degree, degree, metre"],
-                                 unit_aliases, "Some_Units")
-
-    # simple fail: single unit
-    assert not sf.Sofa._verify_value("centimeter", ["metre"],
-                                     unit_aliases, "Some_Units")
-
-    # complex fail: list of units
-    assert not sf.Sofa._verify_value("rad, rad, metre",
-                                     ["degree, degree, metre"],
-                                     unit_aliases, "Some_Units")
-
-
-def test_ignore(capfd):
-    """Test the ignore option of Sofa.verify"""
-
-    # test invalid data for netCDF attribute
-    sofa = sf.Sofa("GeneralFIR")
-    sofa.GLOBAL_Comment = [1, 2, 3]
-    issues = sofa.verify(issue_handling="ignore")
-
-    assert issues is None
-    assert capfd.readouterr() == ("", "")
-
-
-def test_issue_handling(capfd):
-    """Test different methods for handling issues during verification"""
-
-    error_msg = "\nERRORS\n------\n"
-    warning_msg = "\nWARNINGS\n--------\n"
-
-    # no issue
-    issue_handling = "raise"
-    error_occurred, issues = sf.Sofa._verify_handle_issues(
-        warning_msg, error_msg, issue_handling)
-    assert not error_occurred
-    assert issues is None
-
-    # raise
-    issue_handling = "raise"
-    with pytest.warns(UserWarning, match="warning"):
-        sf.Sofa._verify_handle_issues(
-            warning_msg + "warning", error_msg, issue_handling)
-    with raises(ValueError, match="error"):
-        sf.Sofa._verify_handle_issues(
-            warning_msg, error_msg + "error", issue_handling)
-
-    # report warning
-    issue_handling = "report"
-    with pytest.warns(None) as warning:
-        _, issues = sf.Sofa._verify_handle_issues(
-            warning_msg + "warning", error_msg, issue_handling)
-    assert "warning" in issues
-    assert "ERROR" not in issues
-    assert len(warning) == 0
-    # report error
-    _, issues = sf.Sofa._verify_handle_issues(
-            warning_msg, error_msg + "error", issue_handling)
-    assert "error" in issues
-    assert "WARNING" not in issues
-
-
-def test_case_insensitivity():
-    """
-    Reading applications shall ignore the case of
-    - units and
-    - types of coordinate systems
-    """
-
-    # data type (must be case sensitive) --------------------------------------
-    sofa = sf.Sofa("SimpleFreeFieldHRIR")
-    sofa._protected = False
-    sofa.GLOBAL_DataType = "fir"
-    sofa._protected = True
-    with raises(ValueError, match="GLOBAL_DataType is fir"):
-        sofa.verify()
-
-    # room type ---------------------------------------------------------------
-    sofa = sf.Sofa("FreeFieldHRIR")
-    sofa.GLOBAL_RoomType = "Free field"
-    assert sofa.verify(issue_handling="return") is None
-
-    # units -------------------------------------------------------------------
-    # example alias for testing as returned by Sofa._verification_rules()
-    unit_aliases = {"meter": "metre",
-                    "degrees": "degree"}
-
-    # case insensitive testing
-    assert sf.Sofa._verify_value(
-        "Meter", ["meter"], unit_aliases, "Some_Units")
-    assert sf.Sofa._verify_value("DegrEes, dEgreeS, MeTer",
-                                 ["degree, degree, metre"],
-                                 unit_aliases, "Some_Units")
-
-    sofa = sf.Sofa("FreeFieldDirectivityTF")
-    sofa.N_Units = "HertZ"
-    assert sofa.verify(issue_handling="return", mode="read") is None
-
-    # coordinate types --------------------------------------------------------
-    sofa = sf.Sofa("SimpleFreeFieldHRIR")
-    sofa.ListenerPosition_Type = "Cartesian"
-    assert sofa.verify(issue_handling="return") is None

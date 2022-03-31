@@ -261,7 +261,12 @@ def test_delete_entry():
     assert not hasattr(sofa, "SourceManufacturer")
 
 
-def test_get_size_and_shape_of_string_var():
+def test__update_conventions():
+    """Tested in test_sofa_verify.pi::test_version"""
+    pass
+
+
+def test__get_size_and_shape_of_string_var():
 
     # test with string
     S, shape = sf.Sofa._get_size_and_shape_of_string_var("four", "key")
@@ -290,13 +295,13 @@ def test_get_size_and_shape_of_string_var():
         sf.Sofa._get_size_and_shape_of_string_var(1, "key")
 
 
-def test_is_mandatory():
+def test___mandatory():
     assert sf.Sofa._mandatory("rm")
     assert not sf.Sofa._mandatory("r")
     assert not sf.Sofa._mandatory(None)
 
 
-def test_is_readonly():
+def test___readonly():
     assert sf.Sofa._read_only("rm")
     assert not sf.Sofa._read_only("m")
     assert not sf.Sofa._read_only(None)

@@ -35,6 +35,7 @@ unit_aliases = {
     "meter": "metre",
     "meters": "metre",
     "cubic": "cubic",
+    "degree": "degree",
     "degrees": "degree",
     "second": "second",
     "seconds": "second"

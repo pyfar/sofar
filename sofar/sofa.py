@@ -187,13 +187,6 @@ class Sofa():
             N_verbose = "frequencies"
         elif self.GLOBAL_DataType.startswith("SOS"):
             N_verbose = "SOS coefficients"
-        else:
-            # This line can not be tested. An invalid DataType would be cached
-            # in self.verify above. This to make sure we don't miss something
-            # in case new DataTypes are added to SOFA in the future.
-            raise ValueError((
-                "GLOBAL_DataType start with 'FIR', 'TF', "
-                f"or 'SOS' but not with {self.GLOBAL_DataType}"))
 
         # get verbose description for dimensions R and E
         R_verbose = "receiver spherical harmonics coefficients" if \
