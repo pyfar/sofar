@@ -1,0 +1,10 @@
+{
+    "GLOBAL:SOFAConventions": {
+        "MusicalInstrumentDirectivityTF": "FreeFieldDirectivityTF",
+        "SimpleFreeFieldDirectivityTF": "FreeFieldDirectivityTF",
+        "SimpleBRIR": "MultiSpeakerBRIR",
+        "SimpleFreeFieldTF": "SimpleFreeFieldHRTF",
+        "SimpleFreeFieldSOS": "SimpleFreeFieldHRSOS",
+        "SingleRoomDRIR": "SingleRoomSRIR"
+    }
+}

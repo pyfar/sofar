@@ -318,8 +318,21 @@ rules = {
         "value": ["kelvin"]}
 }
 
+# deprecations
+deprecations = {
+    "GLOBAL:SOFAConventions": {
+        "MusicalInstrumentDirectivityTF": "FreeFieldDirectivityTF",
+        "SimpleFreeFieldDirectivityTF": "FreeFieldDirectivityTF",
+        "SimpleBRIR": "MultiSpeakerBRIR",
+        "SimpleFreeFieldTF": "SimpleFreeFieldHRTF",
+        "SimpleFreeFieldSOS": "SimpleFreeFieldHRSOS",
+        "SingleRoomDRIR": "SingleRoomSRIR"
+    }
+}
+
 # write to json files
-for content, name in zip([rules, unit_aliases], ["rules", "unit_aliases"]):
+for content, name in zip([rules, unit_aliases, deprecations],
+                         ["rules", "unit_aliases", "deprecations"]):
 
     json_file = os.path.join(os.path.dirname(__file__), name + '.json')
     with open(json_file, 'w') as file:

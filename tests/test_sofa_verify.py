@@ -4,7 +4,7 @@ import pytest
 from pytest import raises
 import numpy as np
 
-rules, unit_aliases = sf.Sofa._verification_rules()
+rules, unit_aliases, _ = sf.Sofa._verification_rules()
 
 
 def complete_sofa(convention="GeneralTF"):
@@ -599,4 +599,22 @@ def test_read_and_write_mode():
 
     assert sofa.verify(mode="read", issue_handling="return") is None
     with raises(ValueError, match="lower case letters when writing"):
+        sofa.verify(mode="write")
+
+
+# 8. check deprecations -------------------------------------------------------
+# so far there only deprections on the Convention, and the only deprecated
+# convention for which a json file exists is SingleRoomDRIR
+
+def test_deprecations():
+    sofa = sf.Sofa("SingleRoomDRIR", verify=False)
+
+    msg = ("Detected deprecations:\n"
+           "- GLOBAL_SOFAConventions is SingleRoomDRIR, which is deprecated. "
+           "Use SingleRoomSRIR instead.")
+
+    with pytest.warns(UserWarning, match=msg):
+        sofa.verify(mode="read")
+
+    with raises(ValueError, match=msg):
         sofa.verify(mode="write")
