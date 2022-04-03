@@ -501,7 +501,7 @@ def test_specific_rules_global_data_type():
         if data_type in ["FIR", "FIR-E", "FIRE", "TF", "TF-E"]:
             convention = "General" + data_type
         elif data_type == "SOS":
-            convention = "SimpleFreeFieldSOS"
+            convention = "SimpleFreeFieldHRSOS"
         elif data_type == "FIRE":
             convention = "MultiSpeakerBRIR"
 
@@ -603,15 +603,18 @@ def test_read_and_write_mode():
 
 
 # 8. check deprecations -------------------------------------------------------
-# so far there only deprections on the Convention, and the only deprecated
-# convention for which a json file exists is SingleRoomDRIR
-
-def test_deprecations():
-    sofa = sf.Sofa("SingleRoomDRIR", verify=False)
+# so far there only deprections on the Convention, and not all deprecated
+# conventions still exist in API_MO. Thus the manual test intead of iterating
+# over deprecations.json
+@pytest.mark.parametrize("deprecated,current", (
+    ["SingleRoomDRIR", "SingleRoomSRIR"],
+    ["SimpleFreeFieldSOS", "SimpleFreeFieldHRSOS"]))
+def test_deprecations(deprecated, current):
+    sofa = sf.Sofa(deprecated, verify=False)
 
     msg = ("Detected deprecations:\n"
-           "- GLOBAL_SOFAConventions is SingleRoomDRIR, which is deprecated. "
-           "Use SingleRoomSRIR instead.")
+           f"- GLOBAL_SOFAConventions is {deprecated}, which is deprecated. "
+           f"Use {current} instead.")
 
     with pytest.warns(UserWarning, match=msg):
         sofa.verify(mode="read")
