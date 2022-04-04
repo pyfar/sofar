@@ -1,4 +1,3 @@
-from nbformat import read
 import sofar as sf
 from sofar.utils import (_get_conventions,
                          _verify_convention_and_version,
@@ -152,7 +151,7 @@ def test_roundtrip(mandatory):
             # deprecated conventions can not be written
             sofa = sf.Sofa(name, mandatory, version, verify=False)
             with pytest.warns(UserWarning, match="deprecations"):
-                sofa.verify(mode=read)
+                sofa.verify(mode="read")
         else:
             # test full round-trip for other conventions
             file = os.path.join(temp_dir.name, name + ".sofa")
