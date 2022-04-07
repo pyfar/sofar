@@ -20,7 +20,9 @@ develop-eggs
 lib
 lib64
 venv*/
+env/
 pyvenv*/
+.pytest_cache/
 
 # Installer logs
 pip-log.txt
