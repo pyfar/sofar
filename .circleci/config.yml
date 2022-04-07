@@ -65,28 +65,6 @@ jobs:
           name: Flake8
           command: flake8 spharpy
 
-  test_examples:
-    parameters:
-      version:
-        description: "version tag"
-        default: "latest"
-        type: string
-    executor:
-      name: python-docker
-      version: <<parameters.version>>
-
-    steps:
-      - checkout
-      - python/install-packages:
-          pkg-manager: pip
-          # app-dir: ~/project/package-directory/  # If you're requirements.txt isn't in the root directory.
-          pip-dependency-file: requirements_dev.txt
-      - run:
-          name: Examples
-          command: |
-            pip install -e .
-            pytest --nbmake examples/*.ipynb
-
   test_pypi_publish:
     parameters:
       version:
@@ -130,14 +108,6 @@ workflows:
           requires:
             - build_and_test
 
-      - test_examples:
-          matrix:
-            parameters:
-              version:
-                - "3.9"
-          requires:
-            - build_and_test
-
   test_and_publish:
     # Test and publish on new git version tags
     # This requires its own workflow to successfully trigger the test and build
@@ -170,20 +140,6 @@ workflows:
             tags:
               only: /^v[0-9]+(\.[0-9]+)*$/
 
-      - test_examples:
-          matrix:
-            parameters:
-              version:
-                - "3.9"
-          requires:
-            - build_and_test
-          filters:
-            branches:
-              ignore: /.*/
-            # only act on version tags
-            tags:
-              only: /^v[0-9]+(\.[0-9]+)*$/
-
       - test_pypi_publish:
           matrix:
             parameters:
@@ -192,7 +148,6 @@ workflows:
           requires:
             - build_and_test
             - flake
-            - test_examples
           filters:
             branches:
               ignore: /.*/
