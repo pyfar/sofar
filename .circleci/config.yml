@@ -63,7 +63,7 @@ jobs:
           pip-dependency-file: requirements_dev.txt
       - run:
           name: Flake8
-          command: flake8 spharpy
+          command: flake8 sofar
 
   test_pypi_publish:
     parameters:
