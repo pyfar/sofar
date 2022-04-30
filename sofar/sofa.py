@@ -1294,18 +1294,12 @@ class Sofa():
         detailed information see folder 'verification_rules'.
 
         Returns:
-        data : dict
-            General restrictions on the data of any SOFA convention
-        data_type : dict
-            Restriction depending on GLOBAL_DataType
-        api : dict
-            Restrictions on the API depending on specific fields of a SOFA file
-        convention : dict
-            Restrictions for specific conventions
+        rules : dict
+            All general and specific verification rules
         unit_aliases : dict
-            Allowed aliases for the standard units
+            Aliases for specific units allowed in SOFA
         deprecations : dict
-            Deprecations
+            Deprecated conventions and their substitute
         """
 
         base = os.path.join(os.path.dirname(__file__), "verification_rules")

@@ -4,7 +4,7 @@ import pytest
 from pytest import raises
 import numpy as np
 
-rules, unit_aliases, _ = sf.Sofa._verification_rules()
+rules, unit_aliases, deprecations = sf.Sofa._verification_rules()
 
 
 def complete_sofa(convention="GeneralTF"):
@@ -603,18 +603,27 @@ def test_read_and_write_mode():
 
 
 # 8. check deprecations -------------------------------------------------------
-# so far there only deprections on the Convention, and not all deprecated
-# conventions still exist in API_MO. Thus the manual test intead of iterating
-# over deprecations.json
-@pytest.mark.parametrize("deprecated,current", (
-    ["SingleRoomDRIR", "SingleRoomSRIR"],
-    ["SimpleFreeFieldSOS", "SimpleFreeFieldHRSOS"]))
-def test_deprecations(deprecated, current):
+@pytest.mark.parametrize("deprecated,substitute",
+                         deprecations["GLOBAL:SOFAConventions"].items())
+def test_deprecations(deprecated, substitute):
+    """
+    Test if deprecations raise warnings in read mode and errors in write mode.
+    """
+
+    # check if deprecated and substitute convention exist in sofar
+    conventions = sf.utils._get_conventions("name")
+
+    if deprecated not in conventions:
+        return
+
+    assert substitute in conventions
+
+    # check warnings and errors
     sofa = sf.Sofa(deprecated, verify=False)
 
     msg = ("Detected deprecations:\n"
            f"- GLOBAL_SOFAConventions is {deprecated}, which is deprecated. "
-           f"Use {current} instead.")
+           f"Use {substitute} instead.")
 
     with pytest.warns(UserWarning, match=msg):
         sofa.verify(mode="read")
