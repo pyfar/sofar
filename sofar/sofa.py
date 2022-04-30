@@ -982,7 +982,7 @@ class Sofa():
 
         # ---------------------------------------------------------------------
         # 6. check restrictions on the content of SOFA files
-        rules, unit_aliases = self._verification_rules()
+        rules, unit_aliases, deprecations = self._verification_rules()
 
         current_error = ""
         for key in rules.keys():
@@ -1085,14 +1085,29 @@ class Sofa():
                 if unit.lower() != unit:
                     current_error += (f"- {key} is {unit} but must contain "
                                       "only lower case letters when writing "
-                                      "SOFA files to disk.")
+                                      "SOFA files to disk.\n")
 
         if current_error:
             error_msg += "Detected violations of the SOFA convention:\n"
             error_msg += current_error
 
         # ---------------------------------------------------------------------
-        # 8. handle warnings and errors
+        # 8. check deprecations
+        # (so far there are only deprecations for the convention)
+        if self.GLOBAL_SOFAConventions in \
+                deprecations["GLOBAL:SOFAConventions"]:
+            msg = ("Detected deprecations:\n"
+                   f"- GLOBAL_SOFAConventions is "
+                   f"{self.GLOBAL_SOFAConventions}, which is deprecated. Use "
+                   f"{deprecations['GLOBAL:SOFAConventions'][self.GLOBAL_SOFAConventions]}"  # noqa
+                   f" instead.")
+            if mode == "write":
+                error_msg += msg
+            else:
+                warning_msg += msg
+
+        # ---------------------------------------------------------------------
+        # 9. handle warnings and errors
         if issue_handling != "ignore":
             error_occurred, issues = self._verify_handle_issues(
                     warning_msg, error_msg, issue_handling)
@@ -1242,7 +1257,7 @@ class Sofa():
         # handle warnings
         if warning_msg != "\nWARNINGS\n--------\n":
             if issue_handling == "raise":
-                warnings.warn(warning_msg)
+                warnings.warn(UserWarning(warning_msg))
             elif issue_handling == "print":
                 print(warning_msg)
         else:
@@ -1279,16 +1294,12 @@ class Sofa():
         detailed information see folder 'verification_rules'.
 
         Returns:
-        data : dict
-            General restrictions on the data of any SOFA convention
-        data_type : dict
-            Restriction depending on GLOBAL_DataType
-        api : dict
-            Restrictions on the API depending on specific fields of a SOFA file
-        convention : dict
-            Restrictions for specific conventions
+        rules : dict
+            All general and specific verification rules
         unit_aliases : dict
-            Allowed aliases for the standard units
+            Aliases for specific units allowed in SOFA
+        deprecations : dict
+            Deprecated conventions and their substitute
         """
 
         base = os.path.join(os.path.dirname(__file__), "verification_rules")
@@ -1297,8 +1308,10 @@ class Sofa():
             rules = json.load(file)
         with open(os.path.join(base, "unit_aliases.json"), "r") as file:
             unit_aliases = json.load(file)
+        with open(os.path.join(base, "deprecations.json"), "r") as file:
+            deprecations = json.load(file)
 
-        return rules, unit_aliases
+        return rules, unit_aliases, deprecations
 
     def copy(self):
         """Return a copy of the SOFA object."""

@@ -4,7 +4,7 @@ import pytest
 from pytest import raises
 import numpy as np
 
-rules, unit_aliases = sf.Sofa._verification_rules()
+rules, unit_aliases, deprecations = sf.Sofa._verification_rules()
 
 
 def complete_sofa(convention="GeneralTF"):
@@ -501,7 +501,7 @@ def test_specific_rules_global_data_type():
         if data_type in ["FIR", "FIR-E", "FIRE", "TF", "TF-E"]:
             convention = "General" + data_type
         elif data_type == "SOS":
-            convention = "SimpleFreeFieldSOS"
+            convention = "SimpleFreeFieldHRSOS"
         elif data_type == "FIRE":
             convention = "MultiSpeakerBRIR"
 
@@ -599,4 +599,34 @@ def test_read_and_write_mode():
 
     assert sofa.verify(mode="read", issue_handling="return") is None
     with raises(ValueError, match="lower case letters when writing"):
+        sofa.verify(mode="write")
+
+
+# 8. check deprecations -------------------------------------------------------
+@pytest.mark.parametrize("deprecated,substitute",
+                         deprecations["GLOBAL:SOFAConventions"].items())
+def test_deprecations(deprecated, substitute):
+    """
+    Test if deprecations raise warnings in read mode and errors in write mode.
+    """
+
+    # check if deprecated and substitute convention exist in sofar
+    conventions = sf.utils._get_conventions("name")
+
+    if deprecated not in conventions:
+        return
+
+    assert substitute in conventions
+
+    # check warnings and errors
+    sofa = sf.Sofa(deprecated, verify=False)
+
+    msg = ("Detected deprecations:\n"
+           f"- GLOBAL_SOFAConventions is {deprecated}, which is deprecated. "
+           f"Use {substitute} instead.")
+
+    with pytest.warns(UserWarning, match=msg):
+        sofa.verify(mode="read")
+
+    with raises(ValueError, match=msg):
         sofa.verify(mode="write")

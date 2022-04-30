@@ -142,14 +142,24 @@ def test_roundtrip(mandatory):
     temp_dir = TemporaryDirectory()
     names_versions = _get_conventions(return_type="name_version")
 
+    _, _, deprecations = sf.Sofa._verification_rules()
+
     for name, version in names_versions:
         print(f"Testing: {name}")
-        file = os.path.join(temp_dir.name, name + ".sofa")
-        sofa = sf.Sofa(name, mandatory, version)
-        sf.write_sofa(file, sofa, version)
-        sofa_r = sf.read_sofa(file, version=version)
-        identical = sf.equals(sofa, sofa_r, verbose=True, exclude="DATE")
-        assert identical
+
+        if name in deprecations["GLOBAL:SOFAConventions"]:
+            # deprecated conventions can not be written
+            sofa = sf.Sofa(name, mandatory, version, verify=False)
+            with pytest.warns(UserWarning, match="deprecations"):
+                sofa.verify(mode="read")
+        else:
+            # test full round-trip for other conventions
+            file = os.path.join(temp_dir.name, name + ".sofa")
+            sofa = sf.Sofa(name, mandatory, version)
+            sf.write_sofa(file, sofa, version)
+            sofa_r = sf.read_sofa(file, version=version)
+            identical = sf.equals(sofa, sofa_r, verbose=True, exclude="DATE")
+            assert identical
 
 
 def test_roundtrip_multidimensional_string_variable():

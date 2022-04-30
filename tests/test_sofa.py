@@ -103,7 +103,7 @@ def test_list_dimensions(capfd):
     assert "N = 1 frequencies (set by Data_Real of dimension MRN)" in out
 
     # test SOS Data
-    sofa = sf.Sofa("SimpleFreeFieldSOS")
+    sofa = sf.Sofa("SimpleFreeFieldHRSOS")
     sofa.list_dimensions
     out, _ = capfd.readouterr()
     assert "N = 6 SOS coefficients (set by Data_SOS of dimension MRN)" in out
