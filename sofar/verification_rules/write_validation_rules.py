@@ -321,12 +321,13 @@ rules = {
 # deprecations
 deprecations = {
     "GLOBAL:SOFAConventions": {
+        "MultiSpeakerBRIR": "SingleRoomSRIR",
         "MusicalInstrumentDirectivityTF": "FreeFieldDirectivityTF",
-        "SimpleFreeFieldDirectivityTF": "FreeFieldDirectivityTF",
         "SimpleBRIR": "MultiSpeakerBRIR",
-        "SimpleFreeFieldTF": "SimpleFreeFieldHRTF",
+        "SingleRoomDRIR": "SingleRoomSRIR",
+        "SimpleFreeFieldDirectivityTF": "FreeFieldDirectivityTF",
         "SimpleFreeFieldSOS": "SimpleFreeFieldHRSOS",
-        "SingleRoomDRIR": "SingleRoomSRIR"
+        "SimpleFreeFieldTF": "SimpleFreeFieldHRTF"
     }
 }
 
