@@ -1,0 +1,3 @@
+[submodule "sofar/sofar_verification_rules"]
+	path = sofar/sofar_verification_rules
+	url = https://github.com/pyfar/sofar_verification_rules
