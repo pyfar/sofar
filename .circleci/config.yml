@@ -43,7 +43,7 @@ jobs:
           pip-dependency-file: requirements_dev.txt
       - run:
           name: Run tests
-          command: pytest
+          command: git submodule sync --recursive && git submodule update --recursive --init && pytest
 
   flake:
     parameters:
@@ -63,7 +63,7 @@ jobs:
           pip-dependency-file: requirements_dev.txt
       - run:
           name: Flake8
-          command: flake8 sofar
+          command: git submodule sync --recursive && git submodule update --recursive --init && flake8 sofar tests
 
   test_pypi_publish:
     parameters:
@@ -84,6 +84,8 @@ jobs:
       - run:
           name: deploy
           command: |  # create whl, install twine and publish to Test PyPI
+            git submodule sync --recursive
+            git submodule update --recursive --init
             python setup.py sdist bdist_wheel
             twine upload dist/*
 
