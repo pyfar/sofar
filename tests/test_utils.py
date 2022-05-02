@@ -1,7 +1,7 @@
 import shutil
 import sofar as sf
-from sofar.utils import (_compile_conventions,
-                         _get_conventions)
+from sofar.utils import _get_conventions
+from sofar.sofar_conventions.update_conventions import _compile_conventions
 import os
 import json
 from tempfile import TemporaryDirectory
@@ -55,9 +55,8 @@ def test_update_conventions(capfd):
     # create temporary directory and copy existing conventions
     temp_dir = TemporaryDirectory()
     work_dir = os.path.join(temp_dir.name, "conventions")
-    shutil.copytree(
-        os.path.join(os.path.dirname(__file__), "..", "sofar", "conventions"),
-        work_dir)
+    shutil.copytree(os.path.join(os.path.dirname(__file__), "..", "sofar",
+                    "sofar_conventions"), work_dir)
 
     # modify and delete selected conventions to verbose feedback
     os.remove(os.path.join(work_dir, "source", "GeneralTF_2.0.csv"))
@@ -83,9 +82,12 @@ def test__compile_conventions():
 
     # create temporary directory and copy existing source conventions
     temp_dir = TemporaryDirectory()
-    shutil.copytree(os.path.join(
-        os.path.dirname(__file__), "..", "sofar", "conventions", "source"),
+    shutil.copytree(
+        os.path.join(os.path.dirname(__file__), "..", "sofar",
+                     "sofar_conventions", "source"),
         os.path.join(temp_dir.name, "source"))
+
+    os.mkdir(os.path.join(temp_dir.name, "json"))
 
     # compile conventions
     _compile_conventions(temp_dir.name)
@@ -101,7 +103,7 @@ def test__compile_conventions():
         with open(ref, "r") as file:
             ref_data = json.load(file)
 
-        test = os.path.join(temp_dir.name, convention)
+        test = os.path.join(temp_dir.name, "json", convention)
         with open(test, "r") as file:
             test_data = json.load(file)
 

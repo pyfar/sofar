@@ -10,9 +10,10 @@ from .sofa import Sofa
 
 from .io import (read_sofa, write_sofa)
 
-from .utils import (update_conventions,
-                    list_conventions,
+from .utils import (list_conventions,
                     equals)
+
+from .sofar_conventions.update_conventions import update_conventions
 
 
 __all__ = ['Sofa',
