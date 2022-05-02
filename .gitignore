@@ -23,6 +23,7 @@ venv*/
 env/
 pyvenv*/
 .pytest_cache/
+**/__pycache__/
 
 # Installer logs
 pip-log.txt
