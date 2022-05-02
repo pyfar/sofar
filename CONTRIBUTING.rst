@@ -52,7 +52,7 @@ Ready to contribute? Here's how to set up `sofar` for local development.
 1. Fork the `sofar` repo on GitHub.
 2. Clone your fork locally and cd into the sofar directory::
 
-    $ git clone https://github.com/pyfar/sofar.git
+    $ git clone --recursive https://github.com/pyfar/sofar.git
     $ cd sofar/
 
 3. Install your local copy into a virtualenv. Assuming you have Anaconda or Miniconda installed, this is how you set up your fork for local development::
@@ -169,6 +169,15 @@ documentation. To show the warnings again use
     $ make clean
 
 before building the documentation.
+
+
+Submodules
+~~~~~~~~~~
+
+To update the submodules containing the conventions and verification rules run
+
+$ git submodule update --remote sofar/sofar_conventions
+$ git submodule update --remote sofar/sofar_verification_rules
 
 
 Deploying
