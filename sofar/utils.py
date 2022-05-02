@@ -7,6 +7,7 @@ import numpy.testing as npt
 from packaging.version import parse as version_parse
 import warnings
 from bs4 import BeautifulSoup
+import sofar as sf
 
 
 def update_conventions(conventions_path=None, assume_yes=False):
@@ -579,3 +580,48 @@ def _nd_newaxis(array, ndim):
     for _ in range(ndim - array.ndim):
         array = array[..., np.newaxis]
     return array
+
+
+def _complete_sofa(convention="GeneralTF"):
+    """
+    Generate SOFA file with all required data for testing verification rules.
+    """
+
+    sofa = sf.Sofa(convention)
+    # Listener meta data
+    sofa.add_variable("ListenerView", [1, 0, 0], "double", "IC")
+    sofa.add_attribute("ListenerView_Type", "cartesian")
+    sofa.add_attribute("ListenerView_Units", "metre")
+    sofa.add_variable("ListenerUp", [0, 0, 1], "double", "IC")
+    # Receiver meta data
+    sofa.add_variable("ReceiverView", [1, 0, 0], "double", "IC")
+    sofa.add_attribute("ReceiverView_Type", "cartesian")
+    sofa.add_attribute("ReceiverView_Units", "metre")
+    sofa.add_variable("ReceiverUp", [0, 0, 1], "double", "IC")
+    # Source meta data
+    sofa.add_variable("SourceView", [1, 0, 0], "double", "IC")
+    sofa.add_attribute("SourceView_Type", "cartesian")
+    sofa.add_attribute("SourceView_Units", "metre")
+    sofa.add_variable("SourceUp", [0, 0, 1], "double", "IC")
+    # Emitter meta data
+    sofa.add_variable("EmitterView", [1, 0, 0], "double", "IC")
+    sofa.add_attribute("EmitterView_Type", "cartesian")
+    sofa.add_attribute("EmitterView_Units", "metre")
+    sofa.add_variable("EmitterUp", [0, 0, 1], "double", "IC")
+    # Room meta data
+    sofa.add_attribute("GLOBAL_RoomShortName", "Hall")
+    sofa.add_attribute("GLOBAL_RoomDescription", "Wooden floor")
+    sofa.add_attribute("GLOBAL_RoomLocation", "some where nice")
+    sofa.add_variable("RoomTemperature", 0, "double", "I")
+    sofa.add_attribute("RoomTemperature_Units", "kelvin")
+    sofa.add_attribute("GLOBAL_RoomGeometry", "some/file")
+    sofa.add_variable("RoomVolume", 200, "double", "I")
+    sofa.add_attribute("RoomVolume_Units", "cubic metre")
+    sofa.add_variable("RoomCornerA", [0, 0, 0], "double", "IC")
+    sofa.add_variable("RoomCornerB", [1, 1, 1], "double", "IC")
+    sofa.add_variable("RoomCorners", 0, "double", "I")
+    sofa.add_attribute("RoomCorners_Type", "cartesian")
+    sofa.add_attribute("RoomCorners_Units", "metre")
+
+    sofa.verify()
+    return sofa
