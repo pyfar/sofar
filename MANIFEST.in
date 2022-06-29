@@ -4,5 +4,7 @@ include HISTORY.rst
 include LICENSE
 include README.rst
 
-recursive-include sofar/conventions *.csv
-recursive-include sofar/conventions *.json
+recursive-include sofar/sofar_conventions/source *.csv
+recursive-include sofar/sofar_conventions/json *.json
+
+recursive-include sofar/sofar_verification_rules/rules *.json

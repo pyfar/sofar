@@ -52,10 +52,14 @@ Ready to contribute? Here's how to set up `sofar` for local development.
 1. Fork the `sofar` repo on GitHub.
 2. Clone your fork locally and cd into the sofar directory::
 
-    $ git clone https://github.com/pyfar/sofar.git
+    $ git clone --recursive https://github.com/pyfar/sofar.git
     $ cd sofar/
 
-3. Install your local copy into a virtualenv. Assuming you have Anaconda or Miniconda installed, this is how you set up your fork for local development::
+3. Note that some graphical Git interfaces can not do the recursive clone. If the folder sofar/sofar_conventions is empty try
+
+    $ git submodule update --init
+
+4. Install your local copy into a virtualenv. Assuming you have Anaconda or Miniconda installed, this is how you set up your fork for local development::
 
     $ conda create --name sofar python
     $ conda activate sofar
@@ -63,13 +67,13 @@ Ready to contribute? Here's how to set up `sofar` for local development.
     $ pip install -e .
     $ pip install -r requirements_dev.txt
 
-4. Create a branch for local development. Indicate the intention of your branch in its respective name (i.e. `feature/branch-name` or `bugfix/branch-name`)::
+5. Create a branch for local development. Indicate the intention of your branch in its respective name (i.e. `feature/branch-name` or `bugfix/branch-name`)::
 
     $ git checkout -b name-of-your-bugfix-or-feature
 
    Now you can make your changes locally.
 
-5. When you're done making changes, check that your changes pass flake8 and the
+6. When you're done making changes, check that your changes pass flake8 and the
    tests::
 
     $ flake8 sofar tests
@@ -77,13 +81,13 @@ Ready to contribute? Here's how to set up `sofar` for local development.
 
    flake8 test must pass without any warnings for `./sofar` and `./tests` using the default or a stricter configuration. Flake8 ignores `E123/E133, E226` and `E241/E242` by default. If necessary adjust the your flake8 and linting configuration in your IDE accordingly.
 
-6. Commit your changes and push your branch to GitHub::
+7. Commit your changes and push your branch to GitHub::
 
     $ git add .
     $ git commit -m "Your detailed description of your changes."
     $ git push origin name-of-your-bugfix-or-feature
 
-7. Submit a pull request through the GitHub website.
+8. Submit a pull request through the GitHub website.
 
 Pull Request Guidelines
 -----------------------
@@ -169,6 +173,15 @@ documentation. To show the warnings again use
     $ make clean
 
 before building the documentation.
+
+
+Submodules
+~~~~~~~~~~
+
+To update the submodules containing the conventions and verification rules run
+
+$ git submodule update --remote sofar/sofar_conventions
+$ git submodule update --remote sofar/sofar_verification_rules
 
 
 Deploying

@@ -1302,7 +1302,8 @@ class Sofa():
             Deprecated conventions and their substitute
         """
 
-        base = os.path.join(os.path.dirname(__file__), "verification_rules")
+        base = os.path.join(
+            os.path.dirname(__file__), "sofar_verification_rules", "rules")
 
         with open(os.path.join(base, "rules.json"), "r") as file:
             rules = json.load(file)
