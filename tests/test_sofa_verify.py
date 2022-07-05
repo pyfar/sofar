@@ -46,7 +46,7 @@ def test_verify_value():
                                  unit_aliases, "Some_Units")
 
     # complex pass: list of units with other separators allowed by AES69
-    assert sf.Sofa._verify_value("degrees,degrees meter",
+    assert sf.Sofa._verify_value("degrees,degrees, meter",
                                  ["degree, degree, metre"],
                                  unit_aliases, "Some_Units")
 

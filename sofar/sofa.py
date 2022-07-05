@@ -1196,8 +1196,8 @@ class Sofa():
         # Following the SOFA standard AES69-2020, units may be separated by
         # `, ` (comma and space), `,` (comma only), and ` ` (space only).
         # (regexp ', ?' matches ', ' and ',')
-        units_ref = re.split(', ?| ', ref[0])
-        units_test = re.split(', ?| ', test)
+        units_ref = re.split(', ?', ref[0])
+        units_test = re.split(', ?', test)
 
         # check if number of units agree
         if len(units_ref) != len(units_test):
@@ -1208,13 +1208,6 @@ class Sofa():
             if unit_test not in unit_aliases \
                     or unit_aliases[unit_test] != unit_ref:
                 return False
-
-        # separate check for "cubic metre" (Since multi unit strings can be
-        # separated by spaces, "cubic metre" is considered as such and is
-        # split into a list ["cubic", "metre"])
-        if "cubic" in units_test and (len(units_test) != 2 or
-                                      unit_aliases[units_test[1]] != "metre"):
-            return False
 
         return True
 
