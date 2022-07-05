@@ -178,8 +178,8 @@ def test_roundtrip_multidimensional_string_variable():
     sofa.SourceManufacturer = [["someone"], ["else"], ["did"], ["this"]]
     # remove other string variables for simplicity
     delattr(sofa, "SourceModel")
-    delattr(sofa, "ReceiverDescription")
-    delattr(sofa, "EmitterDescription")
+    delattr(sofa, "ReceiverDescriptions")
+    delattr(sofa, "EmitterDescriptions")
     delattr(sofa, "MeasurementDate")
 
     # read write and assert
