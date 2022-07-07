@@ -876,6 +876,29 @@ class Sofa():
                 "PRIVATE, API, or GLOBAL:\n")
             error_msg += current_error
 
+        # check names of custom data (shall not have the same name as
+        # normative data contained in the convention AES69-2022 Sec. 5.3)
+        current_error = ""
+        if hasattr(self, "_custom"):
+
+            # get normative variables and attributes
+            normative = sf.Sofa(
+                self.GLOBAL_SOFAConventions,
+                version=self.GLOBAL_SOFAConventionsVersion)._convention.keys()
+            normative = [n.replace("GLOBAL_", "") for n in normative]
+
+            # compare against custom
+            for key in self._custom.keys():
+                if key.replace("GLOBAL_", "") in normative:
+                    current_error += "- " + key + "\n"
+
+        if current_error:
+            error_msg += (
+                "Detected custom variable or attribute with reserved names. "
+                "Custom data shall not have the same name as data contained in"
+                " the convention itself:\n")
+            error_msg += current_error
+
         # ---------------------------------------------------------------------
         # 4. Get dimensions (E, R, M, N, S, c, I, and custom)
 
