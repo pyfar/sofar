@@ -324,6 +324,19 @@ def test_wrong_name():
         sofa.verify()
 
 
+def test_custom_data_name():
+    """
+    Custom entries can not have the names of data contained in the convention.
+    """
+
+    sofa = sf.Sofa("GeneralTF")
+    # add variable Origin, although GLOBAL_Origin exists
+    sofa.add_variable("Origin", 1, "double", 'I')
+    with raises(ValueError,
+                match="custom variable or attribute with reserved names"):
+        sofa.verify()
+
+
 # 4 + 5. get and verify dimensions of data ------------------------------------
 def test_wrong_shape():
 
