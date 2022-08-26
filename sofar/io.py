@@ -220,6 +220,15 @@ def write_sofa(filename: str, sofa: sf.Sofa, version="latest", compression=4):
        (1, ) inside SOFA files (according to the SOFA standard AES69-2020) but
        will be a scalar inside SOFA objects after reading from disk.
     """
+    _write_sofa(filename, sofa, version, compression, verify=True)
+
+
+def _write_sofa(filename: str, sofa: sf.Sofa, version="latest",
+                compression=4, verify=True):
+    """
+    Private write function for writing invalid SOFA files for testing. See
+    write_sofa for documentation.
+    """
 
     # check the filename
     if not filename.endswith('.sofa'):
@@ -229,7 +238,8 @@ def write_sofa(filename: str, sofa: sf.Sofa, version="latest", compression=4):
     zlib = False if compression == 0 else True
 
     # update the dimensions
-    sofa.verify(version, mode="write")
+    if verify:
+        sofa.verify(version, mode="write")
 
     # list of all attribute names
     all_keys = [key for key in sofa.__dict__.keys() if not key.startswith("_")]
