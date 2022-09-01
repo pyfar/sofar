@@ -101,6 +101,22 @@ def test_write_sofa_assertion():
         sf.write_sofa("sofa.exe", sofa)
 
 
+def test_write_sofa_outdated_version():
+    """Test the warning for writing SOFA files with outdated versions"""
+
+    # generate test data and directory
+    tmp = TemporaryDirectory()
+    sofa = sf.Sofa("GeneralTF", version="1.0")
+
+    # write with outdated version
+    with pytest.warns(UserWarning, match="Writing SOFA object with outdated"):
+        sf.write_sofa(os.path.join(tmp.name, "outdated.sofa"), sofa)
+
+    # write with latest version
+    with pytest.warns(UserWarning, match="Upgraded SOFA object"):
+        sf.write_sofa(os.path.join(tmp.name, "outdated.sofa"), sofa, "latest")
+
+
 def test_write_sofa_compression():
     """Test writing SOFA files with compression"""
 
