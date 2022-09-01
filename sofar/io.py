@@ -2,6 +2,7 @@ import os
 import numpy as np
 from netCDF4 import Dataset, chartostring, stringtochar
 import warnings
+import packaging
 import sofar as sf
 from .utils import _verify_convention_and_version, _atleast_nd
 
@@ -174,7 +175,7 @@ def read_sofa(filename, verify=True, version="latest", verbose=True):
     return sofa
 
 
-def write_sofa(filename: str, sofa: sf.Sofa, version="latest", compression=4):
+def write_sofa(filename: str, sofa: sf.Sofa, version="match", compression=4):
     """
     Write a SOFA object to disk as a SOFA file.
 
@@ -197,7 +198,8 @@ def write_sofa(filename: str, sofa: sf.Sofa, version="latest", compression=4):
         str
             Version string, e.g., ``'1.0'``.
 
-        The default is ``'latest'``.
+        The default is ``'match'`` and a warning is raised if the version is
+        outdated.
     compression : int
         The level of compression with ``0`` being no compression and ``9``
         being the best compression. The default of ``9`` optimizes the file
@@ -223,7 +225,7 @@ def write_sofa(filename: str, sofa: sf.Sofa, version="latest", compression=4):
     _write_sofa(filename, sofa, version, compression, verify=True)
 
 
-def _write_sofa(filename: str, sofa: sf.Sofa, version="latest",
+def _write_sofa(filename: str, sofa: sf.Sofa, version="match",
                 compression=4, verify=True):
     """
     Private write function for writing invalid SOFA files for testing. See
@@ -233,6 +235,19 @@ def _write_sofa(filename: str, sofa: sf.Sofa, version="latest",
     # check the filename
     if not filename.endswith('.sofa'):
         raise ValueError("Filename must end with .sofa")
+
+    # check if the latest version is used for writing and warn otherwise
+    if version != "latest":
+        latest = sf.Sofa(sofa.GLOBAL_SOFAConventions)
+        latest = latest.GLOBAL_SOFAConventionsVersion
+
+        current = sofa.GLOBAL_SOFAConventionsVersion if version == "match" \
+            else version
+
+        if packaging.version.parse(current) < packaging.version.parse(latest):
+            warnings.warn(("Writing SOFA object with outdated Convention "
+                           f"version {current}. Use version='latest' to write "
+                           f"data with version {latest}."))
 
     # setting the netCDF compression parameter
     zlib = False if compression == 0 else True
