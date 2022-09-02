@@ -7,7 +7,7 @@ import sofar as sf
 from .utils import _verify_convention_and_version, _atleast_nd
 
 
-def read_sofa(filename, verify=True, version="latest", verbose=True):
+def read_sofa(filename, verify=True, version="match", verbose=True):
     """
     Read SOFA file from disk and convert it to SOFA object.
 
@@ -36,7 +36,7 @@ def read_sofa(filename, verify=True, version="latest", verbose=True):
             Force specific version, e.g., ``'1.0'``. Note that this might
             downgrade the SOFA object.
 
-        The default is ``'latest'``
+        The default is ``'match'``
     verbose : bool, optional
         Print the names of detected custom variables and attributes. The
         default is ``True``
