@@ -442,6 +442,48 @@ class Sofa():
         # output to console
         print(info_str)
 
+    def add_missing(self, mandatory=True, optional=True, verbose=True):
+        """
+        Add missing data with default values.
+
+        Data might be missing in SOFA objects if the creator did not include it
+        or if a new data was suggested for a newer version of a SOFA
+        convention. Use this function to add the data with its default values.
+
+        mandatory : Bool
+            Add missing mandatory data. The default is ``True``.
+        optional : Bool
+            Add missing optional data. The default is ``True``.
+        verbose : Bool
+            Print the information about added data to the console. The default
+            is ``True``.
+        """
+
+        # initialize
+        self._update_convention(version="match")
+        added = "Added the following missing data with their default values:\n"
+
+        # current data
+        keys = [key for key in self.__dict__.keys() if not key.startswith("_")]
+
+        self._protected = False
+
+        # loop data in convention
+        for key in self._convention.keys():
+            is_mandatory = self._mandatory(self._convention[key]["flags"])
+            add_data = (is_mandatory and mandatory) or \
+                (not is_mandatory and optional)
+            # add with default
+            if key not in keys and add_data:
+                setattr(self, key, self._convention[key]["default"])
+                added += f"- {key} "
+                added += f"({'mandatory' if is_mandatory else 'optional'})\n"
+
+        self._protected = True
+
+        if verbose:
+            print(added)
+
     def add_variable(self, name, value, dtype, dimensions):
         """
         Add custom variable to the SOFA object, i.e., numeric or string arrays.
