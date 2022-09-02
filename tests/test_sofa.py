@@ -281,9 +281,9 @@ def test_add_missing(
         if mandatory and optional:
             assert man in out and opt in out
         elif mandatory:
-            assert man in out and not opt in out
+            assert man in out and opt not in out
         elif optional:
-            assert not man in out and opt in out
+            assert man not in out and opt in out
     else:
         assert out == ""
 

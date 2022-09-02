@@ -168,7 +168,7 @@ def read_sofa(filename, verify=True, version="match", verbose=True):
             sofa.verify(version, mode="read")
         except: # noqa (No error handling - just improved verbosity)
             raise ValueError((
-                "The SOFA object could not be verified, maybe due to errornous"
+                "The SOFA object could not be verified, maybe due to erroneous"
                 " data. Call sofa=sofar.read_sofa(filename, verify=False) and "
                 "than sofa.verify() to get more information"))
 

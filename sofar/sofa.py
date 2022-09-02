@@ -772,7 +772,8 @@ class Sofa():
 
         if missing:
             if issue_handling == "raise":
-                error_msg += "Detected missing mandatory data:\n"
+                error_msg += ("Detected missing mandatory data "
+                              "call sofa.add_missing() to fix this):\n")
                 error_msg += missing
             else:
                 warning_msg += "Added mandatory data with default values:\n"
