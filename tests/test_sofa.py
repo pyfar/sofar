@@ -248,6 +248,46 @@ def test_add_entry():
         sofa.add_attribute("Variable_Unit", "celsius")
 
 
+@pytest.mark.parametrize("mandatory,optional",
+                         [(True, False), (False, True), [True, True]])
+@pytest.mark.parametrize("verbose", [True, False])
+def test_add_missing(
+        mandatory, optional, verbose, capfd):
+
+    sofa = sf.Sofa("GeneralTF")
+
+    # attributes for testing
+    man = "GLOBAL_Comment"
+    opt = "GLOBAL_History"
+
+    # remove data before adding it again
+    sofa._protected = False
+    sofa.delete(man)
+    sofa.delete(opt)
+    sofa._protected = False
+
+    # add missing data
+    sofa.add_missing(mandatory, optional, verbose)
+    out, _ = capfd.readouterr()
+
+    if mandatory and optional:
+        assert hasattr(sofa, man) and hasattr(sofa, opt)
+    elif mandatory:
+        assert hasattr(sofa, man) and not hasattr(sofa, opt)
+    elif optional:
+        assert not hasattr(sofa, man) and hasattr(sofa, opt)
+
+    if verbose:
+        if mandatory and optional:
+            assert man in out and opt in out
+        elif mandatory:
+            assert man in out and not opt in out
+        elif optional:
+            assert not man in out and opt in out
+    else:
+        assert out == ""
+
+
 def test_delete_entry():
 
     sofa = sf.Sofa("SimpleHeadphoneIR")
