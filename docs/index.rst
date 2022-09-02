@@ -22,7 +22,8 @@ Documentation
 .. toctree::
    :maxdepth: 2
 
-   sofar
+   sofar.Sofa
+   sofar.functions
 
 Contributing
 ===============
