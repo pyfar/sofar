@@ -54,27 +54,35 @@ def test_update_conventions(capfd):
 
     # create temporary directory and copy existing conventions
     temp_dir = TemporaryDirectory()
-    work_dir = os.path.join(temp_dir.name, "conventions")
+    work_dir = os.path.join(temp_dir.name, "sofar_conventions")
     shutil.copytree(os.path.join(os.path.dirname(__file__), "..", "sofar",
                     "sofar_conventions"), work_dir)
 
-    # modify and delete selected conventions to verbose feedback
+    # modify, add, and delete selected conventions to verbose feedback
     os.remove(os.path.join(work_dir, "source", "GeneralTF_2.0.csv"))
     with open(os.path.join(
-            work_dir, "source", "GeneralFIR_2.0.csv"), "w") as fid:
-        fid.write("test")
+            work_dir, "source", "GeneralFIR_1.0.csv"), "w") as fid:
+        fid.write("modified")
+    with open(os.path.join(
+            work_dir, "source", "GeneralFunk_1.0.csv"), "w") as fid:
+        fid.write("added")
+    with open(os.path.join(
+            work_dir, "json", "GeneralFunk_1.0.json"), "w") as fid:
+        fid.write("added")
 
     # first run to test if conventions were updated
     sf.update_conventions(conventions_path=work_dir, assume_yes=True)
     out, _ = capfd.readouterr()
     assert "added new convention: GeneralTF_2.0.csv" in out
-    assert "updated existing convention: GeneralFIR_2.0.csv" in out
+    assert "updated existing convention: GeneralFIR_1.0.csv" in out
+    assert "- removed deprecated convention: GeneralFunk_1.0.csv" in out
 
     # second run to make sure that up to date conventions are not overwritten
     sf.update_conventions(conventions_path=work_dir, assume_yes=True)
     out, _ = capfd.readouterr()
     assert "added" not in out
     assert "updated" not in out
+    assert "removed" not in out
 
 
 def test__compile_conventions():

@@ -72,7 +72,7 @@ def list_conventions():
     print(_get_conventions("string"))
 
 
-def _get_conventions(return_type):
+def _get_conventions(return_type, conventions_path=None):
     """
     Get available SOFA conventions.
 
@@ -98,13 +98,14 @@ def _get_conventions(return_type):
     See parameter `return_type`.
     """
     # directory containing the SOFA conventions
+    if conventions_path is None:
+        conventions_path = os.path.join(
+            os.path.dirname(__file__), "sofar_conventions")
     if return_type == "path_source":
-        directory = os.path.join(
-            os.path.dirname(__file__), "sofar_conventions", "source")
+        directory = os.path.join(conventions_path, "source")
         reg_str = "*.csv"
     else:
-        directory = os.path.join(
-            os.path.dirname(__file__), "sofar_conventions", "json")
+        directory = os.path.join(conventions_path, "json")
         reg_str = "*.json"
 
     # SOFA convention files
