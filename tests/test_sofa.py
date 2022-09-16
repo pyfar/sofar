@@ -257,7 +257,7 @@ def test_add_missing(
     sofa = sf.Sofa("GeneralTF")
 
     # attributes for testing
-    man = "GLOBAL_Comment"
+    man = "GLOBAL_AuthorContact"
     opt = "GLOBAL_History"
 
     # remove data before adding it again
