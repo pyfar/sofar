@@ -103,7 +103,7 @@ class Sofa():
         # (mandatory=True can not be verified because some conventions have
         # default values that have optional variables as dependencies)
         if verify and not mandatory:
-            self.verify(version)
+            self.verify(version, mode="read")
 
         self._protected = True
 
