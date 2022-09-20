@@ -161,7 +161,7 @@ def test_roundtrip(mandatory):
     _, _, deprecations = sf.Sofa._verification_rules()
 
     for name, version in names_versions:
-        print(f"Testing: {name}")
+        print(f"Testing: {name} {version}")
 
         if name in deprecations["GLOBAL:SOFAConventions"]:
             # deprecated conventions can not be written
