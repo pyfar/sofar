@@ -488,3 +488,10 @@ def test_deprecations(file):
 
     with raises(ValueError, match=msg):
         sofa.verify(mode="write")
+
+
+def test_preliminary_conventions_version():
+    """Test if using a convention version < 1.0 issues a warning"""
+
+    with pytest.warns(UserWarning, match="Detected preliminary"):
+        sf.Sofa("SingleRoomDRIR", version="0.3")
