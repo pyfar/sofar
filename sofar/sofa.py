@@ -103,7 +103,7 @@ class Sofa():
         # (mandatory=True can not be verified because some conventions have
         # default values that have optional variables as dependencies)
         if verify and not mandatory:
-            self.verify(version)
+            self.verify(version, mode="read")
 
         self._protected = True
 
@@ -1171,6 +1171,15 @@ class Sofa():
                 error_msg += msg
             else:
                 warning_msg += msg
+
+        # warn if preliminary conventions versions are used
+        if float(self.GLOBAL_SOFAConventionsVersion) < 1.0:
+            warning_msg += (
+                "\n\nDetected preliminary conventions version "
+                f"{self.GLOBAL_SOFAConventionsVersion}:\n - Upgrade data to "
+                "version >= 1.0 if possible. Preliminary conventions might "
+                "change in the future, which could invalidate data that was "
+                "written before the changes.")
 
         # ---------------------------------------------------------------------
         # 9. handle warnings and errors
