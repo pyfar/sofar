@@ -1,7 +1,7 @@
 import shutil
 import sofar as sf
 from sofar.utils import _get_conventions
-from sofar.sofar_conventions.update_conventions import _compile_conventions
+from sofar.update_conventions import _compile_conventions
 import os
 import json
 from tempfile import TemporaryDirectory
@@ -25,7 +25,6 @@ def test__get_conventions(capfd):
     paths = _get_conventions(return_type="path")
     assert isinstance(paths, list)
     assert os.path.isfile(paths[0])
-    assert "source" not in paths[0]
     assert paths[0].endswith(".json")
     out, _ = capfd.readouterr()
     assert out == ""
@@ -33,7 +32,6 @@ def test__get_conventions(capfd):
     paths = _get_conventions(return_type="path_source")
     assert isinstance(paths, list)
     assert os.path.isfile(paths[0])
-    assert "source" in paths[0]
     assert paths[0].endswith(".csv")
     out, _ = capfd.readouterr()
     assert out == ""
