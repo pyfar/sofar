@@ -92,6 +92,9 @@ def _get_conventions(return_type, conventions_path=None):
         ``'string'``
             Returns a string that lists the names and versions of all
             conventions.
+    conventions_path : str, optional
+        The path to the the `conventions` folder containing the csv and json
+        files.
 
     Returns
     -------
@@ -100,16 +103,17 @@ def _get_conventions(return_type, conventions_path=None):
     # directory containing the SOFA conventions
     if conventions_path is None:
         conventions_path = os.path.join(
-            os.path.dirname(__file__), "sofar_conventions")
-    if return_type == "path_source":
-        directory = os.path.join(conventions_path, "source")
-        reg_str = "*.csv"
-    else:
-        directory = os.path.join(conventions_path, "json")
-        reg_str = "*.json"
+            os.path.dirname(__file__), "sofar_conventions", 'conventions')
+
+    reg_str = "*.csv" if return_type == "path_source" else "*.json"
 
     # SOFA convention files
-    paths = [file for file in glob.glob(os.path.join(directory, reg_str))]
+    standardized = [
+        f for f in glob.glob(os.path.join(conventions_path, reg_str))]
+    deprecated = [
+        f for f in glob.glob(os.path.join(
+            conventions_path, "deprecated", reg_str))]
+    paths = standardized + deprecated
 
     conventions_str = "Available SOFA conventions:\n"
 
