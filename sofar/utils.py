@@ -317,6 +317,8 @@ def _complete_sofa(convention="GeneralTF"):
     sofa.add_attribute("EmitterView_Type", "cartesian")
     sofa.add_attribute("EmitterView_Units", "metre")
     sofa.add_variable("EmitterUp", [0, 0, 1], "double", "IC")
+    sofa.add_attribute("GLOBAL_EmitterDescription", "what an emitter")
+    sofa.add_variable("EmitterDescriptions", ["emitter array"], "string", "MS")
     # Room meta data
     sofa.add_attribute("GLOBAL_RoomShortName", "Hall")
     sofa.add_attribute("GLOBAL_RoomDescription", "Wooden floor")
