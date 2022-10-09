@@ -12,7 +12,7 @@ _, unit_aliases, _ = sf.Sofa._verification_rules()
 
 # directory containing the verificatin data
 basedir = os.path.join(os.path.dirname(__file__), "..", "sofar",
-                       "sofar_verification_rules", "data")
+                       "sofar_conventions", "data")
 
 # files for testing the verification rules
 restricted_values = glob(

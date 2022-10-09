@@ -1359,7 +1359,7 @@ class Sofa():
     def _verification_rules():
         """
         Return dictionaries to verify SOFA objects in Sofa.verify(). For
-        detailed information see folder 'verification_rules'.
+        detailed information see folder 'sofar_conventions'.
 
         Returns:
         rules : dict
@@ -1371,7 +1371,7 @@ class Sofa():
         """
 
         base = os.path.join(
-            os.path.dirname(__file__), "sofar_verification_rules", "rules")
+            os.path.dirname(__file__), "sofar_conventions", "rules")
 
         with open(os.path.join(base, "rules.json"), "r") as file:
             rules = json.load(file)

@@ -119,7 +119,7 @@ def update_conventions(conventions_path=None, assume_yes=False):
             updated = True
             with open(standardized_csv, "wb") as file:
                 file.write(data)
-            print(f"- added convention: {convention}")
+            print(f"- added convention: {convention[:-4]}")
         if is_standardized and os.path.isfile(standardized_csv):
             # check for update of a standardized convention
             with open(standardized_csv, "rb") as file:
@@ -129,7 +129,7 @@ def update_conventions(conventions_path=None, assume_yes=False):
                 updated = True
                 with open(standardized_csv, "wb") as file:
                     file.write(data)
-                print(f"- updated convention: {convention}")
+                print(f"- updated convention: {convention[:-4]}")
         elif not is_standardized and os.path.isfile(standardized_csv):
             # deprecate standardized convention
             updated = True
@@ -137,7 +137,7 @@ def update_conventions(conventions_path=None, assume_yes=False):
                 file.write(data)
             os.remove(standardized_csv)
             os.remove(standardized_csv[:-3] + "json")
-            print(f"- deprecated convention: {convention}")
+            print(f"- deprecated convention: {convention[:-4]}")
         elif not is_standardized and os.path.isfile(deprecated_csv):
             # check for update of a deprecated convention
             with open(deprecated_csv, "rb") as file:
@@ -147,13 +147,13 @@ def update_conventions(conventions_path=None, assume_yes=False):
                 updated = True
                 with open(deprecated_csv, "wb") as file:
                     file.write(data)
-                print(f"- updated deprecated convention: {convention}")
+                print(f"- updated deprecated convention: {convention[:-4]}")
         elif not is_standardized and not os.path.isfile(deprecated_csv):
             # add new deprecation
             updated = True
             with open(deprecated_csv, "wb") as file:
                 file.write(data)
-            print(f"- added deprecated convention: {convention}")
+            print(f"- added deprecated convention: {convention[:-4]}")
 
     if updated:
         # compile json files from csv file
@@ -173,10 +173,8 @@ def _compile_conventions(conventions_path=None):
     Parameters
     ----------
     conventions_path : str
-        Path to the folder containing the conventions as json files (might be
-        empty) and the source convention as csv files in the subfolder `source`
-        (must not be empty). The default is ``None``, which uses the
-        default location inside the sofar package.
+        Path to the `conventions`folder containing csv and json files. The
+        default ``None`` uses the default location inside the sofar package.
     """
     # directory handling
     if conventions_path is None:

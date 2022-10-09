@@ -52,35 +52,54 @@ def test_update_conventions(capfd):
 
     # create temporary directory and copy existing conventions
     temp_dir = TemporaryDirectory()
-    work_dir = os.path.join(temp_dir.name, "sofar_conventions")
-    shutil.copytree(os.path.join(os.path.dirname(__file__), "..", "sofar",
-                    "sofar_conventions"), work_dir)
+    work_dir = os.path.join(temp_dir.name, "sofar_conventions", "conventions")
+    shutil.copytree(
+        os.path.join(
+            os.path.dirname(__file__), "..", "sofar", "sofar_conventions"),
+        os.path.join(temp_dir.name, "sofar_conventions"))
 
-    # modify, add, and delete selected conventions to verbose feedback
-    os.remove(os.path.join(work_dir, "source", "GeneralTF_2.0.csv"))
-    with open(os.path.join(
-            work_dir, "source", "GeneralFIR_1.0.csv"), "w") as fid:
+    # delete standardized GeneralTF_2.0 to test adding
+    os.remove(os.path.join(work_dir, "GeneralTF_2.0.csv"))
+    os.remove(os.path.join(work_dir, "GeneralTF_2.0.json"))
+    # modify standardized GeneralFIR_1.0 to test updating
+    with open(os.path.join(work_dir, "GeneralFIR_1.0.csv"), "w") as fid:
         fid.write("modified")
-    with open(os.path.join(
-            work_dir, "source", "GeneralFunk_1.0.csv"), "w") as fid:
-        fid.write("added")
-    with open(os.path.join(
-            work_dir, "json", "GeneralFunk_1.0.json"), "w") as fid:
-        fid.write("added")
+    # move MultiSpeakerBRIR_0.3 to standardized to test deprecation
+    os.rename(
+        os.path.join(work_dir, "deprecated", "MultiSpeakerBRIR_0.3.csv"),
+        os.path.join(work_dir, "MultiSpeakerBRIR_0.3.csv"))
+    os.rename(
+        os.path.join(work_dir, "deprecated", "MultiSpeakerBRIR_0.3.json"),
+        os.path.join(work_dir, "MultiSpeakerBRIR_0.3.json"))
+    # modify deprecated convention to test updating
+    with open(os.path.join(work_dir, "deprecated",
+                           "SimpleFreeFieldHRIR_0.4.csv"), "w") as fid:
+        fid.write("modified")
+    # delete deprecated GeneralTF_2.0 to test adding
+    os.remove(os.path.join(
+        work_dir, "deprecated", "SimpleFreeFieldTF_0.4.csv"))
+    os.remove(os.path.join(
+        work_dir, "deprecated", "SimpleFreeFieldTF_0.4.json"))
 
     # first run to test if conventions were updated
     sf.update_conventions(conventions_path=work_dir, assume_yes=True)
     out, _ = capfd.readouterr()
-    assert "added new convention: GeneralTF_2.0.csv" in out
-    assert "updated existing convention: GeneralFIR_1.0.csv" in out
-    assert "- removed deprecated convention: GeneralFunk_1.0.csv" in out
+    assert "added convention: GeneralTF_2.0" in out
+    assert "updated convention: GeneralFIR_1.0" in out
+    assert "deprecated convention: MultiSpeakerBRIR_0.3" in out
+    assert not os.path.isfile(
+        os.path.join(work_dir, "MultiSpeakerBRIR_0.3.csv"))
+    assert not os.path.isfile(
+        os.path.join(work_dir, "MultiSpeakerBRIR_0.3.json"))
+    assert "updated deprecated convention: SimpleFreeFieldHRIR_0.4" in out
+    assert "added deprecated convention: SimpleFreeFieldTF_0.4" in out
 
     # second run to make sure that up to date conventions are not overwritten
     sf.update_conventions(conventions_path=work_dir, assume_yes=True)
     out, _ = capfd.readouterr()
     assert "added" not in out
     assert "updated" not in out
-    assert "removed" not in out
+    assert "deprecated" not in out
 
 
 def test__compile_conventions():
@@ -90,27 +109,24 @@ def test__compile_conventions():
     temp_dir = TemporaryDirectory()
     shutil.copytree(
         os.path.join(os.path.dirname(__file__), "..", "sofar",
-                     "sofar_conventions", "source"),
-        os.path.join(temp_dir.name, "source"))
-
-    os.mkdir(os.path.join(temp_dir.name, "json"))
+                     "sofar_conventions", "conventions"),
+        os.path.join(temp_dir.name, "conventions"))
 
     # compile conventions
-    _compile_conventions(temp_dir.name)
+    _compile_conventions(os.path.join(temp_dir.name, "conventions"))
 
     # get list of reference json files
-    paths = _get_conventions("path")
-    conventions = [os.path.split(path)[1] for path in paths]
-    path = os.path.split(paths[0])[0]
+    paths_ref = _get_conventions("path")
+    paths_test = _get_conventions(
+        "path", os.path.join(temp_dir.name, "conventions"))
 
-    for convention in conventions:
-        # load conventions
-        ref = os.path.join(path, convention)
-        with open(ref, "r") as file:
+    for path_ref, path_test in zip(paths_ref, paths_test):
+
+        # load reference conventions
+        with open(path_ref, "r") as file:
             ref_data = json.load(file)
 
-        test = os.path.join(temp_dir.name, "json", convention)
-        with open(test, "r") as file:
+        with open(path_test, "r") as file:
             test_data = json.load(file)
 
         # compare conventions
