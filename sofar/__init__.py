@@ -13,7 +13,7 @@ from .io import (read_sofa, write_sofa)
 from .utils import (list_conventions,
                     equals)
 
-from .sofar_conventions.update_conventions import update_conventions
+from .update_conventions import update_conventions
 
 
 __all__ = ['Sofa',
