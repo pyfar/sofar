@@ -103,7 +103,7 @@ def _get_conventions(return_type, conventions_path=None):
     # directory containing the SOFA conventions
     if conventions_path is None:
         conventions_path = os.path.join(
-            os.path.dirname(__file__), "sofar_conventions", 'conventions')
+            os.path.dirname(__file__), "sofa_conventions", 'conventions')
 
     reg_str = "*.csv" if return_type == "path_source" else "*.json"
 

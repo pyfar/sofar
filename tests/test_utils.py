@@ -52,11 +52,11 @@ def test_update_conventions(capfd):
 
     # create temporary directory and copy existing conventions
     temp_dir = TemporaryDirectory()
-    work_dir = os.path.join(temp_dir.name, "sofar_conventions", "conventions")
+    work_dir = os.path.join(temp_dir.name, "sofa_conventions", "conventions")
     shutil.copytree(
         os.path.join(
-            os.path.dirname(__file__), "..", "sofar", "sofar_conventions"),
-        os.path.join(temp_dir.name, "sofar_conventions"))
+            os.path.dirname(__file__), "..", "sofar", "sofa_conventions"),
+        os.path.join(temp_dir.name, "sofa_conventions"))
 
     # delete standardized GeneralTF_2.0 to test adding
     os.remove(os.path.join(work_dir, "GeneralTF_2.0.csv"))
@@ -109,7 +109,7 @@ def test__compile_conventions():
     temp_dir = TemporaryDirectory()
     shutil.copytree(
         os.path.join(os.path.dirname(__file__), "..", "sofar",
-                     "sofar_conventions", "conventions"),
+                     "sofa_conventions", "conventions"),
         os.path.join(temp_dir.name, "conventions"))
 
     # compile conventions

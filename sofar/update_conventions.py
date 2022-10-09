@@ -85,7 +85,7 @@ def update_conventions(conventions_path=None, assume_yes=False):
     # directory handling
     if conventions_path is None:
         conventions_path = os.path.join(
-            os.path.dirname(__file__), "sofar_conventions", "conventions")
+            os.path.dirname(__file__), "sofa_conventions", "conventions")
     if not os.path.isdir(conventions_path):
         os.mkdir(conventions_path)
     if not os.path.isdir(os.path.join(conventions_path, "deprecated")):
@@ -179,7 +179,7 @@ def _compile_conventions(conventions_path=None):
     # directory handling
     if conventions_path is None:
         conventions_path = os.path.join(
-            os.path.dirname(__file__), "sofar_conventions", "conventions")
+            os.path.dirname(__file__), "sofa_conventions", "conventions")
     if not os.path.isdir(conventions_path):
         raise ValueError(f"{conventions_path} does not exist")
 
