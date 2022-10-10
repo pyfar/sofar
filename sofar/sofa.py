@@ -1050,7 +1050,7 @@ class Sofa():
 
         # ---------------------------------------------------------------------
         # 6. check restrictions on the content of SOFA files
-        rules, unit_aliases, deprecations = self._verification_rules()
+        rules, unit_aliases, deprecations, _ = self._verification_rules()
 
         current_error = ""
         for key in rules.keys():
@@ -1167,8 +1167,8 @@ class Sofa():
             msg = ("Detected deprecations:\n"
                    f"- GLOBAL_SOFAConventions is "
                    f"{self.GLOBAL_SOFAConventions}, which is deprecated. Use "
-                   f"{deprecations['GLOBAL:SOFAConventions'][self.GLOBAL_SOFAConventions]}"  # noqa
-                   f" instead.")
+                   "Sofa.upgrade() to upgrade to "
+                   f"{deprecations['GLOBAL:SOFAConventions'][self.GLOBAL_SOFAConventions]}")  # noqa
             if mode == "write":
                 error_msg += msg
             else:
@@ -1370,6 +1370,8 @@ class Sofa():
             Aliases for specific units allowed in SOFA
         deprecations : dict
             Deprecated conventions and their substitute
+        upgrade : dict
+            Rules for upgrading deprecated conventions
         """
 
         base = os.path.join(
@@ -1381,8 +1383,33 @@ class Sofa():
             unit_aliases = json.load(file)
         with open(os.path.join(base, "deprecations.json"), "r") as file:
             deprecations = json.load(file)
+        with open(os.path.join(base, "upgrade.json"), "r") as file:
+            upgrade = json.load(file)
 
-        return rules, unit_aliases, deprecations
+        return rules, unit_aliases, deprecations, upgrade
+
+    def upgrade(self):
+
+        # get deprecations and information about Sofa object
+        _, _, deprecations, upgrade = self._verification_rules()
+        convention = self.GLOBAL_SOFAConventions
+        version = self.GLOBAL_SOFAConventionsVersion
+
+        if convention in deprecations["GLOBAL:SOFAConventions"]:
+            version_matched = False
+            for from_to in upgrade[convention]["from_to"]:
+                if version in from_to[0]:
+                    version_matched = True
+                    print((f"{convention} v{version} can be upgraded to "
+                           f"{upgrade[convention]['target']} "
+                           f"v{', '.join(from_to[1])}"))
+                    break
+            if not version_matched:
+                raise ValueError((f"{convention} v{version} is outdated but "
+                                  "is missing upgrade rules"))
+        else:
+            print(f"{convention} v{version} is up to date")
+            return
 
     def copy(self):
         """Return a copy of the SOFA object."""

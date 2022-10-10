@@ -158,7 +158,7 @@ def test_roundtrip(mandatory):
     temp_dir = TemporaryDirectory()
     names_versions = _get_conventions(return_type="name_version")
 
-    _, _, deprecations = sf.Sofa._verification_rules()
+    _, _, deprecations, _ = sf.Sofa._verification_rules()
 
     for name, version in names_versions:
         print(f"Testing: {name} {version}")

@@ -8,7 +8,7 @@ from pytest import raises
 import numpy as np
 
 # get verification rules
-_, unit_aliases, _ = sf.Sofa._verification_rules()
+_, unit_aliases, _, _ = sf.Sofa._verification_rules()
 
 # directory containing the verificatin data
 basedir = os.path.join(os.path.dirname(__file__), "..", "sofar",
