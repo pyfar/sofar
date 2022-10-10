@@ -22,7 +22,7 @@ Use pip to install sofar
 
     $ pip install sofar
 
-(Requires Python >= 3.7)
+(Requires Python >= 3.8)
 
 Getting Started
 ===============
