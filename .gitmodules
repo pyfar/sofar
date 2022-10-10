@@ -1,6 +1,3 @@
-[submodule "sofar/sofar_verification_rules"]
-	path = sofar/sofar_verification_rules
-	url = https://github.com/pyfar/sofar_verification_rules
-[submodule "sofar/sofar_conventions"]
-	path = sofar/sofar_conventions
-	url = https://github.com/pyfar/sofar_conventions
+[submodule "sofar/sofa_conventions"]
+	path = sofar/sofa_conventions
+	url = https://github.com/pyfar/sofa_conventions.git

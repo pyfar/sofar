@@ -72,7 +72,7 @@ def list_conventions():
     print(_get_conventions("string"))
 
 
-def _get_conventions(return_type):
+def _get_conventions(return_type, conventions_path=None):
     """
     Get available SOFA conventions.
 
@@ -92,23 +92,28 @@ def _get_conventions(return_type):
         ``'string'``
             Returns a string that lists the names and versions of all
             conventions.
+    conventions_path : str, optional
+        The path to the the `conventions` folder containing the csv and json
+        files.
 
     Returns
     -------
     See parameter `return_type`.
     """
     # directory containing the SOFA conventions
-    if return_type == "path_source":
-        directory = os.path.join(
-            os.path.dirname(__file__), "sofar_conventions", "source")
-        reg_str = "*.csv"
-    else:
-        directory = os.path.join(
-            os.path.dirname(__file__), "sofar_conventions", "json")
-        reg_str = "*.json"
+    if conventions_path is None:
+        conventions_path = os.path.join(
+            os.path.dirname(__file__), "sofa_conventions", 'conventions')
+
+    reg_str = "*.csv" if return_type == "path_source" else "*.json"
 
     # SOFA convention files
-    paths = [file for file in glob.glob(os.path.join(directory, reg_str))]
+    standardized = [
+        f for f in glob.glob(os.path.join(conventions_path, reg_str))]
+    deprecated = [
+        f for f in glob.glob(os.path.join(
+            conventions_path, "deprecated", reg_str))]
+    paths = standardized + deprecated
 
     conventions_str = "Available SOFA conventions:\n"
 
@@ -312,6 +317,8 @@ def _complete_sofa(convention="GeneralTF"):
     sofa.add_attribute("EmitterView_Type", "cartesian")
     sofa.add_attribute("EmitterView_Units", "metre")
     sofa.add_variable("EmitterUp", [0, 0, 1], "double", "IC")
+    sofa.add_attribute("GLOBAL_EmitterDescription", "what an emitter")
+    sofa.add_variable("EmitterDescriptions", ["emitter array"], "string", "MS")
     # Room meta data
     sofa.add_attribute("GLOBAL_RoomShortName", "Hall")
     sofa.add_attribute("GLOBAL_RoomDescription", "Wooden floor")

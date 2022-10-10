@@ -237,7 +237,7 @@ And to see that the written and read files contain the same data you can check
 Next steps
 ==========
 
-For detailed information about sofar refer to the :ref:`sofar_documentation`.
+For detailed information about sofar refer to the :ref:`sofar_SOFA` and :ref:`sofar_functions` documentation.
 For examples on how to work with the data inside SOFA files refer to :ref:`working_with_sofa`.
 
 

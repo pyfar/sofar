@@ -55,7 +55,7 @@ Ready to contribute? Here's how to set up `sofar` for local development.
     $ git clone --recursive https://github.com/pyfar/sofar.git
     $ cd sofar/
 
-3. Note that some graphical Git interfaces can not do the recursive clone. If the folder sofar/sofar_conventions is empty try
+3. Note that some graphical Git interfaces can not do the recursive clone. If the folder sofar/sofa_conventions is empty try
 
     $ git submodule update --init
 
@@ -180,8 +180,7 @@ Submodules
 
 To update the submodules containing the conventions and verification rules run
 
-$ git submodule update --remote sofar/sofar_conventions
-$ git submodule update --remote sofar/sofar_verification_rules
+$ git submodule update --remote sofar/sofa_conventions
 
 
 Deploying
