@@ -225,6 +225,13 @@ def test_add_entry():
     assert not hasattr(sofa, "Temperature_Units")
     assert "Temperature_Units" not in sofa._custom
 
+    # test adding missing entry defined in convention
+    sofa._protected = False
+    delattr(sofa, "ListenerPosition")
+    sofa._protected = True
+    sofa.add_variable("ListenerPosition", [0, 0, 0], "double", "IC")
+    assert "ListenerPosition" not in sofa._custom
+
     # test assertions
     # add existing entry
     with raises(ValueError, match="Entry Temperature already exists"):

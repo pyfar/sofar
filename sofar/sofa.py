@@ -630,8 +630,6 @@ class Sofa():
         """
         # create custom API if it not exists
         self._protected = False
-        if not hasattr(self, "_custom"):
-            self._custom = {}
 
         # lower case letters to indicate custom dimensions
         if dimensions is not None:
@@ -639,13 +637,17 @@ class Sofa():
                           for d in dimensions]
             dimensions = "".join(dimensions)
 
-        # add user entry to custom API
-        self._custom[key] = {
-            "flags": flags,
-            "dimensions": dimensions,
-            "type": dtype,
-            "default": None,
-            "comment": ""}
+        # add user entry to custom API, if not contained in the convention
+        if not hasattr(self, "_convention") or key not in self._convention:
+            if not hasattr(self, "_custom"):
+                self._custom = {}
+
+            self._custom[key] = {
+                "flags": flags,
+                "dimensions": dimensions,
+                "type": dtype,
+                "default": None,
+                "comment": ""}
         self._update_convention(version="match")
 
         # add attribute to object
