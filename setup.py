@@ -57,7 +57,13 @@ setup(
     setup_requires=setup_requirements,
     test_suite='tests',
     tests_require=test_requirements,
-    url='https://github.com/pyfar/sofar',
+    url="https://pyfar.org/",
+    download_url="https://pypi.org/project/pyfar/",
+    project_urls={
+        "Bug Tracker": "https://github.com/pyfar/sofar/issues",
+        "Documentation": "https://sofar.readthedocs.io/",
+        "Source Code": "https://github.com/pyfar/sofar",
+    },
     version='0.3.1',
     zip_safe=False,
     python_requires='>=3.8'
