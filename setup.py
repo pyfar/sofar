@@ -58,7 +58,7 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url="https://pyfar.org/",
-    download_url="https://pypi.org/project/pyfar/",
+    download_url="https://pypi.org/project/sofar/",
     project_urls={
         "Bug Tracker": "https://github.com/pyfar/sofar/issues",
         "Documentation": "https://sofar.readthedocs.io/",
