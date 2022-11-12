@@ -482,7 +482,10 @@ class Sofa():
         self._protected = True
 
         if verbose:
-            print(added)
+            if "-" in added:
+                print(added)
+            else:
+                print("All mandatory data contained.")
 
     def add_variable(self, name, value, dtype, dimensions):
         """
@@ -656,26 +659,38 @@ class Sofa():
 
     def upgrade_convention(self, target=None):
 
-        # check input and if convention can be upgraded -----------------------
+        # check input ---------------------------------------------------------
         self._update_convention(version="match")
 
         # get deprecations and information about Sofa object
         _, _, deprecations, upgrade = self._verification_rules()
-        convention = self.GLOBAL_SOFAConventions
-        version = self.GLOBAL_SOFAConventionsVersion
+        convention_current = self.GLOBAL_SOFAConventions
+        version_current = self.GLOBAL_SOFAConventionsVersion
+        sofa_version_current = self.GLOBAL_Version
 
-        # check if convention is deprecated
-        if convention in deprecations["GLOBAL:SOFAConventions"]:
+        # check if convention is deprecated -----------------------------------
+        is_deprecated = False
+
+        if convention_current in deprecations["GLOBAL:SOFAConventions"]:
+            is_deprecated = True
+        elif convention_current in upgrade:
+            for from_to in upgrade[convention_current]["from_to"]:
+                if version_current in from_to[0]:
+                    is_deprecated = True
+                    break
+
+        # check for upgrades --------------------------------------------------
+        if is_deprecated:
             version_matched = False
             # check if upgrade is available for this convention
-            if convention not in upgrade:
-                print((f"Convention {convention} v{version} is "
-                       "outdated but is missing upgrade rules"))
+            if convention_current not in upgrade:
+                print((f"Convention {convention_current} v{version_current} is"
+                       " outdated but is missing upgrade rules"))
                 return
 
             # check if upgrade is available for this version
-            for from_to in upgrade[convention]["from_to"]:
-                if version in from_to[0]:
+            for from_to in upgrade[convention_current]["from_to"]:
+                if version_current in from_to[0]:
                     version_matched = True
                     targets = from_to[1]
 
@@ -685,30 +700,92 @@ class Sofa():
                         if target is not None:
                             print(f"{target} is invalid.")
 
-                        upgrades = \
-                            f"{convention} v{version} can be upgraded to:\n"
+                        upgrades = (
+                            f"{convention_current} v{version_current} "
+                            "can be upgraded to:\n")
                         for t in targets:
                             t = t.split("_")
                             upgrades += f"- {t[0]} v{t[1]}\n"
                         print(upgrades)
-                        return
+                        return targets
                     break
             if not version_matched:
-                print((f"Convention {convention} v{version} is "
-                       "outdated but is missing upgrade rules"))
+                print((f"Convention {convention_current} v{version_current} is"
+                       " outdated but is missing upgrade rules"))
         else:
-            print(f"Convention {convention} v{version} is up to date")
+            print((f"Convention {convention_current} v{version_current} "
+                   "is up to date"))
             return
 
         # get information to upgrade ------------------------------------------
         upgrade = upgrade[self.GLOBAL_SOFAConventions][target_id]
-        target_convention, target_version = target.split("_")
+        convention_target, version_target = target.split("_")
 
         # upgrade -------------------------------------------------------------
         self._convention = self._load_convention(
-            target_convention, target_version)
+            convention_target, version_target)
+        sofa_version_target = self._convention["GLOBAL_Version"]["default"]
 
-        return upgrade
+        print((f"Upgrading {convention_current} v{version_current} to "
+               f"{convention_target} v{version_target} (SOFA version "
+               f"{sofa_version_current} to {sofa_version_target})"))
+
+        # upgrade convention
+        keys = ["GLOBAL_SOFAConventions",
+                "GLOBAL_SOFAConventionsVersion",
+                "GLOBAL_Version",
+                "GLOBAL_DataType"]
+
+        self._protected = False
+        for key in keys:
+            setattr(self, key, self._convention[key]["default"])
+
+        # move data
+        for source, move in upgrade["move"].items():
+            # get info
+            source_sofar = source.replace(".", '_').replace(":", "_")
+            target_sofar = move["target"].replace(".", '_').replace(":", "_")
+            move_info = f"- Moving {source_sofar} to {target_sofar}."
+            # get data
+            data = getattr(self, source_sofar)
+            # delete from Sofa object
+            delattr(self, source_sofar)
+            # Check move axis
+            moveaxis = upgrade["move"][source]["moveaxis"]
+            if moveaxis is not None:
+                data = np.moveaxis(data, moveaxis[0], moveaxis[1])
+                move_info += f" Moving axis {moveaxis[0]} to {moveaxis[1]}."
+            # Check deprecated dimensions
+            deprecated_dimensions = \
+                upgrade["move"][source]["deprecated_dimensions"]
+            if deprecated_dimensions is not None:
+                move_info += (
+                    f" WARNING: Dimensions {', '.join(deprecated_dimensions)} "
+                    "are now deprecated.")
+            # add data
+            setattr(self, target_sofar, data)
+            # print info
+            print(move_info)
+
+        if not upgrade["move"]:
+            print("- No data to move")
+
+        # remove data
+        for target in upgrade["remove"]:
+            target_sofar = target.replace(".", '_').replace(":", "_")
+            delattr(self, target_sofar)
+            print(f"- Deleting {target_sofar}.")
+
+        if not upgrade["remove"]:
+            print("- No data to remove")
+
+        # check for missing mandatory data
+        self.add_missing(True, False)
+        self._protected = True
+
+        # display general message
+        if upgrade["message"] is not None:
+            print(upgrade["message"])
 
     def verify(self, version="latest", issue_handling="raise", mode="write"):
         """
