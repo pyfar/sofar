@@ -1,4 +1,6 @@
 import sofar as sf
+from sofar.utils import _get_conventions
+import pytest
 import os
 import json
 
@@ -9,19 +11,22 @@ base = os.path.join(
 with open(os.path.join(base, "upgrade.json"), "r") as file:
     upgrade = json.load(file)
 
+# load convention paths
+paths = _get_conventions("paths")
 
-def test_printouts_up_to_date(capfd):
-    """Test console print for calling upgrade with up to date data"""
 
+def test_printouts(capfd):
+    """
+    Test console print for calling upgrade with up to data and deprecated data
+    """
+
+    # test printouts with up to data convention -------------------------------
     sofa = sf.Sofa("SimpleFreeFieldHRIR")
     sofa.upgrade_convention()
     out, _ = capfd.readouterr()
     assert "is up to date" in out
 
-
-def test_printouts(capfd):
-    """Test console print for calling upgrade with deprecated data"""
-
+    # test printouts with outdated conventions --------------------------------
     sofa = sf.Sofa("SimpleFreeFieldTF", verify=False)
     out, _ = capfd.readouterr()
 
@@ -30,7 +35,7 @@ def test_printouts(capfd):
     out, _ = capfd.readouterr()
     assert "can be upgraded" in out
     assert "SimpleFreeFieldHRTF v1.0" in out
-    assert "invalud" not in out
+    assert "invalid" not in out
 
     # calling with invalid target
     sofa.upgrade_convention("SimpleFreeFieldHRTF_0.1")
@@ -63,3 +68,26 @@ def test_printouts(capfd):
     sofa.upgrade_convention("SingleRoomMIMOSRIR_1.0")
     out, _ = capfd.readouterr()
     assert "Moving Data_IR" in out
+
+
+@pytest.mark.parametrize("path", paths)
+def test_upgrade_conventions(path, capfd):
+
+    # extract information for testing
+    convention, version = os.path.basename(path).split("_")
+    version = version[:-5]
+    deprecated = True if "deprecated" in path else False
+
+    # get SOFA object and targets for upgrading
+    sofa = sf.Sofa(convention, version=version, verify=False)
+    out, _ = capfd.readouterr()
+    targets = sofa.upgrade_convention()
+    out, _ = capfd.readouterr()
+
+    if targets:
+        for target in targets:
+            sofa.upgrade_convention(target)
+            out, _ = capfd.readouterr()
+            assert "Upgrading" in out
+    else:
+        assert not deprecated

@@ -657,7 +657,7 @@ class Sofa():
         setattr(self, key, value)
         self._protected = True
 
-    def upgrade_convention(self, target=None):
+    def upgrade_convention(self, target=None, verify=True):
 
         # check input ---------------------------------------------------------
         self._update_convention(version="match")
@@ -786,6 +786,9 @@ class Sofa():
         # display general message
         if upgrade["message"] is not None:
             print(upgrade["message"])
+
+        if verify:
+            self.verify()
 
     def verify(self, version="latest", issue_handling="raise", mode="write"):
         """
