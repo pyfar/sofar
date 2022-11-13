@@ -171,7 +171,7 @@ Sofar handles this in two steps.
 2. Missing dimensions are appended when writing the SOFA object to disk.
 
 You should now fill all mandatory entries of the SOFA object if you were
-for real. For this is example we'll cut it here for the sake of brevity. Let
+for real. For this example we'll cut it here for the sake of brevity. Let
 us, however, delete an optional entry that we do not need at this point
 
 .. code-block:: python
@@ -197,15 +197,16 @@ your data can (most likely) be read by other applications.
 
 This will check the following
 
-- Are all mandatory fields contained? If not mandatory fields are added
-  with their default value and a warning is raised.
+- Are all mandatory data contained?
 - Are the names of variables and attributes in accordance to the SOFA
-  standard? If not a warning is raised.
+  standard?
 - Are the data types in accordance with the SOFA standard?
 - Are the dimensions of the variables consistent and in accordance
   to the SOFA standard?
 - Are the values of attributes consistent and in accordance to the
   SOFA standard?
+
+If any violations are detected, errors are raised.
 
 Reading and writing SOFA objects
 ================================
@@ -233,6 +234,20 @@ And to see that the written and read files contain the same data you can check
 
     sf.equals(sofa, sofa_read)
     >>> True
+
+Upgrading SOFA files
+====================
+
+SOFA conventions might get updates in case the need for new data came up, or
+they might get deprecated in favor of new conventions. To find out if data is
+up to data, call
+
+.. code-block:: python
+
+    sofa.upgrade_convention()
+
+which will list upgrade choices or lets you know that the data is already up
+to data.
 
 Next steps
 ==========
