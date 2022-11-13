@@ -658,6 +658,32 @@ class Sofa():
         self._protected = True
 
     def upgrade_convention(self, target=None, verify=True):
+        """
+        Upgrade Sofa data to newer conventions.
+
+        Calling this with the default arguments returns a list of possible
+        conventions to which the data will be upgraded. If the data is up to
+        date the list will be empty.
+
+        Parameters
+        ----------
+        target : str, optional
+            The convention and version to which the data should be upgraded as
+            a string. For example ``'SimpleFreeFieldHRIR_1.0'`` would upgrade
+            the data to the SOFA-Convention `SimpleFreeFieldHRIR` version 1.0.
+            The default is ``None`` which returns a list of possible
+            conventions to which the data can be updated.
+        verify : bool, optional
+            Flag to specify if the data should be verified after the upgrade
+            using :py:func:`~Sofa.verify`. The default is ``True``.
+
+        Returns
+        -------
+        target : list of strings
+            List with available conventions to which the data can be updated.
+            If the data is up to data, the list will be empty. `target` is only
+            returned if `target` is ``None``.
+        """
 
         # check input ---------------------------------------------------------
         self._update_convention(version="match")
