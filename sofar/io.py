@@ -7,7 +7,7 @@ import sofar as sf
 from .utils import _verify_convention_and_version, _atleast_nd
 
 
-def read_sofa(filename, verify=True, version="match", verbose=True):
+def read_sofa(filename, verify=True, verbose=True):
     """
     Read SOFA file from disk and convert it to SOFA object.
 
@@ -24,19 +24,6 @@ def read_sofa(filename, verify=True, version="match", verbose=True):
         This helps to find potential errors in the default values and is thus
         recommended. If reading a file does not work, try to call `Sofa` with
         ``verify=False``. The default is ``True``.
-    version : str, optional
-        Control if the SOFA file convention is changed.
-
-        ``'latest'``
-            Update the conventions to the latest version
-        ``'match'``
-            Do not change the conventions version, i.e. match the version
-            of the SOFA file that is being read.
-        str
-            Force specific version, e.g., ``'1.0'``. Note that this might
-            downgrade the SOFA object.
-
-        The default is ``'match'``
     verbose : bool, optional
         Print the names of detected custom variables and attributes. The
         default is ``True``
@@ -88,7 +75,7 @@ def read_sofa(filename, verify=True, version="match", verbose=True):
 
         # check if convention and version exist
         version_out = _verify_convention_and_version(
-            version, version_in, convention)
+            version_in, version_in, convention)
 
         # get SOFA object with default values
         sofa = sf.Sofa(convention, version=version_out, verify=verify)
@@ -165,7 +152,7 @@ def read_sofa(filename, verify=True, version="match", verbose=True):
     # update api
     if verify:
         try:
-            sofa.verify(version, mode="read")
+            sofa.verify(mode="read")
         except: # noqa (No error handling - just improved verbosity)
             raise ValueError((
                 "The SOFA object could not be verified, maybe due to erroneous"
@@ -175,7 +162,7 @@ def read_sofa(filename, verify=True, version="match", verbose=True):
     return sofa
 
 
-def write_sofa(filename: str, sofa: sf.Sofa, version="match", compression=4):
+def write_sofa(filename: str, sofa: sf.Sofa, compression=4):
     """
     Write a SOFA object to disk as a SOFA file.
 
@@ -186,20 +173,6 @@ def write_sofa(filename: str, sofa: sf.Sofa, version="match", compression=4):
         explicitly given.
     sofa : object
         The SOFA object that is written to disk
-    version : str
-        The SOFA object is verified and updated with :py:func:`~Sofa.verify`
-        before writing to disk. Version specifies, which version of the
-        convention is used:
-
-        ``'latest'``
-            Use the latest version upgrade the SOFA file if required.
-        ``'match'``
-            Match the version of the SOFA object.
-        str
-            Version string, e.g., ``'1.0'``.
-
-        The default is ``'match'`` and a warning is raised if the version is
-        outdated.
     compression : int
         The level of compression with ``0`` being no compression and ``9``
         being the best compression. The default of ``9`` optimizes the file
@@ -222,11 +195,10 @@ def write_sofa(filename: str, sofa: sf.Sofa, version="match", compression=4):
        (1, ) inside SOFA files (according to the SOFA standard AES69-2020) but
        will be a scalar inside SOFA objects after reading from disk.
     """
-    _write_sofa(filename, sofa, version, compression, verify=True)
+    _write_sofa(filename, sofa, compression, verify=True)
 
 
-def _write_sofa(filename: str, sofa: sf.Sofa, version="match",
-                compression=4, verify=True):
+def _write_sofa(filename: str, sofa: sf.Sofa, compression=4, verify=True):
     """
     Private write function for writing invalid SOFA files for testing. See
     write_sofa for documentation.
@@ -237,24 +209,21 @@ def _write_sofa(filename: str, sofa: sf.Sofa, version="match",
         raise ValueError("Filename must end with .sofa")
 
     # check if the latest version is used for writing and warn otherwise
-    if version != "latest":
-        latest = sf.Sofa(sofa.GLOBAL_SOFAConventions)
-        latest = latest.GLOBAL_SOFAConventionsVersion
+    latest = sf.Sofa(sofa.GLOBAL_SOFAConventions)
+    latest = latest.GLOBAL_SOFAConventionsVersion
+    current = sofa.GLOBAL_SOFAConventionsVersion
 
-        current = sofa.GLOBAL_SOFAConventionsVersion if version == "match" \
-            else version
-
-        if packaging.version.parse(current) < packaging.version.parse(latest):
-            warnings.warn(("Writing SOFA object with outdated Convention "
-                           f"version {current}. Use version='latest' to write "
-                           f"data with version {latest}."))
+    if packaging.version.parse(current) < packaging.version.parse(latest):
+        warnings.warn(("Writing SOFA object with outdated Convention "
+                        f"version {current}. Use version='latest' to write "
+                        f"data with version {latest}."))
 
     # setting the netCDF compression parameter
     zlib = False if compression == 0 else True
 
     # update the dimensions
     if verify:
-        sofa.verify(version, mode="write")
+        sofa.verify(mode="write")
 
     # list of all attribute names
     all_keys = [key for key in sofa.__dict__.keys() if not key.startswith("_")]

@@ -100,10 +100,10 @@ class Sofa():
         self._convention_to_sofa(mandatory)
 
         # add and update the API
-        # (mandatory=True can not be verified because some conventions have
+        # (mandatory=False can not be verified because some conventions have
         # default values that have optional variables as dependencies)
         if verify and not mandatory:
-            self.verify(version, mode="read")
+            self.verify(mode="read")
 
         self._protected = True
 
@@ -257,7 +257,7 @@ class Sofa():
         used in Sofa.list_dimensions and Sofa.get_dimension
         """
 
-        issues = self.verify(version="match", issue_handling="return")
+        issues = self.verify(issue_handling="return")
         if issues is not None and ("data of wrong type" in issues or
                                    "variables of wrong shape" in issues or
                                    not hasattr(self, "_api")):
@@ -391,7 +391,7 @@ class Sofa():
 
         # update the private attribute `_convention` to make sure the required
         # meta data is in place
-        self.verify(version="match", issue_handling=issue_handling)
+        self.verify(issue_handling=issue_handling)
 
         # list of all attributes
         keys = [k for k in self.__dict__.keys() if not k.startswith("_")]
@@ -790,7 +790,7 @@ class Sofa():
         if verify:
             self.verify()
 
-    def verify(self, version="latest", issue_handling="raise", mode="write"):
+    def verify(self, issue_handling="raise", mode="write"):
         """
         Verify a SOFA object against the SOFA standard.
 
@@ -835,18 +835,6 @@ class Sofa():
 
         Parameters
         ----------
-        version : str, optional
-            The version to which the API is updated.
-
-            ``'latest'``
-                Use the latest API and upgrade the SOFA file if required.
-            ``'match'``
-                Match the version of the sofa file.
-            str
-                Version string, e.g., ``'1.0'``. Note that this might downgrade
-                the SOFA object
-
-            The default is ``'latest'``
         issue_handling : str, optional
             Defines how detected issues are handeled
 
@@ -888,7 +876,7 @@ class Sofa():
 
         # ---------------------------------------------------------------------
         # 0. update the convention
-        self._update_convention(version)
+        self._update_convention("match")
 
         # ---------------------------------------------------------------------
         # 1. check if the mandatory attributes are contained
