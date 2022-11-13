@@ -209,14 +209,16 @@ def _write_sofa(filename: str, sofa: sf.Sofa, compression=4, verify=True):
         raise ValueError("Filename must end with .sofa")
 
     # check if the latest version is used for writing and warn otherwise
-    latest = sf.Sofa(sofa.GLOBAL_SOFAConventions)
-    latest = latest.GLOBAL_SOFAConventionsVersion
-    current = sofa.GLOBAL_SOFAConventionsVersion
+    # if case required for writing SOFA test data that violates the conventions
+    if sofa.GLOBAL_SOFAConventions != "invalid-value":
+        latest = sf.Sofa(sofa.GLOBAL_SOFAConventions)
+        latest = latest.GLOBAL_SOFAConventionsVersion
+        current = sofa.GLOBAL_SOFAConventionsVersion
 
-    if packaging.version.parse(current) < packaging.version.parse(latest):
-        warnings.warn(("Writing SOFA object with outdated Convention "
-                       f"version {current}. Use version='latest' to write "
-                       f"data with version {latest}."))
+        if packaging.version.parse(current) < packaging.version.parse(latest):
+            warnings.warn(("Writing SOFA object with outdated Convention "
+                        f"version {current}. Use version='latest' to write "
+                        f"data with version {latest}."))
 
     # setting the netCDF compression parameter
     zlib = False if compression == 0 else True
