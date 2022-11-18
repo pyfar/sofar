@@ -113,7 +113,6 @@ def update_conventions(conventions_path=None, assume_yes=False):
         data = data.content.replace(b"\t\n", b"\n").replace(b"\r\n", b"\n")
 
         # check if convention needs to be added or updated
-        updated = False
         if is_standardized and not os.path.isfile(standardized_csv):
             # add new standardized convention
             updated = True
