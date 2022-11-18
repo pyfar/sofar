@@ -779,6 +779,11 @@ class Sofa():
             # Check move axis
             moveaxis = upgrade["move"][source]["moveaxis"]
             if moveaxis is not None:
+                # add dimensions if required
+                # (sofar discards trailing singular dimensions)
+                while data.ndim < np.max(moveaxis) + 1:
+                    data = data[..., None]
+                # move the axis
                 data = np.moveaxis(data, moveaxis[0], moveaxis[1])
                 move_info += f" Moving axis {moveaxis[0]} to {moveaxis[1]}."
             # Check deprecated dimensions
