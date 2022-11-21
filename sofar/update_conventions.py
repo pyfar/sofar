@@ -328,3 +328,83 @@ def _convention_csv2dict(file: str):
             convention[key] = convention.pop(key)
 
     return convention
+
+
+def _check_congruency(save_dir=None):
+    """
+    SOFA conventions are stored in two different places - is this a good idea?
+    They should be identical, but let's find out.
+
+    Prints warnings about incongruent conventions
+
+    Parameters
+    ----------
+    save : str
+        directory to save diverging conventions for further inspections
+    """
+
+    urls = ["https://www.sofaconventions.org/conventions/",
+            ("https://raw.githubusercontent.com/sofacoustics/SOFAtoolbox/"
+             "master/SOFAtoolbox/conventions/")]
+    subdirs = ["sofaconventions", "sofatoolbox"]
+
+    # check save_dir
+    if save_dir is not None:
+        if not os.path.isdir(save_dir):
+            raise ValueError(f"{save_dir} does not exist")
+        for subdir in subdirs:
+            if not os.path.isdir(os.path.join(save_dir, subdir)):
+                os.makedirs(os.path.join(save_dir, subdir))
+
+    # get file names of conventions from sofaconventions.org and SOFAtoolbox
+    url = urls[0]
+    page = requests.get(url).text
+    soup = BeautifulSoup(page, 'html.parser')
+    sofaconventions = [os.path.split(node.get('href'))[1]
+                       for node in soup.find_all('a')
+                       if node.get('href').endswith(".csv")]
+
+    url = "https://github.com/sofacoustics/SOFAtoolbox/tree/master/SOFAtoolbox/conventions/"
+    page = requests.get(url).text
+    soup = BeautifulSoup(page, 'html.parser')
+    sofatoolbox = [os.path.split(node.get('href'))[1]
+                   for node in soup.find_all('a')
+                   if node.get('href').endswith(".csv")]
+
+    # check if lists are identical. Remove items not contained in both lists
+    report = ""
+    for convention in sofaconventions:
+        if convention.startswith(("General_", "GeneralString_")):
+            sofaconventions.remove(convention)
+        elif convention not in sofatoolbox:
+            sofaconventions.remove(convention)
+            report += (f"- {convention} is missing in SOFAtoolbox\n")
+    for convention in sofatoolbox:
+        if convention.startswith(("General_", "GeneralString_")):
+            sofatoolbox.remove(convention)
+        elif convention not in sofaconventions:
+            sofatoolbox.remove(convention)
+            report += (f"- {convention} is missing on sofaconventions.org\n")
+
+    # Loop and download conventions to check if they are identical
+    for convention in sofaconventions:
+
+        # download SOFA convention definitions to package directory
+        data = [requests.get(url + convention) for url in urls]
+        # remove trailing tabs and windows style line breaks
+        data = [d.content.replace(b"\r\n", b"\n").replace(b"\t\n", b"\n")
+                for d in data]
+
+        # check for equality
+        if data[0] != data[1]:
+            report += f"- {convention} differs across platforms\n"
+
+            # save diverging files
+            if save_dir is not None:
+                for subdir, d in zip(subdirs, data):
+                    filename = os.path.join(save_dir, subdir, convention)
+                    with open(filename, "wb") as file:
+                        file.write(d)
+
+    if report:
+        print("Diverging conventions across platforms:\n" + report)
