@@ -109,8 +109,8 @@ def update_conventions(conventions_path=None, assume_yes=False):
 
         # download SOFA convention definitions to package directory
         data = requests.get(url)
-        # remove trailing tabs and windows style line breaks
-        data = data.content.replace(b"\t\n", b"\n").replace(b"\r\n", b"\n")
+        # remove windows style line breaks and trailing tabs
+        data = data.content.replace(b"\r\n", b"\n").replace(b"\t\n", b"\n")
 
         # check if convention needs to be added or updated
         if is_standardized and not os.path.isfile(standardized_csv):
@@ -123,7 +123,8 @@ def update_conventions(conventions_path=None, assume_yes=False):
             # check for update of a standardized convention
             with open(standardized_csv, "rb") as file:
                 data_current = b"".join(file.readlines())
-                data_current = data_current.replace(b"\r\n", b"\n")
+                data_current = data_current.replace(
+                    b"\r\n", b"\n").replace(b"\t\n", b"\n")
             if data_current != data:
                 updated = True
                 with open(standardized_csv, "wb") as file:
@@ -141,7 +142,8 @@ def update_conventions(conventions_path=None, assume_yes=False):
             # check for update of a deprecated convention
             with open(deprecated_csv, "rb") as file:
                 data_current = b"".join(file.readlines())
-                data_current = data_current.replace(b"\r\n", b"\n")
+                data_current = data_current.replace(
+                    b"\r\n", b"\n").replace(b"\t\n", b"\n")
             if data_current != data:
                 updated = True
                 with open(deprecated_csv, "wb") as file:
