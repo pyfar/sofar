@@ -364,7 +364,8 @@ def _check_congruency(save_dir=None):
                        for node in soup.find_all('a')
                        if node.get('href').endswith(".csv")]
 
-    url = "https://github.com/sofacoustics/SOFAtoolbox/tree/master/SOFAtoolbox/conventions/"
+    url = ("https://github.com/sofacoustics/SOFAtoolbox/tree/"
+           "master/SOFAtoolbox/conventions/")
     page = requests.get(url).text
     soup = BeautifulSoup(page, 'html.parser')
     sofatoolbox = [os.path.split(node.get('href'))[1]
