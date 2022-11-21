@@ -11,7 +11,7 @@ def version():
     """Return version of sofar and SOFA conventions"""
 
     sofa_conventions = os.path.join(
-        os.path.dirname(__file__), "sofa_conventions", 'Version')
+        os.path.dirname(__file__), "sofa_conventions", 'VERSION')
     with open(sofa_conventions) as file:
         sofa_conventions = file.readline().strip()
 
