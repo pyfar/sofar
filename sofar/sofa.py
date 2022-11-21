@@ -1687,7 +1687,7 @@ class Sofa():
         self.GLOBAL_DateCreated = now
         self.GLOBAL_DateModified = now
         self.GLOBAL_APIName = "sofar SOFA API for Python (pyfar.org)"
-        self.GLOBAL_APIVersion = sf.__version__
+        self.GLOBAL_APIVersion = sf.version()
         self.GLOBAL_ApplicationName = "Python"
         self.GLOBAL_ApplicationVersion = (
             f"{platform.python_version()} "

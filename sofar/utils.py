@@ -7,6 +7,18 @@ import warnings
 import sofar as sf
 
 
+def version():
+    """Return version of sofar and SOFA conventions"""
+
+    sofa_conventions = os.path.join(
+        os.path.dirname(__file__), "sofa_conventions", 'Version')
+    with open(sofa_conventions) as file:
+        sofa_conventions = file.readline().strip()
+
+    return (f"sofar v{sf.__version__} implementing "
+            f"SOFA standard {sofa_conventions}")
+
+
 def _verify_convention_and_version(version, version_in, convention):
     """
     Verify if convention and version exist and return version

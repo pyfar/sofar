@@ -11,7 +11,8 @@ from .sofa import Sofa
 from .io import (read_sofa, write_sofa)
 
 from .utils import (list_conventions,
-                    equals)
+                    equals,
+                    version)
 
 from .update_conventions import update_conventions
 
@@ -21,4 +22,5 @@ __all__ = ['Sofa',
            'list_conventions',
            'read_sofa',
            'write_sofa',
-           'equals']
+           'equals',
+           'version']
