@@ -200,19 +200,15 @@ def equals(sofa_a, sofa_b, verbose=True, exclude=None):
 
     # check for equal length
     if len(keys_a) != len(keys_b):
-        is_identical = _equals_raise_warning((
+        return _equals_raise_warning((
             f"not identical: sofa_a has {len(keys_a)} attributes for "
             f"comparison and sofa_b has {len(keys_b)}."), verbose)
 
-        return is_identical
-
     # check if the keys match
     if set(keys_a) != set(keys_b):
-        is_identical = _equals_raise_warning(
+        return _equals_raise_warning(
             "not identical: sofa_a and sofa_b do not have the ame attributes",
             verbose)
-
-        return is_identical
 
     # compare the data inside the SOFA object
     for key in keys_a:
