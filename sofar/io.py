@@ -110,7 +110,7 @@ def read_sofa(filename, verify=True, verbose=True):
             if hasattr(sofa, var.replace(".", "_")):
                 setattr(sofa, var.replace(".", "_"), value)
             else:
-                dimensions = "".join([d for d in file[var].dimensions])
+                dimensions = "".join(list(file[var].dimensions))
                 # SOFA only uses dtypes 'double' and 'S1' but netCDF has more
                 dtype = "string" if file[var].datatype == "S1" else "double"
                 sofa._add_custom_api_entry(var.replace(".", "_"), value, None,
@@ -264,7 +264,7 @@ def _write_sofa(filename: str, sofa: sf.Sofa, compression=4, verify=True):
                 sofa._dimensions[key], sofa._api["S"])
 
             # create variable and write data
-            shape = tuple([dim for dim in sofa._dimensions[key]])
+            shape = tuple(list(sofa._dimensions[key]))
             tmp_var = file.createVariable(
                 key.replace("Data_", "Data."), dtype, shape,
                 zlib=zlib, complevel=compression)
@@ -275,7 +275,7 @@ def _write_sofa(filename: str, sofa: sf.Sofa, compression=4, verify=True):
                 tmp_var._Encoding = "ascii"
 
             # write variable attributes
-            sub_keys = [k for k in all_keys if k.startswith(key + "_")]
+            sub_keys = [k for k in all_keys if k.startswith(f"{key}_")]
             for sub_key in sub_keys:
                 setattr(tmp_var, sub_key[len(key)+1:],
                         str(getattr(sofa, sub_key)))
