@@ -91,15 +91,15 @@ def read_sofa(filename, verify=True, verbose=True):
                 continue
 
             value = getattr(file, attr)
-            all_attr.append("GLOBAL_" + attr)
+            all_attr.append(f"GLOBAL_{attr}")
 
-            if not hasattr(sofa, "GLOBAL_" + attr):
-                sofa._add_custom_api_entry("GLOBAL_" + attr, value, None,
-                                           None, "attribute")
-                custom.append("GLOBAL_" + attr)
+            if not hasattr(sofa, f"GLOBAL_{attr}"):
+                sofa._add_custom_api_entry(
+                    f"GLOBAL_{attr}", value, None, None, "attribute")
+                custom.append(f"GLOBAL_{attr}")
                 sofa._protected = False
             else:
-                setattr(sofa, "GLOBAL_" + attr, value)
+                setattr(sofa, f"GLOBAL_{attr}", value)
 
         # load data
         for var in file.variables.keys():
@@ -320,7 +320,7 @@ def _format_value_for_netcdf(value, key, dtype, dimensions, S):
         value = _atleast_nd(value, len(dimensions))
         netcdf_dtype = "f8"
     elif dtype == "string":
-        value = np.array(value, dtype="S" + str(S))
+        value = np.array(value, dtype=f"S{str(S)}")
         value = _atleast_nd(value, len(dimensions))
         netcdf_dtype = 'S1'
     else:
