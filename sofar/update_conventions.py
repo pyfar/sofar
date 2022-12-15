@@ -100,12 +100,15 @@ def update_conventions(conventions_path=None, assume_yes=False):
             continue
 
         # get filename and url
-        is_standardized = True if convention in standardized else False
+        is_standardized = convention in standardized
         standardized_csv = os.path.join(conventions_path, convention)
         deprecated_csv = os.path.join(
                 conventions_path, "deprecated", convention)
-        url = urls[0] + "/" + convention if is_standardized \
-            else urls[1] + "/" + convention
+        url = (
+            f"{urls[0]}/{convention}"
+            if is_standardized
+            else f"{urls[1]}/{convention}"
+        )
 
         # download SOFA convention definitions to package directory
         data = requests.get(url)
@@ -136,7 +139,7 @@ def update_conventions(conventions_path=None, assume_yes=False):
             with open(deprecated_csv, "wb") as file:
                 file.write(data)
             os.remove(standardized_csv)
-            os.remove(standardized_csv[:-3] + "json")
+            os.remove(f"{standardized_csv[:-3]}json")
             print(f"- deprecated convention: {convention[:-4]}")
         elif not is_standardized and os.path.isfile(deprecated_csv):
             # check for update of a deprecated convention
@@ -192,7 +195,7 @@ def _compile_conventions(conventions_path=None):
 
         # convert SOFA conventions from csv to json
         convention_dict = _convention_csv2dict(csv_file)
-        with open(csv_file[:-3] + "json", 'w') as file:
+        with open(f"{csv_file[:-3]}json", 'w') as file:
             json.dump(convention_dict, file, indent=4)
 
 
