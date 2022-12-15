@@ -1,3 +1,4 @@
+import contextlib
 import os
 import numpy as np
 from netCDF4 import Dataset, chartostring, stringtochar
@@ -307,10 +308,8 @@ def _format_value_for_netcdf(value, key, dtype, dimensions, S):
         'f8', or 'S1').
     """
     # copy value
-    try:
+    with contextlib.suppress(AttributeError):
         value = value.copy()
-    except AttributeError:
-        pass
 
     # parse data
     if dtype == "attribute":
