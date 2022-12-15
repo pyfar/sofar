@@ -8,7 +8,7 @@ __version__ = '0.3.1'
 
 from .sofa import Sofa
 
-from .io import (read_sofa, write_sofa)
+from .io import read_sofa, write_sofa
 
 from .utils import (list_conventions,
                     equals,
