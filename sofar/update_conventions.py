@@ -1,3 +1,4 @@
+import contextlib
 import os
 import glob
 import json
@@ -248,11 +249,8 @@ def _convention_csv2dict(file: str):
                 # parse text cells that do not contain arrays
                 if cell[0] != '[':
                     # check for numbers
-                    try:
+                    with contextlib.suppress(ValueError):
                         cell = float(cell) if '.' in cell else int(cell)
-                    except ValueError:
-                        pass
-
                     line[idc] = cell
                     continue
 
