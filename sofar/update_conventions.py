@@ -321,7 +321,7 @@ def _convention_csv2dict(file: str):
 
     # reorder the fields to be nicer to read and understand
     # 1. Move everything to the end that is not GLOBAL
-    keys = [key for key in convention.keys()]
+    keys = list(convention.keys())
     for key in keys:
         if "GLOBAL" not in key:
             convention[key] = convention.pop(key)
