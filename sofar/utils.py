@@ -57,11 +57,7 @@ def _verify_convention_and_version(version, version_in, convention):
                    f"{version_in} to {version_out}"))
     else:
         # check which version is wanted
-        if version == "match":
-            match = version_in
-        else:
-            match = version
-
+        match = version_in if version == "match" else version
         version_out = None
         for versions in name_version:
             # check if convention and version match
