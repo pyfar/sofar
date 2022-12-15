@@ -221,7 +221,7 @@ def _write_sofa(filename: str, sofa: sf.Sofa, compression=4, verify=True):
                            f"data with version {latest}."))
 
     # setting the netCDF compression parameter
-    zlib = False if compression == 0 else True
+    use_zlib = compression != 0
 
     # update the dimensions
     if verify:
@@ -267,7 +267,7 @@ def _write_sofa(filename: str, sofa: sf.Sofa, compression=4, verify=True):
             shape = tuple(list(sofa._dimensions[key]))
             tmp_var = file.createVariable(
                 key.replace("Data_", "Data."), dtype, shape,
-                zlib=zlib, complevel=compression)
+                zlib=use_zlib, complevel=compression)
             if dtype == "f8":
                 tmp_var[:] = value
             else:
