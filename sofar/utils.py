@@ -120,11 +120,9 @@ def _get_conventions(return_type, conventions_path=None):
     reg_str = "*.csv" if return_type == "path_source" else "*.json"
 
     # SOFA convention files
-    standardized = [
-        f for f in glob.glob(os.path.join(conventions_path, reg_str))]
-    deprecated = [
-        f for f in glob.glob(os.path.join(
-            conventions_path, "deprecated", reg_str))]
+    standardized = list(glob.glob(os.path.join(conventions_path, reg_str)))
+    deprecated = list(
+        glob.glob(os.path.join(conventions_path, "deprecated", reg_str)))
     paths = standardized + deprecated
 
     conventions_str = "Available SOFA conventions:\n"
@@ -144,7 +142,7 @@ def _get_conventions(return_type, conventions_path=None):
     elif return_type == "name":
         return conventions
     elif return_type == "name_version":
-        return [(n, v) for n, v in zip(conventions, versions)]
+        return list(zip(conventions, versions))
     elif return_type == "string":
         return conventions_str
     else:
