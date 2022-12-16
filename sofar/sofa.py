@@ -265,7 +265,7 @@ class Sofa():
                               "of wrong type or shape were detected. "
                               "Call Sofa.verify() for more information."))
 
-    def info(self, info):
+    def info(self, info="all"):
         """
         Print information about the convention of a SOFA object.
 
@@ -372,7 +372,8 @@ class Sofa():
         ----------
         file : str
             Full path of a file under which the information is to be stored in
-            plain text. The default ``None`` does only print the information.
+            plain text. The default ``None`` only print the information to the
+            console.
         issue_handling : str, optional
             Defines how issues detected during verification of the SOFA object
             are handeled (see :py:func:`~sofar.sofar.Sofa.verify`)

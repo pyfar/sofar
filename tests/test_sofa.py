@@ -156,6 +156,11 @@ def test_info(capfd):
             ValueError, match="info='invalid' is invalid"):
         sofa.info("invalid")
 
+    # test with default parameter
+    sofa.info()
+    out, _ = capfd.readouterr()
+    assert "showing all entries" in out
+
     # test listing all entry names
     for info in ["all", "mandatory", "optional", "read only", "data"]:
         sofa.info(info)
