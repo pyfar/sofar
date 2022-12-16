@@ -171,7 +171,7 @@ Sofar handles this in two steps.
 2. Missing dimensions are appended when writing the SOFA object to disk.
 
 You should now fill all mandatory entries of the SOFA object if you were
-for real. For this is example we'll cut it here for the sake of brevity. Let
+for real. For this example we'll cut it here for the sake of brevity. Let
 us, however, delete an optional entry that we do not need at this point
 
 .. code-block:: python
@@ -197,15 +197,16 @@ your data can (most likely) be read by other applications.
 
 This will check the following
 
-- Are all mandatory fields contained? If not mandatory fields are added
-  with their default value and a warning is raised.
-- Are the names of variables and attributes in accordance to the SOFA
-  standard? If not a warning is raised.
+- Are all mandatory data contained?
+- Are the names of variables and attributes in accordance with the SOFA
+  standard?
 - Are the data types in accordance with the SOFA standard?
 - Are the dimensions of the variables consistent and in accordance
   to the SOFA standard?
 - Are the values of attributes consistent and in accordance to the
   SOFA standard?
+
+If any violations are detected, an error is raised.
 
 Reading and writing SOFA objects
 ================================
@@ -234,10 +235,24 @@ And to see that the written and read files contain the same data you can check
     sf.equals(sofa, sofa_read)
     >>> True
 
+Upgrading SOFA files
+====================
+
+SOFA conventions might get updates to fix bugs in the conventions, in case
+new conventions are introduced, or in case conventions get deprecated. To find
+out if SOFA data from a file is up to data load it and call
+
+.. code-block:: python
+
+    sofa.upgrade_convention()
+
+which will list upgrade choices or let you know that the convention is already up
+to date.
+
 Next steps
 ==========
 
-For detailed information about sofar refer to the :ref:`sofar_documentation`.
+For detailed information about sofar refer to the :ref:`sofar_SOFA` and :ref:`sofar_functions` documentation.
 For examples on how to work with the data inside SOFA files refer to :ref:`working_with_sofa`.
 
 
