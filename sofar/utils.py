@@ -232,11 +232,6 @@ def equals(sofa_a, sofa_b, verbose=True, exclude=None):
         # compare attributes
         if type_a == "attribute" and type_b == "attribute":
 
-            # handling versions (might be integer, float, or string)
-            if not isinstance(a, str) or not isinstance(a, str):
-                a = str(float(a))
-                b = str(float(b))
-
             # compare
             if a != b:
                 is_identical = _equals_raise_warning(
