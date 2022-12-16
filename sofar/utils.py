@@ -57,11 +57,7 @@ def _verify_convention_and_version(version, version_in, convention):
                    f"{version_in} to {version_out}"))
     else:
         # check which version is wanted
-        if version == "match":
-            match = version_in
-        else:
-            match = version
-
+        match = version_in if version == "match" else version
         version_out = None
         for versions in name_version:
             # check if convention and version match
@@ -120,11 +116,9 @@ def _get_conventions(return_type, conventions_path=None):
     reg_str = "*.csv" if return_type == "path_source" else "*.json"
 
     # SOFA convention files
-    standardized = [
-        f for f in glob.glob(os.path.join(conventions_path, reg_str))]
-    deprecated = [
-        f for f in glob.glob(os.path.join(
-            conventions_path, "deprecated", reg_str))]
+    standardized = list(glob.glob(os.path.join(conventions_path, reg_str)))
+    deprecated = list(
+        glob.glob(os.path.join(conventions_path, "deprecated", reg_str)))
     paths = standardized + deprecated
 
     conventions_str = "Available SOFA conventions:\n"
@@ -144,7 +138,7 @@ def _get_conventions(return_type, conventions_path=None):
     elif return_type == "name":
         return conventions
     elif return_type == "name_version":
-        return [(n, v) for n, v in zip(conventions, versions)]
+        return list(zip(conventions, versions))
     elif return_type == "string":
         return conventions_str
     else:
@@ -206,19 +200,15 @@ def equals(sofa_a, sofa_b, verbose=True, exclude=None):
 
     # check for equal length
     if len(keys_a) != len(keys_b):
-        is_identical = _equals_raise_warning((
+        return _equals_raise_warning((
             f"not identical: sofa_a has {len(keys_a)} attributes for "
             f"comparison and sofa_b has {len(keys_b)}."), verbose)
 
-        return is_identical
-
     # check if the keys match
     if set(keys_a) != set(keys_b):
-        is_identical = _equals_raise_warning(
+        return _equals_raise_warning(
             "not identical: sofa_a and sofa_b do not have the ame attributes",
             verbose)
-
-        return is_identical
 
     # compare the data inside the SOFA object
     for key in keys_a:

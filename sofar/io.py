@@ -1,3 +1,4 @@
+import contextlib
 import os
 import numpy as np
 from netCDF4 import Dataset, chartostring, stringtochar
@@ -91,15 +92,15 @@ def read_sofa(filename, verify=True, verbose=True):
                 continue
 
             value = getattr(file, attr)
-            all_attr.append("GLOBAL_" + attr)
+            all_attr.append(f"GLOBAL_{attr}")
 
-            if not hasattr(sofa, "GLOBAL_" + attr):
-                sofa._add_custom_api_entry("GLOBAL_" + attr, value, None,
-                                           None, "attribute")
-                custom.append("GLOBAL_" + attr)
+            if not hasattr(sofa, f"GLOBAL_{attr}"):
+                sofa._add_custom_api_entry(
+                    f"GLOBAL_{attr}", value, None, None, "attribute")
+                custom.append(f"GLOBAL_{attr}")
                 sofa._protected = False
             else:
-                setattr(sofa, "GLOBAL_" + attr, value)
+                setattr(sofa, f"GLOBAL_{attr}", value)
 
         # load data
         for var in file.variables.keys():
@@ -110,7 +111,7 @@ def read_sofa(filename, verify=True, verbose=True):
             if hasattr(sofa, var.replace(".", "_")):
                 setattr(sofa, var.replace(".", "_"), value)
             else:
-                dimensions = "".join([d for d in file[var].dimensions])
+                dimensions = "".join(list(file[var].dimensions))
                 # SOFA only uses dtypes 'double' and 'S1' but netCDF has more
                 dtype = "string" if file[var].datatype == "S1" else "double"
                 sofa._add_custom_api_entry(var.replace(".", "_"), value, None,
@@ -221,7 +222,7 @@ def _write_sofa(filename: str, sofa: sf.Sofa, compression=4, verify=True):
                            f"data with version {latest}."))
 
     # setting the netCDF compression parameter
-    zlib = False if compression == 0 else True
+    use_zlib = compression != 0
 
     # update the dimensions
     if verify:
@@ -264,10 +265,10 @@ def _write_sofa(filename: str, sofa: sf.Sofa, compression=4, verify=True):
                 sofa._dimensions[key], sofa._api["S"])
 
             # create variable and write data
-            shape = tuple([dim for dim in sofa._dimensions[key]])
+            shape = tuple(list(sofa._dimensions[key]))
             tmp_var = file.createVariable(
                 key.replace("Data_", "Data."), dtype, shape,
-                zlib=zlib, complevel=compression)
+                zlib=use_zlib, complevel=compression)
             if dtype == "f8":
                 tmp_var[:] = value
             else:
@@ -275,7 +276,7 @@ def _write_sofa(filename: str, sofa: sf.Sofa, compression=4, verify=True):
                 tmp_var._Encoding = "ascii"
 
             # write variable attributes
-            sub_keys = [k for k in all_keys if k.startswith(key + "_")]
+            sub_keys = [k for k in all_keys if k.startswith(f"{key}_")]
             for sub_key in sub_keys:
                 setattr(tmp_var, sub_key[len(key)+1:],
                         str(getattr(sofa, sub_key)))
@@ -307,10 +308,8 @@ def _format_value_for_netcdf(value, key, dtype, dimensions, S):
         'f8', or 'S1').
     """
     # copy value
-    try:
+    with contextlib.suppress(AttributeError):
         value = value.copy()
-    except AttributeError:
-        pass
 
     # parse data
     if dtype == "attribute":
@@ -320,7 +319,7 @@ def _format_value_for_netcdf(value, key, dtype, dimensions, S):
         value = _atleast_nd(value, len(dimensions))
         netcdf_dtype = "f8"
     elif dtype == "string":
-        value = np.array(value, dtype="S" + str(S))
+        value = np.array(value, dtype=f"S{str(S)}")
         value = _atleast_nd(value, len(dimensions))
         netcdf_dtype = 'S1'
     else:
