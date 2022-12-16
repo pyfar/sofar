@@ -4,6 +4,7 @@ History
 1.0.0 (2022-12-16)
 ------------------
 * Use SOFA conventions of version 2.1 from https://github.com/pyfar/sofa_conventions
+* Verify SOFA data against all rules defined in the SOFA standard AES69-2022
 * Add `Sofa.upgrade_convention` for upgrading outdated conventions. This now uses explicit upgrade rules from https://github.com/pyfar/sofa_conventions
 * Remove upgrade functionality from `Sofa.verify`, `sofar.write_sofa`, and `sofar.read_sofa` for a more clear separation of functionality
 * Add `Sofa.add_missing` to add missing default data to a SOFA object using the default values specified by the SOFA convention
