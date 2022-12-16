@@ -198,7 +198,7 @@ your data can (most likely) be read by other applications.
 This will check the following
 
 - Are all mandatory data contained?
-- Are the names of variables and attributes in accordance to the SOFA
+- Are the names of variables and attributes in accordance with the SOFA
   standard?
 - Are the data types in accordance with the SOFA standard?
 - Are the dimensions of the variables consistent and in accordance
@@ -206,7 +206,7 @@ This will check the following
 - Are the values of attributes consistent and in accordance to the
   SOFA standard?
 
-If any violations are detected, errors are raised.
+If any violations are detected, an error is raised.
 
 Reading and writing SOFA objects
 ================================
@@ -238,16 +238,16 @@ And to see that the written and read files contain the same data you can check
 Upgrading SOFA files
 ====================
 
-SOFA conventions might get updates in case the need for new data came up, or
-they might get deprecated in favor of new conventions. To find out if data is
-up to data, call
+SOFA conventions might get updates to fix bugs in the conventions, in case
+new conventions are introduced, or in case conventions get deprecated. To find
+out if SOFA data from a file is up to data load it and call
 
 .. code-block:: python
 
     sofa.upgrade_convention()
 
-which will list upgrade choices or lets you know that the data is already up
-to data.
+which will list upgrade choices or let you know that the convention is already up
+to date.
 
 Next steps
 ==========

@@ -157,7 +157,7 @@ def read_sofa(filename, verify=True, verbose=True):
             raise ValueError((
                 "The SOFA object could not be verified, maybe due to erroneous"
                 " data. Call sofa=sofar.read_sofa(filename, verify=False) and "
-                "than sofa.verify() to get more information"))
+                "then sofa.verify() to get more information"))
 
     return sofa
 

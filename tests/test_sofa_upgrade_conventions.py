@@ -76,7 +76,7 @@ def test_upgrade_conventions(path, capfd):
     # extract information for testing
     convention, version = os.path.basename(path).split("_")
     version = version[:-5]
-    deprecated = True if "deprecated" in path else False
+    deprecated = "deprecated" in path
 
     # get SOFA object and targets for upgrading
     sofa = sf.Sofa(convention, version=version, verify=False)
