@@ -6,6 +6,7 @@ The sofar developers
 --------------------
 
 - Fabian Brinkmann
+- Marco Berzborn
 
 
 Funding

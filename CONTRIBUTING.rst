@@ -197,11 +197,11 @@ Switch to main and run::
 
 $ bumpversion patch --verbose # possible: major / minor / patch
 
-Bumpversion will update all version strings, create and comitt tags by default
+Bumpversion will update all version strings, create and commit tags by default
 
 $ git push --follow-tags
 
-Travis will then deploy to PyPI if tests pass.
+Continuous integration will then deploy to PyPI if tests pass.
 
 - Merge main back into develop
 
