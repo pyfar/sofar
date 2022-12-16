@@ -8,7 +8,7 @@ responses or transfer functions. They are defined by the AES69-2022 standard
 (see references). These are the key features of sofar
 
 * Uses a complete definition of the AES69-2022 standard (see references) maintained at `sofa_conventions`_
-* Read and write support for SOFA files
+* Read, edit, and write SOFA files
 * Add custom attributes to SOFA files
 * Full Verification of the content of a SOFA files against AES69-2022
 * Upgrade data that uses outdated SOFA conventions
