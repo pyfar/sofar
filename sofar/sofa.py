@@ -100,10 +100,10 @@ class Sofa():
         self._convention_to_sofa(mandatory)
 
         # add and update the API
-        # (mandatory=True can not be verified because some conventions have
+        # (mandatory=False can not be verified because some conventions have
         # default values that have optional variables as dependencies)
         if verify and not mandatory:
-            self.verify(version, mode="read")
+            self.verify(mode="read")
 
         self._protected = True
 
@@ -257,7 +257,7 @@ class Sofa():
         used in Sofa.list_dimensions and Sofa.get_dimension
         """
 
-        issues = self.verify(version="match", issue_handling="return")
+        issues = self.verify(issue_handling="return")
         if issues is not None and ("data of wrong type" in issues or
                                    "variables of wrong shape" in issues or
                                    not hasattr(self, "_api")):
@@ -391,7 +391,7 @@ class Sofa():
 
         # update the private attribute `_convention` to make sure the required
         # meta data is in place
-        self.verify(version="match", issue_handling=issue_handling)
+        self.verify(issue_handling=issue_handling)
 
         # list of all attributes
         keys = [k for k in self.__dict__.keys() if not k.startswith("_")]
@@ -482,7 +482,10 @@ class Sofa():
         self._protected = True
 
         if verbose:
-            print(added)
+            if "-" in added:
+                print(added)
+            else:
+                print("All mandatory data contained.")
 
     def add_variable(self, name, value, dtype, dimensions):
         """
@@ -654,7 +657,171 @@ class Sofa():
         setattr(self, key, value)
         self._protected = True
 
-    def verify(self, version="latest", issue_handling="raise", mode="write"):
+    def upgrade_convention(self, target=None, verify=True):
+        """
+        Upgrade Sofa data to newer conventions.
+
+        Calling this with the default arguments returns a list of possible
+        conventions to which the data will be upgraded. If the data is up to
+        date the list will be empty.
+
+        Parameters
+        ----------
+        target : str, optional
+            The convention and version to which the data should be upgraded as
+            a string. For example ``'SimpleFreeFieldHRIR_1.0'`` would upgrade
+            the data to the SOFA-Convention `SimpleFreeFieldHRIR` version 1.0.
+            The default is ``None`` which returns a list of possible
+            conventions to which the data can be updated.
+        verify : bool, optional
+            Flag to specify if the data should be verified after the upgrade
+            using :py:func:`~Sofa.verify`. The default is ``True``.
+
+        Returns
+        -------
+        target : list of strings
+            List with available conventions to which the data can be updated.
+            If the data is up to data, the list will be empty. `target` is only
+            returned if `target` is ``None``.
+        """
+
+        # check input ---------------------------------------------------------
+        self._update_convention(version="match")
+
+        # get deprecations and information about Sofa object
+        _, _, deprecations, upgrade = self._verification_rules()
+        convention_current = self.GLOBAL_SOFAConventions
+        version_current = self.GLOBAL_SOFAConventionsVersion
+        sofa_version_current = self.GLOBAL_Version
+
+        # check if convention is deprecated -----------------------------------
+        is_deprecated = False
+
+        if convention_current in deprecations["GLOBAL:SOFAConventions"]:
+            is_deprecated = True
+        elif convention_current in upgrade:
+            for from_to in upgrade[convention_current]["from_to"]:
+                if version_current in from_to[0]:
+                    is_deprecated = True
+                    break
+
+        # check for upgrades --------------------------------------------------
+        if is_deprecated:
+            version_matched = False
+            # check if upgrade is available for this convention
+            if convention_current not in upgrade:
+                print((f"Convention {convention_current} v{version_current} is"
+                       " outdated but is missing upgrade rules"))
+                return
+
+            # check if upgrade is available for this version
+            for from_to in upgrade[convention_current]["from_to"]:
+                if version_current in from_to[0]:
+                    version_matched = True
+                    targets = from_to[1]
+
+                    if target in targets:
+                        target_id = from_to[2]
+                    else:
+                        if target is not None:
+                            print(f"{target} is invalid.")
+
+                        upgrades = (
+                            f"{convention_current} v{version_current} "
+                            "can be upgraded to:\n")
+                        for t in targets:
+                            t = t.split("_")
+                            upgrades += f"- {t[0]} v{t[1]}\n"
+                        print(upgrades)
+                        return targets
+                    break
+            if not version_matched:
+                print((f"Convention {convention_current} v{version_current} is"
+                       " outdated but is missing upgrade rules"))
+        else:
+            print((f"Convention {convention_current} v{version_current} "
+                   "is up to date"))
+            return
+
+        # get information to upgrade ------------------------------------------
+        upgrade = upgrade[self.GLOBAL_SOFAConventions][target_id]
+        convention_target, version_target = target.split("_")
+
+        # upgrade -------------------------------------------------------------
+        self._convention = self._load_convention(
+            convention_target, version_target)
+        sofa_version_target = self._convention["GLOBAL_Version"]["default"]
+
+        print((f"Upgrading {convention_current} v{version_current} to "
+               f"{convention_target} v{version_target} (SOFA version "
+               f"{sofa_version_current} to {sofa_version_target})"))
+
+        # upgrade convention
+        keys = ["GLOBAL_SOFAConventions",
+                "GLOBAL_SOFAConventionsVersion",
+                "GLOBAL_Version",
+                "GLOBAL_DataType"]
+
+        self._protected = False
+        for key in keys:
+            setattr(self, key, self._convention[key]["default"])
+
+        # move data
+        for source, move in upgrade["move"].items():
+            # get info
+            source_sofar = source.replace(".", '_').replace(":", "_")
+            target_sofar = move["target"].replace(".", '_').replace(":", "_")
+            move_info = f"- Moving {source_sofar} to {target_sofar}."
+            # get data
+            data = getattr(self, source_sofar)
+            # delete from Sofa object
+            delattr(self, source_sofar)
+            # Check move axis
+            moveaxis = upgrade["move"][source]["moveaxis"]
+            if moveaxis is not None:
+                # add dimensions if required
+                # (sofar discards trailing singular dimensions)
+                while data.ndim < np.max(moveaxis) + 1:
+                    data = data[..., None]
+                # move the axis
+                data = np.moveaxis(data, moveaxis[0], moveaxis[1])
+                move_info += f" Moving axis {moveaxis[0]} to {moveaxis[1]}."
+            # Check deprecated dimensions
+            deprecated_dimensions = \
+                upgrade["move"][source]["deprecated_dimensions"]
+            if deprecated_dimensions is not None:
+                move_info += (
+                    f" WARNING: Dimensions {', '.join(deprecated_dimensions)} "
+                    "are now deprecated.")
+            # add data
+            setattr(self, target_sofar, data)
+            # print info
+            print(move_info)
+
+        if not upgrade["move"]:
+            print("- No data to move")
+
+        # remove data
+        for target in upgrade["remove"]:
+            target_sofar = target.replace(".", '_').replace(":", "_")
+            delattr(self, target_sofar)
+            print(f"- Deleting {target_sofar}.")
+
+        if not upgrade["remove"]:
+            print("- No data to remove")
+
+        # check for missing mandatory data
+        self.add_missing(True, False)
+        self._protected = True
+
+        # display general message
+        if upgrade["message"] is not None:
+            print(upgrade["message"])
+
+        if verify:
+            self.verify()
+
+    def verify(self, issue_handling="raise", mode="write"):
         """
         Verify a SOFA object against the SOFA standard.
 
@@ -699,18 +866,6 @@ class Sofa():
 
         Parameters
         ----------
-        version : str, optional
-            The version to which the API is updated.
-
-            ``'latest'``
-                Use the latest API and upgrade the SOFA file if required.
-            ``'match'``
-                Match the version of the sofa file.
-            str
-                Version string, e.g., ``'1.0'``. Note that this might downgrade
-                the SOFA object
-
-            The default is ``'latest'``
         issue_handling : str, optional
             Defines how detected issues are handeled
 
@@ -752,7 +907,7 @@ class Sofa():
 
         # ---------------------------------------------------------------------
         # 0. update the convention
-        self._update_convention(version)
+        self._update_convention("match")
 
         # ---------------------------------------------------------------------
         # 1. check if the mandatory attributes are contained
@@ -1050,7 +1205,7 @@ class Sofa():
 
         # ---------------------------------------------------------------------
         # 6. check restrictions on the content of SOFA files
-        rules, unit_aliases, deprecations = self._verification_rules()
+        rules, unit_aliases, deprecations, _ = self._verification_rules()
 
         current_error = ""
         for key in rules.keys():
@@ -1167,8 +1322,8 @@ class Sofa():
             msg = ("Detected deprecations:\n"
                    f"- GLOBAL_SOFAConventions is "
                    f"{self.GLOBAL_SOFAConventions}, which is deprecated. Use "
-                   f"{deprecations['GLOBAL:SOFAConventions'][self.GLOBAL_SOFAConventions]}"  # noqa
-                   f" instead.")
+                   "Sofa.upgrade_convention() to upgrade to "
+                   f"{deprecations['GLOBAL:SOFAConventions'][self.GLOBAL_SOFAConventions]}")  # noqa
             if mode == "write":
                 error_msg += msg
             else:
@@ -1370,6 +1525,8 @@ class Sofa():
             Aliases for specific units allowed in SOFA
         deprecations : dict
             Deprecated conventions and their substitute
+        upgrade : dict
+            Rules for upgrading deprecated conventions
         """
 
         base = os.path.join(
@@ -1381,8 +1538,10 @@ class Sofa():
             unit_aliases = json.load(file)
         with open(os.path.join(base, "deprecations.json"), "r") as file:
             deprecations = json.load(file)
+        with open(os.path.join(base, "upgrade.json"), "r") as file:
+            upgrade = json.load(file)
 
-        return rules, unit_aliases, deprecations
+        return rules, unit_aliases, deprecations, upgrade
 
     def copy(self):
         """Return a copy of the SOFA object."""
@@ -1528,7 +1687,7 @@ class Sofa():
         self.GLOBAL_DateCreated = now
         self.GLOBAL_DateModified = now
         self.GLOBAL_APIName = "sofar SOFA API for Python (pyfar.org)"
-        self.GLOBAL_APIVersion = sf.__version__
+        self.GLOBAL_APIVersion = sf.version()
         self.GLOBAL_ApplicationName = "Python"
         self.GLOBAL_ApplicationVersion = (
             f"{platform.python_version()} "

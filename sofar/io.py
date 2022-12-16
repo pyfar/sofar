@@ -1,3 +1,4 @@
+import contextlib
 import os
 import numpy as np
 from netCDF4 import Dataset, chartostring, stringtochar
@@ -7,7 +8,7 @@ import sofar as sf
 from .utils import _verify_convention_and_version, _atleast_nd
 
 
-def read_sofa(filename, verify=True, version="match", verbose=True):
+def read_sofa(filename, verify=True, verbose=True):
     """
     Read SOFA file from disk and convert it to SOFA object.
 
@@ -24,19 +25,6 @@ def read_sofa(filename, verify=True, version="match", verbose=True):
         This helps to find potential errors in the default values and is thus
         recommended. If reading a file does not work, try to call `Sofa` with
         ``verify=False``. The default is ``True``.
-    version : str, optional
-        Control if the SOFA file convention is changed.
-
-        ``'latest'``
-            Update the conventions to the latest version
-        ``'match'``
-            Do not change the conventions version, i.e. match the version
-            of the SOFA file that is being read.
-        str
-            Force specific version, e.g., ``'1.0'``. Note that this might
-            downgrade the SOFA object.
-
-        The default is ``'match'``
     verbose : bool, optional
         Print the names of detected custom variables and attributes. The
         default is ``True``
@@ -88,7 +76,7 @@ def read_sofa(filename, verify=True, version="match", verbose=True):
 
         # check if convention and version exist
         version_out = _verify_convention_and_version(
-            version, version_in, convention)
+            version_in, version_in, convention)
 
         # get SOFA object with default values
         sofa = sf.Sofa(convention, version=version_out, verify=verify)
@@ -104,15 +92,15 @@ def read_sofa(filename, verify=True, version="match", verbose=True):
                 continue
 
             value = getattr(file, attr)
-            all_attr.append("GLOBAL_" + attr)
+            all_attr.append(f"GLOBAL_{attr}")
 
-            if not hasattr(sofa, "GLOBAL_" + attr):
-                sofa._add_custom_api_entry("GLOBAL_" + attr, value, None,
-                                           None, "attribute")
-                custom.append("GLOBAL_" + attr)
+            if not hasattr(sofa, f"GLOBAL_{attr}"):
+                sofa._add_custom_api_entry(
+                    f"GLOBAL_{attr}", value, None, None, "attribute")
+                custom.append(f"GLOBAL_{attr}")
                 sofa._protected = False
             else:
-                setattr(sofa, "GLOBAL_" + attr, value)
+                setattr(sofa, f"GLOBAL_{attr}", value)
 
         # load data
         for var in file.variables.keys():
@@ -123,7 +111,7 @@ def read_sofa(filename, verify=True, version="match", verbose=True):
             if hasattr(sofa, var.replace(".", "_")):
                 setattr(sofa, var.replace(".", "_"), value)
             else:
-                dimensions = "".join([d for d in file[var].dimensions])
+                dimensions = "".join(list(file[var].dimensions))
                 # SOFA only uses dtypes 'double' and 'S1' but netCDF has more
                 dtype = "string" if file[var].datatype == "S1" else "double"
                 sofa._add_custom_api_entry(var.replace(".", "_"), value, None,
@@ -165,17 +153,17 @@ def read_sofa(filename, verify=True, version="match", verbose=True):
     # update api
     if verify:
         try:
-            sofa.verify(version, mode="read")
+            sofa.verify(mode="read")
         except: # noqa (No error handling - just improved verbosity)
             raise ValueError((
                 "The SOFA object could not be verified, maybe due to erroneous"
                 " data. Call sofa=sofar.read_sofa(filename, verify=False) and "
-                "than sofa.verify() to get more information"))
+                "then sofa.verify() to get more information"))
 
     return sofa
 
 
-def write_sofa(filename: str, sofa: sf.Sofa, version="match", compression=4):
+def write_sofa(filename: str, sofa: sf.Sofa, compression=4):
     """
     Write a SOFA object to disk as a SOFA file.
 
@@ -186,20 +174,6 @@ def write_sofa(filename: str, sofa: sf.Sofa, version="match", compression=4):
         explicitly given.
     sofa : object
         The SOFA object that is written to disk
-    version : str
-        The SOFA object is verified and updated with :py:func:`~Sofa.verify`
-        before writing to disk. Version specifies, which version of the
-        convention is used:
-
-        ``'latest'``
-            Use the latest version upgrade the SOFA file if required.
-        ``'match'``
-            Match the version of the SOFA object.
-        str
-            Version string, e.g., ``'1.0'``.
-
-        The default is ``'match'`` and a warning is raised if the version is
-        outdated.
     compression : int
         The level of compression with ``0`` being no compression and ``9``
         being the best compression. The default of ``9`` optimizes the file
@@ -222,11 +196,10 @@ def write_sofa(filename: str, sofa: sf.Sofa, version="match", compression=4):
        (1, ) inside SOFA files (according to the SOFA standard AES69-2020) but
        will be a scalar inside SOFA objects after reading from disk.
     """
-    _write_sofa(filename, sofa, version, compression, verify=True)
+    _write_sofa(filename, sofa, compression, verify=True)
 
 
-def _write_sofa(filename: str, sofa: sf.Sofa, version="match",
-                compression=4, verify=True):
+def _write_sofa(filename: str, sofa: sf.Sofa, compression=4, verify=True):
     """
     Private write function for writing invalid SOFA files for testing. See
     write_sofa for documentation.
@@ -237,12 +210,11 @@ def _write_sofa(filename: str, sofa: sf.Sofa, version="match",
         raise ValueError("Filename must end with .sofa")
 
     # check if the latest version is used for writing and warn otherwise
-    if version != "latest":
+    # if case required for writing SOFA test data that violates the conventions
+    if sofa.GLOBAL_SOFAConventions != "invalid-value":
         latest = sf.Sofa(sofa.GLOBAL_SOFAConventions)
         latest = latest.GLOBAL_SOFAConventionsVersion
-
-        current = sofa.GLOBAL_SOFAConventionsVersion if version == "match" \
-            else version
+        current = sofa.GLOBAL_SOFAConventionsVersion
 
         if packaging.version.parse(current) < packaging.version.parse(latest):
             warnings.warn(("Writing SOFA object with outdated Convention "
@@ -250,11 +222,11 @@ def _write_sofa(filename: str, sofa: sf.Sofa, version="match",
                            f"data with version {latest}."))
 
     # setting the netCDF compression parameter
-    zlib = False if compression == 0 else True
+    use_zlib = compression != 0
 
     # update the dimensions
     if verify:
-        sofa.verify(version, mode="write")
+        sofa.verify(mode="write")
 
     # list of all attribute names
     all_keys = [key for key in sofa.__dict__.keys() if not key.startswith("_")]
@@ -293,10 +265,10 @@ def _write_sofa(filename: str, sofa: sf.Sofa, version="match",
                 sofa._dimensions[key], sofa._api["S"])
 
             # create variable and write data
-            shape = tuple([dim for dim in sofa._dimensions[key]])
+            shape = tuple(list(sofa._dimensions[key]))
             tmp_var = file.createVariable(
                 key.replace("Data_", "Data."), dtype, shape,
-                zlib=zlib, complevel=compression)
+                zlib=use_zlib, complevel=compression)
             if dtype == "f8":
                 tmp_var[:] = value
             else:
@@ -304,7 +276,7 @@ def _write_sofa(filename: str, sofa: sf.Sofa, version="match",
                 tmp_var._Encoding = "ascii"
 
             # write variable attributes
-            sub_keys = [k for k in all_keys if k.startswith(key + "_")]
+            sub_keys = [k for k in all_keys if k.startswith(f"{key}_")]
             for sub_key in sub_keys:
                 setattr(tmp_var, sub_key[len(key)+1:],
                         str(getattr(sofa, sub_key)))
@@ -336,10 +308,8 @@ def _format_value_for_netcdf(value, key, dtype, dimensions, S):
         'f8', or 'S1').
     """
     # copy value
-    try:
+    with contextlib.suppress(AttributeError):
         value = value.copy()
-    except AttributeError:
-        pass
 
     # parse data
     if dtype == "attribute":
@@ -349,7 +319,7 @@ def _format_value_for_netcdf(value, key, dtype, dimensions, S):
         value = _atleast_nd(value, len(dimensions))
         netcdf_dtype = "f8"
     elif dtype == "string":
-        value = np.array(value, dtype="S" + str(S))
+        value = np.array(value, dtype=f"S{str(S)}")
         value = _atleast_nd(value, len(dimensions))
         netcdf_dtype = 'S1'
     else:

@@ -8,7 +8,7 @@ from pytest import raises
 import numpy as np
 
 # get verification rules
-_, unit_aliases, _ = sf.Sofa._verification_rules()
+_, unit_aliases, _, _ = sf.Sofa._verification_rules()
 
 # directory containing the verificatin data
 basedir = os.path.join(os.path.dirname(__file__), "..", "sofar",
@@ -146,31 +146,6 @@ def test_case_insensitivity():
     sofa = sf.Sofa("SimpleFreeFieldHRIR")
     sofa.ListenerPosition_Type = "Cartesian"
     assert sofa.verify(issue_handling="return") is None
-
-
-# 0. update conventions -------------------------------------------------------
-def test_version():
-    """Test upgrading, downgrading, and keeping specific versions"""
-
-    # test the default "latest"
-    sofa = sf.Sofa("GeneralTF", version="1.0")
-    assert str(sofa.GLOBAL_SOFAConventionsVersion) == "1.0"
-    with pytest.warns(UserWarning, match="Upgraded"):
-        sofa.verify()
-    assert str(sofa.GLOBAL_SOFAConventionsVersion) == "2.0"
-
-    # test "match"
-    sofa = sf.Sofa("GeneralTF", version="1.0")
-    assert str(sofa.GLOBAL_SOFAConventionsVersion) == "1.0"
-    sofa.verify(version="match")
-    assert str(sofa.GLOBAL_SOFAConventionsVersion) == "1.0"
-
-    # test downgrading
-    sofa = sf.Sofa("GeneralTF")
-    assert str(sofa.GLOBAL_SOFAConventionsVersion) == "2.0"
-    with pytest.warns(UserWarning, match="Downgraded"):
-        sofa.verify(version="1.0")
-    assert str(sofa.GLOBAL_SOFAConventionsVersion) == "1.0"
 
 
 # 1. check if the mandatory attributes are contained --------------------------

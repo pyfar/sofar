@@ -1,3 +1,4 @@
+import contextlib
 import os
 import glob
 import json
@@ -100,20 +101,22 @@ def update_conventions(conventions_path=None, assume_yes=False):
             continue
 
         # get filename and url
-        is_standardized = True if convention in standardized else False
+        is_standardized = convention in standardized
         standardized_csv = os.path.join(conventions_path, convention)
         deprecated_csv = os.path.join(
                 conventions_path, "deprecated", convention)
-        url = urls[0] + "/" + convention if is_standardized \
-            else urls[1] + "/" + convention
+        url = (
+            f"{urls[0]}/{convention}"
+            if is_standardized
+            else f"{urls[1]}/{convention}"
+        )
 
         # download SOFA convention definitions to package directory
         data = requests.get(url)
-        # remove trailing tabs and windows style line breaks
-        data = data.content.replace(b"\t\n", b"\n").replace(b"\r\n", b"\n")
+        # remove windows style line breaks and trailing tabs
+        data = data.content.replace(b"\r\n", b"\n").replace(b"\t\n", b"\n")
 
         # check if convention needs to be added or updated
-        updated = False
         if is_standardized and not os.path.isfile(standardized_csv):
             # add new standardized convention
             updated = True
@@ -124,7 +127,8 @@ def update_conventions(conventions_path=None, assume_yes=False):
             # check for update of a standardized convention
             with open(standardized_csv, "rb") as file:
                 data_current = b"".join(file.readlines())
-                data_current = data_current.replace(b"\r\n", b"\n")
+                data_current = data_current.replace(
+                    b"\r\n", b"\n").replace(b"\t\n", b"\n")
             if data_current != data:
                 updated = True
                 with open(standardized_csv, "wb") as file:
@@ -136,13 +140,14 @@ def update_conventions(conventions_path=None, assume_yes=False):
             with open(deprecated_csv, "wb") as file:
                 file.write(data)
             os.remove(standardized_csv)
-            os.remove(standardized_csv[:-3] + "json")
+            os.remove(f"{standardized_csv[:-3]}json")
             print(f"- deprecated convention: {convention[:-4]}")
         elif not is_standardized and os.path.isfile(deprecated_csv):
             # check for update of a deprecated convention
             with open(deprecated_csv, "rb") as file:
                 data_current = b"".join(file.readlines())
-                data_current = data_current.replace(b"\r\n", b"\n")
+                data_current = data_current.replace(
+                    b"\r\n", b"\n").replace(b"\t\n", b"\n")
             if data_current != data:
                 updated = True
                 with open(deprecated_csv, "wb") as file:
@@ -191,7 +196,7 @@ def _compile_conventions(conventions_path=None):
 
         # convert SOFA conventions from csv to json
         convention_dict = _convention_csv2dict(csv_file)
-        with open(csv_file[:-3] + "json", 'w') as file:
+        with open(f"{csv_file[:-3]}json", 'w') as file:
             json.dump(convention_dict, file, indent=4)
 
 
@@ -244,11 +249,8 @@ def _convention_csv2dict(file: str):
                 # parse text cells that do not contain arrays
                 if cell[0] != '[':
                     # check for numbers
-                    try:
+                    with contextlib.suppress(ValueError):
                         cell = float(cell) if '.' in cell else int(cell)
-                    except ValueError:
-                        pass
-
                     line[idc] = cell
                     continue
 
@@ -319,7 +321,7 @@ def _convention_csv2dict(file: str):
 
     # reorder the fields to be nicer to read and understand
     # 1. Move everything to the end that is not GLOBAL
-    keys = [key for key in convention.keys()]
+    keys = list(convention.keys())
     for key in keys:
         if "GLOBAL" not in key:
             convention[key] = convention.pop(key)
@@ -329,3 +331,84 @@ def _convention_csv2dict(file: str):
             convention[key] = convention.pop(key)
 
     return convention
+
+
+def _check_congruency(save_dir=None):
+    """
+    SOFA conventions are stored in two different places - is this a good idea?
+    They should be identical, but let's find out.
+
+    Prints warnings about incongruent conventions
+
+    Parameters
+    ----------
+    save : str
+        directory to save diverging conventions for further inspections
+    """
+
+    urls = ["https://www.sofaconventions.org/conventions/",
+            ("https://raw.githubusercontent.com/sofacoustics/SOFAtoolbox/"
+             "master/SOFAtoolbox/conventions/")]
+    subdirs = ["sofaconventions", "sofatoolbox"]
+
+    # check save_dir
+    if save_dir is not None:
+        if not os.path.isdir(save_dir):
+            raise ValueError(f"{save_dir} does not exist")
+        for subdir in subdirs:
+            if not os.path.isdir(os.path.join(save_dir, subdir)):
+                os.makedirs(os.path.join(save_dir, subdir))
+
+    # get file names of conventions from sofaconventions.org and SOFAtoolbox
+    url = urls[0]
+    page = requests.get(url).text
+    soup = BeautifulSoup(page, 'html.parser')
+    sofaconventions = [os.path.split(node.get('href'))[1]
+                       for node in soup.find_all('a')
+                       if node.get('href').endswith(".csv")]
+
+    url = ("https://github.com/sofacoustics/SOFAtoolbox/tree/"
+           "master/SOFAtoolbox/conventions/")
+    page = requests.get(url).text
+    soup = BeautifulSoup(page, 'html.parser')
+    sofatoolbox = [os.path.split(node.get('href'))[1]
+                   for node in soup.find_all('a')
+                   if node.get('href').endswith(".csv")]
+
+    # check if lists are identical. Remove items not contained in both lists
+    report = ""
+    for convention in sofaconventions:
+        if convention.startswith(("General_", "GeneralString_")):
+            sofaconventions.remove(convention)
+        elif convention not in sofatoolbox:
+            sofaconventions.remove(convention)
+            report += (f"- {convention} is missing in SOFAtoolbox\n")
+    for convention in sofatoolbox:
+        if convention.startswith(("General_", "GeneralString_")):
+            sofatoolbox.remove(convention)
+        elif convention not in sofaconventions:
+            sofatoolbox.remove(convention)
+            report += (f"- {convention} is missing on sofaconventions.org\n")
+
+    # Loop and download conventions to check if they are identical
+    for convention in sofaconventions:
+
+        # download SOFA convention definitions to package directory
+        data = [requests.get(url + convention) for url in urls]
+        # remove trailing tabs and windows style line breaks
+        data = [d.content.replace(b"\r\n", b"\n").replace(b"\t\n", b"\n")
+                for d in data]
+
+        # check for equality
+        if data[0] != data[1]:
+            report += f"- {convention} differs across platforms\n"
+
+            # save diverging files
+            if save_dir is not None:
+                for subdir, d in zip(subdirs, data):
+                    filename = os.path.join(save_dir, subdir, convention)
+                    with open(filename, "wb") as file:
+                        file.write(d)
+
+    if report:
+        print("Diverging conventions across platforms:\n" + report)

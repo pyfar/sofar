@@ -48,17 +48,7 @@ def test_read_sofa(capfd):
         setattr(file, "SOFAConventionsVersion", "0.1")
     # ValueError when version should be matched
     with raises(ValueError, match="Version 0.1 does not exist for"):
-        sf.read_sofa(filename, version="match")
-    # output when version should be updated to latest
-    sf.read_sofa(filename, version="latest")
-    out, _ = capfd.readouterr()
-    assert "Updated conventions version from 0.1 to 1.0" in out
-
-    # read file of unknown version (user specified)
-    sofa = sf.Sofa("SimpleFreeFieldHRIR")
-    sf.write_sofa(filename, sofa)
-    with raises(ValueError, match="Version 0.25 does not exist for"):
-        sf.read_sofa(filename, version="0.25")
+        sf.read_sofa(filename)
 
     # read file containing a variable with wrong shape
     sofa = sf.Sofa("SimpleFreeFieldHRIR")
@@ -112,10 +102,6 @@ def test_write_sofa_outdated_version():
     with pytest.warns(UserWarning, match="Writing SOFA object with outdated"):
         sf.write_sofa(os.path.join(tmp.name, "outdated.sofa"), sofa)
 
-    # write with latest version
-    with pytest.warns(UserWarning, match="Upgraded SOFA object"):
-        sf.write_sofa(os.path.join(tmp.name, "outdated.sofa"), sofa, "latest")
-
 
 def test_write_sofa_compression():
     """Test writing SOFA files with compression"""
@@ -158,7 +144,7 @@ def test_roundtrip(mandatory):
     temp_dir = TemporaryDirectory()
     names_versions = _get_conventions(return_type="name_version")
 
-    _, _, deprecations = sf.Sofa._verification_rules()
+    _, _, deprecations, _ = sf.Sofa._verification_rules()
 
     for name, version in names_versions:
         print(f"Testing: {name} {version}")
@@ -172,8 +158,8 @@ def test_roundtrip(mandatory):
             # test full round-trip for other conventions
             file = os.path.join(temp_dir.name, name + ".sofa")
             sofa = sf.Sofa(name, mandatory, version)
-            sf.write_sofa(file, sofa, version)
-            sofa_r = sf.read_sofa(file, version=version)
+            sf.write_sofa(file, sofa)
+            sofa_r = sf.read_sofa(file)
             identical = sf.equals(sofa, sofa_r, verbose=True, exclude="DATE")
             assert identical
 

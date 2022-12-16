@@ -198,9 +198,6 @@ def test_equals_global_parameters():
 
 
 @pytest.mark.parametrize("value_a, value_b, attribute, fails", [
-    (1, "1", "GLOBAL_SOFAConventionsVersion", False),
-    (1, "1.0", "GLOBAL_SOFAConventionsVersion", False),
-    (1., "1", "GLOBAL_SOFAConventionsVersion", False),
     ("1", "2", "GLOBAL_SOFAConventionsVersion", True),
     ([[1, 2]], [1, 2], "Data_IR", False),
     ([[1, 2]], [1, 3], "Data_IR", True),
