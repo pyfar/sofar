@@ -52,8 +52,57 @@ def read_sofa(filename, verify=True, verbose=True):
        will be a scalar inside SOFA objects after reading from disk.
     """
 
+    return _read_netcdf(filename, verify, verbose, mode="sofa")
+
+
+def read_netcdf(filename, verbose=True):
+    """
+    Read NetCDF file from disk and convert it to SOFA object.
+
+    .. note::
+        This intended to read and fix corrupted SOFA data that could not be
+        read otherwise. The returned SOFA object may not work correctly unless
+        the data was corrected and is in agreement with the SOFA standard
+        AES-69-
+
+    Numeric data is returned as floats or numpy float arrays unless they have
+    missing data, in which case they are returned as numpy masked arrays.
+
+    Parameters
+    ----------
+    filename : str
+        The filename. '.sofa' is appended to the filename, if it is not
+        explicitly given.
+
+    Returns
+    -------
+    sofa : Sofa
+        The SOFA object filled with the default values of the convention.
+
+    Notes
+    -----
+
+    1. Missing dimensions are appended when writing the SOFA object to disk.
+       E.g., if ``sofa.Data_IR`` is of shape (1, 2) it is written as an array
+       of shape (1, 2, 1) because the SOFA standard AES69-2020 defines it as a
+       three dimensional array with the dimensions (`M: measurements`,
+       `R: receivers`, `N: samples`)
+    2. When reading data from a SOFA file, array data is always returned as
+       numpy arrays and singleton trailing dimensions are discarded (numpy
+       default). I.e., ``sofa.Data_IR`` will again be an array of shape (1, 2)
+       after writing and reading to and from disk.
+    3. One dimensional arrays with only one element will be converted to scalar
+       values. E.g. ``sofa.Data_SamplingRate`` is stored as an array of shape
+       (1, ) inside SOFA files (according to the SOFA standard AES69-2020) but
+       will be a scalar inside SOFA objects after reading from disk.
+    """
+    return _read_netcdf(filename, False, False, mode="netcdf")
+
+
+def _read_netcdf(filename, verify, verbose, mode):
+
     # check the filename
-    if not filename.endswith('.sofa'):
+    if mode == "sofa" and not filename.endswith('.sofa'):
         raise ValueError("Filename must end with .sofa")
     if not os.path.isfile(filename):
         raise ValueError(f"{filename} does not exist")
@@ -68,28 +117,25 @@ def read_sofa(filename, verify=True, verbose=True):
     # open new NETCDF4 file for reading
     with Dataset(filename, "r", format="NETCDF4") as file:
 
-        # get convention name and version
-        convention = getattr(file, "SOFAConventions")
-        all_attr.append("GLOBAL_SOFAConventions")
-        version_in = getattr(file, "SOFAConventionsVersion")
-        all_attr.append("GLOBAL_SOFAConventionsVersion")
+        if mode == "sofa":
+            # get convention name and version
+            convention = getattr(file, "SOFAConventions")
+            version_in = getattr(file, "SOFAConventionsVersion")
 
-        # check if convention and version exist
-        version_out = _verify_convention_and_version(
-            version_in, version_in, convention)
+            # check if convention and version exist
+            version_out = _verify_convention_and_version(
+                version_in, version_in, convention)
 
-        # get SOFA object with default values
-        sofa = sf.Sofa(convention, version=version_out, verify=verify)
+            # get SOFA object with default values
+            sofa = sf.Sofa(convention, version=version_out, verify=verify)
+        else:
+            sofa = sf.Sofa(None)
 
         # allow writing read only attributes
         sofa._protected = False
 
         # load global attributes
         for attr in file.ncattrs():
-
-            if attr in ["SOFAConventionsVersion", "SOFAConventions"]:
-                # convention and version were already set above
-                continue
 
             value = getattr(file, attr)
             all_attr.append(f"GLOBAL_{attr}")
