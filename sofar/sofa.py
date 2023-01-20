@@ -89,23 +89,27 @@ class Sofa():
         """See class docstring"""
 
         # get convention
-        self._convention = self._load_convention(convention, version)
+        if convention is not None:
+            self._convention = self._load_convention(convention, version)
 
-        # update read only attributes
-        self._read_only_attr = [
-            key for key in self._convention.keys()
-            if self._read_only(self._convention[key]["flags"])]
+            # update read only attributes
+            self._read_only_attr = [
+                key for key in self._convention.keys()
+                if self._read_only(self._convention[key]["flags"])]
 
-        # add attributes with default values
-        self._convention_to_sofa(mandatory)
+            # add attributes with default values
+            self._convention_to_sofa(mandatory)
 
-        # add and update the API
-        # (mandatory=False can not be verified because some conventions have
-        # default values that have optional variables as dependencies)
-        if verify and not mandatory:
-            self.verify(mode="read")
+            # add and update the API
+            # (mandatory=False can not be verified because some conventions
+            # have default values that have optional variables as dependencies)
+            if verify and not mandatory:
+                self.verify(mode="read")
 
-        self._protected = True
+            self._protected = True
+        else:
+            verify = False
+            self._convention = {}
 
     def __setattr__(self, name: str, value):
         # don't allow new attributes to be added outside the class
