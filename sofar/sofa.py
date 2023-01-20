@@ -289,7 +289,7 @@ class Sofa():
 
         # update the private attribute `_convention` to make sure the required
         # meta data is in place
-        self._update_convention(version="match")
+        self._reset_convention()
 
         # list of all attributes
         keys = [k for k in self.__dict__.keys() if not k.startswith("_")]
@@ -461,7 +461,7 @@ class Sofa():
         """
 
         # initialize
-        self._update_convention(version="match")
+        self._reset_convention()
         added = "Added the following missing data with their default values:\n"
 
         # current data
@@ -652,7 +652,7 @@ class Sofa():
                 "type": dtype,
                 "default": None,
                 "comment": ""}
-        self._update_convention(version="match")
+        self._reset_convention()
 
         # add attribute to object
         setattr(self, key, value)
@@ -687,7 +687,7 @@ class Sofa():
         """
 
         # check input ---------------------------------------------------------
-        self._update_convention(version="match")
+        self._reset_convention()
 
         # get deprecations and information about Sofa object
         _, _, deprecations, upgrade = self._verification_rules()
@@ -908,7 +908,7 @@ class Sofa():
 
         # ---------------------------------------------------------------------
         # 0. update the convention
-        self._update_convention("match")
+        self._reset_convention()
 
         # ---------------------------------------------------------------------
         # 1. check if the mandatory attributes are contained
@@ -1548,49 +1548,36 @@ class Sofa():
         """Return a copy of the SOFA object."""
         return deepcopy(self)
 
-    def _update_convention(self, version):
+    def _reset_convention(self):
         """
-        Add SOFA convention to SOFA object in private attribute `_convention`.
-        If The object already contains a convention, it will be overwritten.
-
-        Parameters
-        ----------
-        version : str
-            ``'latest'``
-                Use the latest API and upgrade the SOFA file if required.
-            ``'match'``
-                Match the version of the sofa file.
-            str
-                Version string, e.g., ``'1.0'``.
+        - Add SOFA convention to SOFA object in private attribute
+          `_convention`. If The object already contains a convention, it will
+          be overwritten.
+        - If the SOFA object contains custom entries, check if any of the
+          custom entries part of the convention. If yes, delete the entry from
+          self._custom
+        - If the SOFA objects contains custom entries, add entries from
+          self._custom to self._convention
         """
 
         # verify convention and version
         c_current = self.GLOBAL_SOFAConventions
         v_current = str(self.GLOBAL_SOFAConventionsVersion)
 
-        v_new = _verify_convention_and_version(
-                version, v_current, c_current)
+        _verify_convention_and_version("match", v_current, c_current)
 
         # load and add convention and version
         convention = self._load_convention(
-            c_current, v_new)
+            c_current, v_current)
         self._convention = convention
 
-        if v_current != v_new:
-            self._protected = False
-            self.GLOBAL_SOFAConventionsVersion = v_new
-            self._protected = True
-
-        # feedback in case of up/downgrade
-        if float(v_current) < float(v_new):
-            warnings.warn(("Upgraded SOFA object from "
-                           f"version {v_current} to {v_new}"))
-        elif float(v_current) > float(v_new):
-            warnings.warn(("Downgraded SOFA object from "
-                           f"version {v_current} to {v_new}"))
-
-        # check if custom fields can be added
         if hasattr(self, "_custom"):
+            # check of custom fields can be removed
+            for key in self._convention:
+                if key in self._custom:
+                    del self._custom[key]
+
+            # check if custom fields can be added
             for key in self._custom:
                 self._convention[key] = self._custom[key]
 
