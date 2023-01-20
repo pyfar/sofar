@@ -313,11 +313,6 @@ def test_delete_entry():
     assert not hasattr(sofa, "SourceManufacturer")
 
 
-def test__update_conventions():
-    """Tested in test_sofa_verify.pi::test_version"""
-    pass
-
-
 def test__get_size_and_shape_of_string_var():
 
     # test with string
