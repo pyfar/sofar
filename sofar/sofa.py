@@ -652,7 +652,7 @@ class Sofa():
                 "type": dtype,
                 "default": None,
                 "comment": ""}
-        self._reset_convention()
+            self._convention[key] = self._custom[key]
 
         # add attribute to object
         setattr(self, key, value)
