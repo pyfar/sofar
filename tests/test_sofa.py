@@ -231,9 +231,9 @@ def test_add_entry():
     assert "Temperature_Units" not in sofa._custom
 
     # test adding missing entry defined in convention
-    sofa._protected = False
+    sofa.protected = False
     delattr(sofa, "ListenerPosition")
-    sofa._protected = True
+    sofa.protected = True
     sofa.add_variable("ListenerPosition", [0, 0, 0], "double", "IC")
     assert "ListenerPosition" not in sofa._custom
 
@@ -273,10 +273,10 @@ def test_add_missing(
     opt = "GLOBAL_History"
 
     # remove data before adding it again
-    sofa._protected = False
+    sofa.protected = False
     sofa.delete(man)
     sofa.delete(opt)
-    sofa._protected = False
+    sofa.protected = False
 
     # add missing data
     sofa.add_missing(mandatory, optional, verbose)

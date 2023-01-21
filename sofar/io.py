@@ -132,7 +132,7 @@ def _read_netcdf(filename, verify, verbose, mode):
             sofa = sf.Sofa(None)
 
         # allow writing read only attributes
-        sofa._protected = False
+        sofa.protected = False
 
         # load global attributes
         for attr in file.ncattrs():
@@ -144,7 +144,7 @@ def _read_netcdf(filename, verify, verbose, mode):
                 sofa._add_custom_api_entry(
                     f"GLOBAL_{attr}", value, None, None, "attribute")
                 custom.append(f"GLOBAL_{attr}")
-                sofa._protected = False
+                sofa.protected = False
             else:
                 setattr(sofa, f"GLOBAL_{attr}", value)
 
@@ -163,7 +163,7 @@ def _read_netcdf(filename, verify, verbose, mode):
                 sofa._add_custom_api_entry(var.replace(".", "_"), value, None,
                                            dimensions, dtype)
                 custom.append(var.replace(".", "_"))
-                sofa._protected = False
+                sofa.protected = False
 
             # load variable attributes
             for attr in [a for a in file[var].ncattrs() if a not in skip]:
@@ -176,7 +176,7 @@ def _read_netcdf(filename, verify, verbose, mode):
                         var.replace(".", "_") + "_" + attr, value, None,
                         None, "attribute")
                     custom.append(var.replace(".", "_") + "_" + attr)
-                    sofa._protected = False
+                    sofa.protected = False
                 else:
                     setattr(sofa, var.replace(".", "_") + "_" + attr, value)
 
@@ -188,7 +188,7 @@ def _read_netcdf(filename, verify, verbose, mode):
             delattr(sofa, attr)
 
     # do not allow writing read only attributes any more
-    sofa._protected = True
+    sofa.protected = True
 
     # notice about custom entries
     if custom and verbose:

@@ -146,53 +146,53 @@ def test_equals_global_parameters():
 
     # check different number of keys
     sofa_b = deepcopy(sofa_a)
-    sofa_b._protected = False
+    sofa_b.protected = False
     delattr(sofa_b, "ReceiverPosition")
-    sofa_b._protected = True
+    sofa_b.protected = True
     with pytest.warns(UserWarning, match="not identical: sofa_a has"):
         is_identical = sf.equals(sofa_a, sofa_b)
         assert not is_identical
 
     # check different keys
     sofa_b = deepcopy(sofa_a)
-    sofa_b._protected = False
+    sofa_b.protected = False
     sofa_b.PositionReceiver = sofa_b.ReceiverPosition
     delattr(sofa_b, "ReceiverPosition")
-    sofa_b._protected = True
+    sofa_b.protected = True
     with pytest.warns(UserWarning, match="not identical: sofa_a and sofa_b"):
         is_identical = sf.equals(sofa_a, sofa_b)
         assert not is_identical
 
     # check mismatching data types
     sofa_b = deepcopy(sofa_a)
-    sofa_b._protected = False
+    sofa_b.protected = False
     sofa_b._convention["ReceiverPosition"]["type"] = "int"
-    sofa_b._protected = True
+    sofa_b.protected = True
     with pytest.warns(UserWarning, match="not identical: ReceiverPosition"):
         is_identical = sf.equals(sofa_a, sofa_b)
         assert not is_identical
 
     # check exclude GLOBAL attributes
     sofa_b = deepcopy(sofa_a)
-    sofa_b._protected = False
+    sofa_b.protected = False
     delattr(sofa_b, "GLOBAL_Version")
-    sofa_b._protected = True
+    sofa_b.protected = True
     is_identical = sf.equals(sofa_a, sofa_b, exclude="GLOBAL")
     assert is_identical
 
     # check exclude Date attributes
     sofa_b = deepcopy(sofa_a)
-    sofa_b._protected = False
+    sofa_b.protected = False
     delattr(sofa_b, "GLOBAL_DateModified")
-    sofa_b._protected = True
+    sofa_b.protected = True
     is_identical = sf.equals(sofa_a, sofa_b, exclude="DATE")
     assert is_identical
 
     # check exclude Date attributes
     sofa_b = deepcopy(sofa_a)
-    sofa_b._protected = False
+    sofa_b.protected = False
     delattr(sofa_b, "GLOBAL_DateModified")
-    sofa_b._protected = True
+    sofa_b.protected = True
     is_identical = sf.equals(sofa_a, sofa_b, exclude="ATTR")
     assert is_identical
 
@@ -210,14 +210,14 @@ def test_equals_attribute_values(value_a, value_b, attribute, fails):
 
     # generate SOFA objects (SimpleHeadphoneIR has string variables)
     sofa_a = sf.Sofa("SimpleHeadphoneIR")
-    sofa_a._protected = False
+    sofa_a.protected = False
     sofa_b = deepcopy(sofa_a)
 
     # set parameters
     setattr(sofa_a, attribute, value_a)
-    sofa_a._protected = True
+    sofa_a.protected = True
     setattr(sofa_b, attribute, value_b)
-    sofa_b._protected = True
+    sofa_b.protected = True
 
     # compare
     if fails:

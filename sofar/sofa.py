@@ -106,22 +106,23 @@ class Sofa():
             if verify and not mandatory:
                 self.verify(mode="read")
 
-            self._protected = True
+            self.protected = True
         else:
             verify = False
             self._convention = {}
 
     def __setattr__(self, name: str, value):
         # don't allow new attributes to be added outside the class
-        if self._protected and not hasattr(self, name):
+        if self.protected and not hasattr(self, name):
             raise TypeError(f"{name} is an invalid attribute")
 
         # don't allow setting read only attributes
-        if name in self._read_only_attr and self._protected:
+        if name in self._read_only_attr and self.protected:
             raise TypeError(f"{name} is a read only attribute")
 
         # convert to numpy array or scalar
-        if not isinstance(value, (str, dict, np.ndarray)):
+        if not isinstance(value, (str, dict, np.ndarray)) \
+                and name != "protected":
             value = np.atleast_2d(value)
             if value.size == 1:
                 value = value.flatten()[0]
@@ -133,7 +134,7 @@ class Sofa():
         if not hasattr(self, name):
             raise TypeError(f"{name} is not an attribute")
         # delete anything if not frozen, delete non mandatory
-        if not self._protected or \
+        if not self.protected or \
                 not self._mandatory(self._convention[name]["flags"]):
             super().__delattr__(name)
 
@@ -471,7 +472,7 @@ class Sofa():
         # current data
         keys = [key for key in self.__dict__.keys() if not key.startswith("_")]
 
-        self._protected = False
+        self.protected = False
 
         # loop data in convention
         for key in self._convention.keys():
@@ -484,7 +485,7 @@ class Sofa():
                 added += f"- {key} "
                 added += f"({'mandatory' if is_mandatory else 'optional'})\n"
 
-        self._protected = True
+        self.protected = True
 
         if verbose:
             if "-" in added:
@@ -580,6 +581,26 @@ class Sofa():
         """
         delattr(self, name)
 
+    @property
+    def protected(self):
+        """
+        If Sofa.protected is ``True``, read only data can not be changed. Only
+        change this to ``False`` if you know what you are doing, e.g., if you
+        need to repair corrupted SOFA data.
+        """
+        return self._protected
+
+    @protected.setter
+    def protected(self, value: bool):
+        """
+        If Sofa.protected is ``True``, read only data can not be changed. Only
+        change this to ``False`` if you know what you are doing, e.g., if you
+        need to repair corrupted SOFA data.
+        """
+        if not isinstance(value, bool):
+            raise ValueError("Sofa.protected can only be True or False")
+        self._protected = value
+
     def _add_entry(self, name, value, dtype, dimensions):
         """
         Add custom data to a SOFA object. See add_variable and add_attribute
@@ -637,7 +658,7 @@ class Sofa():
             double, string, or attribute
         """
         # create custom API if it not exists
-        self._protected = False
+        self.protected = False
 
         # lower case letters to indicate custom dimensions
         if dimensions is not None:
@@ -660,7 +681,7 @@ class Sofa():
 
         # add attribute to object
         setattr(self, key, value)
-        self._protected = True
+        self.protected = True
 
     def upgrade_convention(self, target=None, verify=True):
         """
@@ -767,7 +788,7 @@ class Sofa():
                 "GLOBAL_Version",
                 "GLOBAL_DataType"]
 
-        self._protected = False
+        self.protected = False
         for key in keys:
             setattr(self, key, self._convention[key]["default"])
 
@@ -817,7 +838,7 @@ class Sofa():
 
         # check for missing mandatory data
         self.add_missing(True, False)
-        self._protected = True
+        self.protected = True
 
         # display general message
         if upgrade["message"] is not None:
@@ -925,9 +946,9 @@ class Sofa():
 
                 if issue_handling != "raise":
                     # add missing data with default value
-                    self._protected = False
+                    self.protected = False
                     setattr(self, key, self._convention[key]["default"])
-                    self._protected = True
+                    self.protected = True
 
                 # prepare to raise warning
                 missing += "- " + key + "\n"
@@ -1108,10 +1129,10 @@ class Sofa():
         # 4. Get dimensions (E, R, M, N, S, c, I, and custom)
 
         # initialize required API fields
-        self._protected = False
+        self.protected = False
         self._dimensions = {}
         self._api = {}
-        self._protected = True
+        self.protected = True
 
         # get keys for checking the dimensions (all SOFA variables)
         keys = [key for key in self.__dict__.keys()
@@ -1675,7 +1696,7 @@ class Sofa():
 
         # write API and date specific fields (some read only)
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self._protected = False
+        self.protected = False
         self.GLOBAL_DateCreated = now
         self.GLOBAL_DateModified = now
         self.GLOBAL_APIName = "sofar SOFA API for Python (pyfar.org)"
@@ -1685,7 +1706,7 @@ class Sofa():
             f"{platform.python_version()} "
             f"[{platform.python_implementation()} - "
             f"{platform.python_compiler()}]")
-        self._protected = True
+        self.protected = True
 
     @staticmethod
     def _get_size_and_shape_of_string_var(value, key):
