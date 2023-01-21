@@ -55,7 +55,7 @@ def read_sofa(filename, verify=True, verbose=True):
     return _read_netcdf(filename, verify, verbose, mode="sofa")
 
 
-def read_netcdf(filename, verbose=True):
+def read_netcdf(filename):
     """
     Read NetCDF file from disk and convert it to SOFA object.
 
