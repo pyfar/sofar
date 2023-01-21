@@ -1,7 +1,7 @@
 import shutil
 import sofar as sf
 from sofar.utils import _get_conventions
-from sofar.update_conventions import _compile_conventions
+from sofar.update_conventions import _compile_conventions, _check_congruency
 import os
 import json
 from tempfile import TemporaryDirectory
@@ -46,6 +46,17 @@ def test__get_conventions(capfd):
 
     with raises(ValueError, match="return_type None is invalid"):
         _get_conventions(return_type="None")
+
+
+def test__congruency(capfd):
+    """
+    Check if conventions from SOFAToolbox and sofaconventions.org are
+    identical.
+    """
+    out, _ = capfd.readouterr()
+    _check_congruency()
+    out, _ = capfd.readouterr()
+    assert out == ""
 
 
 def test_update_conventions(capfd):
