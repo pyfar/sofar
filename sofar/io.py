@@ -3,7 +3,7 @@ import os
 import numpy as np
 from netCDF4 import Dataset, chartostring, stringtochar
 import warnings
-import packaging
+from packaging.version import parse
 import sofar as sf
 from .utils import _verify_convention_and_version, _atleast_nd
 
@@ -120,14 +120,13 @@ def _read_netcdf(filename, verify, verbose, mode):
         if mode == "sofa":
             # get convention name and version
             convention = getattr(file, "SOFAConventions")
-            version_in = getattr(file, "SOFAConventionsVersion")
+            version = getattr(file, "SOFAConventionsVersion")
 
             # check if convention and version exist
-            version_out = _verify_convention_and_version(
-                version_in, version_in, convention)
+            _verify_convention_and_version(version, convention)
 
             # get SOFA object with default values
-            sofa = sf.Sofa(convention, version=version_out, verify=verify)
+            sofa = sf.Sofa(convention, version=version, verify=verify)
         else:
             sofa = sf.Sofa(None)
 
@@ -262,7 +261,7 @@ def _write_sofa(filename: str, sofa: sf.Sofa, compression=4, verify=True):
         latest = latest.GLOBAL_SOFAConventionsVersion
         current = sofa.GLOBAL_SOFAConventionsVersion
 
-        if packaging.version.parse(current) < packaging.version.parse(latest):
+        if parse(current) < parse(latest):
             warnings.warn(("Writing SOFA object with outdated Convention "
                            f"version {current}. Use version='latest' to write "
                            f"data with version {latest}."))

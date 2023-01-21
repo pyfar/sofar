@@ -1592,7 +1592,7 @@ class Sofa():
         c_current = self.GLOBAL_SOFAConventions
         v_current = str(self.GLOBAL_SOFAConventionsVersion)
 
-        _verify_convention_and_version("match", v_current, c_current)
+        _verify_convention_and_version(v_current, c_current)
 
         # load and add convention and version
         convention = self._load_convention(
