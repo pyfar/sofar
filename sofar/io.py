@@ -263,8 +263,9 @@ def _write_sofa(filename: str, sofa: sf.Sofa, compression=4, verify=True):
 
         if parse(current) < parse(latest):
             warnings.warn(("Writing SOFA object with outdated Convention "
-                           f"version {current}. Use version='latest' to write "
-                           f"data with version {latest}."))
+                           f"version {current}. It is recommend to upgrade "
+                           " data with Sofa.upgrade_convention() before "
+                           "writing to disk if possible."))
 
     # setting the netCDF compression parameter
     use_zlib = compression != 0
