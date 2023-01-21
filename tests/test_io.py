@@ -83,6 +83,28 @@ def test_read_sofa_custom_data():
     assert sofa.GLOBAL_Warming == 'critical'
 
 
+def test_read_netcdf():
+    tmp = TemporaryDirectory()
+    files = [os.path.join(tmp.name, "invalid.sofa"),
+             os.path.join(tmp.name, "invalid.netcdf")]
+
+    # create data with invalid SOFA convention and version
+    sofa = sf.Sofa("GeneralTF")
+    sofa.protected = False
+    sofa.GLOBAL_SOFAConventions = "MadeUp"
+    sofa.protected = True
+
+    # test reading
+    for file in files:
+        # write data
+        sf.io._write_sofa(file, sofa, verify=False)
+        # can not be read with read_sofa
+        with raises(ValueError):
+            sf.read_sofa(file)
+        sofa_read = sf.read_netcdf(file)
+        sf.equals(sofa, sofa_read)
+
+
 def test_write_sofa_assertion():
     """Test assertion for wrong filename ending"""
 
