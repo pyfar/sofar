@@ -47,7 +47,7 @@ def test_read_sofa(capfd):
     with Dataset(filename, "r+", format="NETCDF4") as file:
         setattr(file, "SOFAConventionsVersion", "0.1")
     # ValueError when version should be matched
-    with raises(ValueError, match="Version 0.1 does not exist for"):
+    with raises(ValueError, match="v0.1 is not a valid SOFA Convention"):
         sf.read_sofa(filename)
 
     # read file containing a variable with wrong shape
@@ -312,9 +312,9 @@ def test_verify_convention_and_version():
     # test assertions
     with raises(ValueError, match="Convention 'Funky' does not exist"):
         _verify_convention_and_version("latest", "1.0", "Funky")
-    with raises(ValueError, match="Version 1.1 does not exist"):
+    with raises(ValueError, match="v1.1 is not a valid SOFA Convention"):
         _verify_convention_and_version("match", "1.1", "GeneralTF")
-    with raises(ValueError, match="Version 1.2 does not exist"):
+    with raises(ValueError, match="v1.2 is not a valid SOFA Convention"):
         _verify_convention_and_version("1.2", "1.0", "GeneralTF")
 
 

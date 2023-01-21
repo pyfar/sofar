@@ -67,8 +67,10 @@ def _verify_convention_and_version(version, version_in, convention):
 
         if version_out is None:
             raise ValueError((
-                f"Version {match} does not exist for convention {convention}. "
-                "Try to access the data with version='latest'"))
+                f"{convention} v{match} is not a valid SOFA Convention."
+                "If you are trying to read the data use sofar.read_netcdf(). "
+                "Call sofar.list_conventions() for a list of valid Conventions"
+                ))
 
     return version_out
 

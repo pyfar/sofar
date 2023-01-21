@@ -118,7 +118,10 @@ class Sofa():
 
         # don't allow setting read only attributes
         if name in self._read_only_attr and self.protected:
-            raise TypeError(f"{name} is a read only attribute")
+            raise TypeError((
+                f"{name} is a read only attribute. Iy you know what you are "
+                "doing, you can set Sofa.protected = False to write read "
+                "only data (e.g., to repair corrupted SOFA data)."))
 
         # convert to numpy array or scalar
         if not isinstance(value, (str, dict, np.ndarray)) \
