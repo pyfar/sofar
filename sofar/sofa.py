@@ -297,7 +297,8 @@ class Sofa():
 
         # update the private attribute `_convention` to make sure the required
         # meta data is in place
-        self._reset_convention()
+        if not hasattr(self, "_convention"):
+            self._reset_convention()
 
         # list of all attributes
         keys = [k for k in self.__dict__.keys() if not k.startswith("_")]
