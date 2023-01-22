@@ -18,8 +18,7 @@ def read_sofa(filename, verify=True, verbose=True):
     Parameters
     ----------
     filename : str
-        The filename. '.sofa' is appended to the filename, if it is not
-        explicitly given.
+        The full path to the sofa data.
     verify : bool, optional
         Verify and update the SOFA object by calling :py:func:`~Sofa.verify`.
         This helps to find potential errors in the default values and is thus
@@ -32,7 +31,7 @@ def read_sofa(filename, verify=True, verbose=True):
     Returns
     -------
     sofa : Sofa
-        The SOFA object filled with the default values of the convention.
+        A SOFA object containing the data from `filename`.
 
     Notes
     -----
@@ -60,10 +59,16 @@ def read_netcdf(filename):
     Read NetCDF file from disk and convert it to SOFA object.
 
     .. note::
-        This intended to read and fix corrupted SOFA data that could not be
-        read otherwise. The returned SOFA object may not work correctly unless
-        the data was corrected and is in agreement with the SOFA standard
-        AES-69-
+        `read_netcdf` is intended to read and fix corrupted SOFA data that
+        could not be read by :py:func:`~read_sofa`. The recommend workflow is
+
+        - Try to read the data with `read_sofa` and ``verify=True``
+        - If this fails, try the above with ``verify=False``
+        - If this fails, use `read_netcdf`
+
+        The SOFA object  returned by `read_netcdf` may not work correctly
+        before the issues with the data were fixed, i.e., before the data are
+        in agreement with the SOFA standard AES-69.
 
     Numeric data is returned as floats or numpy float arrays unless they have
     missing data, in which case they are returned as numpy masked arrays.
@@ -71,13 +76,12 @@ def read_netcdf(filename):
     Parameters
     ----------
     filename : str
-        The filename. '.sofa' is appended to the filename, if it is not
-        explicitly given.
+        The full path to the NetCDF data.
 
     Returns
     -------
     sofa : Sofa
-        The SOFA object filled with the default values of the convention.
+        A SOFA object containing the data from `filename`.
 
     Notes
     -----
