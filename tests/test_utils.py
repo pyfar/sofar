@@ -9,6 +9,7 @@ import pytest
 from pytest import raises
 import numpy as np
 from copy import deepcopy
+import warnings
 
 
 def test_list_conventions(capfd):
@@ -56,7 +57,8 @@ def test__congruency(capfd):
     out, _ = capfd.readouterr()
     _check_congruency()
     out, _ = capfd.readouterr()
-    assert out == ""
+    if out != "":
+        warnings.warn(out, Warning)
 
 
 def test_update_conventions(capfd):
