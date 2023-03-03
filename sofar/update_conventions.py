@@ -333,7 +333,7 @@ def _convention_csv2dict(file: str):
     return convention
 
 
-def _check_congruency(save_dir=None):
+def _check_congruency(save_dir=None, branch="master"):
     """
     SOFA conventions are stored in two different places - is this a good idea?
     They should be identical, but let's find out.
@@ -348,7 +348,7 @@ def _check_congruency(save_dir=None):
 
     urls = ["https://www.sofaconventions.org/conventions/",
             ("https://raw.githubusercontent.com/sofacoustics/SOFAtoolbox/"
-             "master/SOFAtoolbox/conventions/")]
+             f"{branch}/SOFAtoolbox/conventions/")]
     subdirs = ["sofaconventions", "sofatoolbox"]
 
     # check save_dir

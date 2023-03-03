@@ -1,7 +1,7 @@
 import shutil
 import sofar as sf
 from sofar.utils import _get_conventions
-from sofar.update_conventions import _compile_conventions
+from sofar.update_conventions import _compile_conventions, _check_congruency
 import os
 import json
 from tempfile import TemporaryDirectory
@@ -9,6 +9,7 @@ import pytest
 from pytest import raises
 import numpy as np
 from copy import deepcopy
+import warnings
 
 
 def test_list_conventions(capfd):
@@ -46,6 +47,19 @@ def test__get_conventions(capfd):
 
     with raises(ValueError, match="return_type None is invalid"):
         _get_conventions(return_type="None")
+
+
+@pytest.mark.parametrize('branch', ['master', 'develop'])
+def test__congruency(capfd, branch):
+    """
+    Check if conventions from SOFAToolbox and sofaconventions.org are
+    identical.
+    """
+    out, _ = capfd.readouterr()
+    _check_congruency(branch=branch)
+    out, _ = capfd.readouterr()
+    if out != "":
+        warnings.warn(out, Warning)
 
 
 def test_update_conventions(capfd):
