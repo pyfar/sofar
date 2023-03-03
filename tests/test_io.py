@@ -6,6 +6,7 @@ from sofar.utils import (_get_conventions,
 from sofar.io import (_format_value_for_netcdf,
                       _format_value_from_netcdf)
 import os
+import pathlib
 from tempfile import TemporaryDirectory
 import pytest
 from pytest import raises
@@ -14,7 +15,7 @@ import numpy.testing as npt
 from netCDF4 import Dataset
 
 
-def test_read_sofa(capfd):
+def test_read_write_sofa(capfd):
 
     temp_dir = TemporaryDirectory()
     filename = os.path.join(temp_dir.name, "test.sofa")
@@ -23,6 +24,11 @@ def test_read_sofa(capfd):
     # test defaults
     sf.write_sofa(filename, sofa)
     sofa = sf.read_sofa(filename)
+    assert hasattr(sofa, "_api")
+
+    # test with path object
+    sf.write_sofa(pathlib.Path(filename), sofa)
+    sofa = sf.read_sofa(pathlib.Path(filename))
     assert hasattr(sofa, "_api")
 
     # reading without updating API
@@ -64,10 +70,6 @@ def test_read_sofa(capfd):
     # data can be read without updating API
     sf.read_sofa(filename, verify=False)
 
-    # test assertion for wrong filename
-    with raises(ValueError, match="Filename must end with .sofa"):
-        sf.read_sofa('sofa.exe')
-
 
 def test_read_sofa_custom_data():
     """Test if sofa files with custom data are loaded correctly"""
@@ -81,14 +83,6 @@ def test_read_sofa_custom_data():
     sf.write_sofa(filename, sofa)
     sofa = sf.read_sofa(filename)
     assert sofa.GLOBAL_Warming == 'critical'
-
-
-def test_write_sofa_assertion():
-    """Test assertion for wrong filename ending"""
-
-    sofa = sf.Sofa("SimpleFreeFieldHRIR")
-    with raises(ValueError, match="Filename must end with .sofa"):
-        sf.write_sofa("sofa.exe", sofa)
 
 
 def test_write_sofa_outdated_version():
