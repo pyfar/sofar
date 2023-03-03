@@ -49,13 +49,14 @@ def test__get_conventions(capfd):
         _get_conventions(return_type="None")
 
 
-def test__congruency(capfd):
+@pytest.mark.parametrize('branch', ['master', 'develop'])
+def test__congruency(capfd, branch):
     """
     Check if conventions from SOFAToolbox and sofaconventions.org are
     identical.
     """
     out, _ = capfd.readouterr()
-    _check_congruency()
+    _check_congruency(branch=branch)
     out, _ = capfd.readouterr()
     if out != "":
         warnings.warn(out, Warning)
