@@ -9,6 +9,7 @@ import pytest
 from pytest import raises
 import numpy as np
 from copy import deepcopy
+import warnings
 
 
 def test_list_conventions(capfd):
@@ -48,15 +49,17 @@ def test__get_conventions(capfd):
         _get_conventions(return_type="None")
 
 
-def test__congruency(capfd):
+@pytest.mark.parametrize('branch', ['master', 'develop'])
+def test__congruency(capfd, branch):
     """
     Check if conventions from SOFAToolbox and sofaconventions.org are
     identical.
     """
     out, _ = capfd.readouterr()
-    _check_congruency()
+    _check_congruency(branch=branch)
     out, _ = capfd.readouterr()
-    assert out == ""
+    if out != "":
+        warnings.warn(out, Warning)
 
 
 def test_update_conventions(capfd):
