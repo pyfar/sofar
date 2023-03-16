@@ -48,8 +48,9 @@ def _verify_convention_and_version(version, convention):
     if not version_exists:
         raise ValueError((
             f"{convention} v{version} is not a valid SOFA Convention."
-            "If you are trying to read the data use sofar.read_netcdf(). "
-            "Call sofar.list_conventions() for a list of valid Conventions"))
+            "If you are trying to read the data use "
+            "sofar.read_sofa_as_netcdf(). Call sofar.list_conventions() for a "
+            "list of valid Conventions"))
 
 
 def list_conventions():

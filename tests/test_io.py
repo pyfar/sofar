@@ -101,7 +101,7 @@ def test_read_netcdf():
         # can not be read with read_sofa
         with raises(ValueError):
             sf.read_sofa(file)
-        sofa_read = sf.read_netcdf(file)
+        sofa_read = sf.read_sofa_as_netcdf(file)
         sf.equals(sofa, sofa_read)
 
 

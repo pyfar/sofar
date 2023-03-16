@@ -31,7 +31,7 @@ def read_sofa(filename, verify=True, verbose=True):
     Returns
     -------
     sofa : Sofa
-        A SOFA object containing the data from `filename`.
+        Object containing the data from `filename`.
 
     Notes
     -----
@@ -54,21 +54,22 @@ def read_sofa(filename, verify=True, verbose=True):
     return _read_netcdf(filename, verify, verbose, mode="sofa")
 
 
-def read_netcdf(filename):
+def read_sofa_as_netcdf(filename):
     """
-    Read NetCDF file from disk and convert it to SOFA object.
+    Read corrupted SOFA data from disk.
 
     .. note::
-        `read_netcdf` is intended to read and fix corrupted SOFA data that
-        could not be read by :py:func:`~read_sofa`. The recommend workflow is
+        `read_sofa_as_netcdf` is intended to read and fix corrupted SOFA data
+        that could not be read by :py:func:`~read_sofa`. The recommend workflow
+        is
 
         - Try to read the data with `read_sofa` and ``verify=True``
         - If this fails, try the above with ``verify=False``
-        - If this fails, use `read_netcdf`
+        - If this fails, use `read_sofa_as_netcdf`
 
-        The SOFA object  returned by `read_netcdf` may not work correctly
-        before the issues with the data were fixed, i.e., before the data are
-        in agreement with the SOFA standard AES-69.
+        The SOFA object  returned by `read_sofa_as_netcdf` may not work
+        correctly before the issues with the data were fixed, i.e., before the
+        data are in agreement with the SOFA standard AES-69.
 
     Numeric data is returned as floats or numpy float arrays unless they have
     missing data, in which case they are returned as numpy masked arrays.
@@ -81,7 +82,7 @@ def read_netcdf(filename):
     Returns
     -------
     sofa : Sofa
-        A SOFA object containing the data from `filename`.
+        Object containing the data from `filename`.
 
     Notes
     -----
