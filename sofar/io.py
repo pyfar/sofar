@@ -258,6 +258,7 @@ def _write_sofa(filename: str, sofa: sf.Sofa, compression=4, verify=True):
     # check the filename
     filename = pathlib.Path(filename).with_suffix('.sofa')
 
+    if verify:
         # check if the latest version is used for writing and warn otherwise
         # if case required for writing SOFA test data that violates the
         # conventions

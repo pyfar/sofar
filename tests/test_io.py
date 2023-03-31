@@ -107,14 +107,6 @@ def test_read_netcdf():
         sf.equals(sofa, sofa_read)
 
 
-def test_write_sofa_assertion():
-    """Test assertion for wrong filename ending"""
-
-    sofa = sf.Sofa("SimpleFreeFieldHRIR")
-    with raises(ValueError, match="Filename must end with .sofa"):
-        sf.write_sofa("sofa.exe", sofa)
-
-
 def test_write_sofa_outdated_version():
     """Test the warning for writing SOFA files with outdated versions"""
 
