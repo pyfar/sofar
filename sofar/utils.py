@@ -2,7 +2,6 @@ import os
 import glob
 import numpy as np
 import numpy.testing as npt
-from packaging.version import parse as version_parse
 import warnings
 import sofar as sf
 
@@ -19,58 +18,39 @@ def version():
             f"SOFA standard {sofa_conventions}")
 
 
-def _verify_convention_and_version(version, version_in, convention):
+def _verify_convention_and_version(version, convention):
     """
-    Verify if convention and version exist and return version
+    Verify if convention and version exist. Raise a Value error if it does not.
 
     Parameters
     ----------
     version : str
-        'latest', 'match', version string (e.g., '1.0')
-    version_in : str
-        The version to be checked against
+        The version to be checked
     convention : str
         The name of the convention to be checked
-
-    Returns
-    -------
-    version_out : str
-        The version to be used depending on `version`, and `version_in`
     """
 
-    # check if the convention exists in sofar
+    # check if the convention exists
     if convention not in _get_conventions("name"):
         raise ValueError(
             f"Convention '{convention}' does not exist")
 
     name_version = _get_conventions("name_version")
 
-    if version == "latest":
-        # get list of versions as floats
-        version_out = [float(versions[1]) for versions in name_version
-                       if versions[0] == convention]
-        # get latest version as string
-        version_out = str(version_out[np.argmax(version_out)])
+    # check which version is wanted
+    version_exists = False
+    for versions in name_version:
+        # check if convention and version match
+        if versions[0] == convention \
+                and str(float(versions[1])) == version:
+            version_exists = True
 
-        if version_parse(version_out) > version_parse(version_in):
-            print(("Updated conventions version from "
-                   f"{version_in} to {version_out}"))
-    else:
-        # check which version is wanted
-        match = version_in if version == "match" else version
-        version_out = None
-        for versions in name_version:
-            # check if convention and version match
-            if versions[0] == convention \
-                    and str(float(versions[1])) == match:
-                version_out = str(float(versions[1]))
-
-        if version_out is None:
-            raise ValueError((
-                f"Version {match} does not exist for convention {convention}. "
-                "Try to access the data with version='latest'"))
-
-    return version_out
+    if not version_exists:
+        raise ValueError((
+            f"{convention} v{version} is not a valid SOFA Convention."
+            "If you are trying to read the data use "
+            "sofar.read_sofa_as_netcdf(). Call sofar.list_conventions() for a "
+            "list of valid Conventions"))
 
 
 def list_conventions():
