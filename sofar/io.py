@@ -3,6 +3,7 @@ import os
 import numpy as np
 from netCDF4 import Dataset, chartostring, stringtochar
 import warnings
+import pathlib
 from packaging.version import parse
 import sofar as sf
 from .utils import _verify_convention_and_version, _atleast_nd
@@ -107,8 +108,7 @@ def read_sofa_as_netcdf(filename):
 def _read_netcdf(filename, verify, verbose, mode):
 
     # check the filename
-    if mode == "sofa" and not filename.endswith('.sofa'):
-        raise ValueError("Filename must end with .sofa")
+    filename = pathlib.Path(filename).with_suffix('.sofa')
     if not os.path.isfile(filename):
         raise ValueError(f"{filename} does not exist")
 
@@ -255,11 +255,10 @@ def _write_sofa(filename: str, sofa: sf.Sofa, compression=4, verify=True):
     write_sofa for documentation.
     """
 
-    if verify:
-        # check the filename
-        if not filename.endswith('.sofa'):
-            raise ValueError("Filename must end with .sofa")
+    # check the filename
+    filename = pathlib.Path(filename).with_suffix('.sofa')
 
+    if verify:
         # check if the latest version is used for writing and warn otherwise
         # if case required for writing SOFA test data that violates the
         # conventions
