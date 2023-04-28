@@ -356,23 +356,33 @@ def test___readonly():
 
 @pytest.mark.parametrize(
         "convention",
+        [('GeneralTF'), ('GeneralTF-E'), ('FreeFieldDirectivityTF'), ])
+@pytest.mark.parametrize(
+        "source_position",
         [
-            ('GeneralTF'),
-            ('GeneralTF-E'),
-            ['FreeFieldDirectivityTF'],
+            (np.arange(1*3).reshape(1, 3)),
+            (np.arange(5*3).reshape(5, 3)),
         ])
-def test_io_conventions(convention, tmpdir):
+@pytest.mark.parametrize(
+        "receiver_position",
+        [
+            (np.arange(1*3).reshape(1, 3)),
+            (np.arange(5*3).reshape(5, 3)),
+        ])
+def test_io_conventions(
+        convention, source_position, receiver_position, tmpdir):
     sofa = sf.Sofa(convention)
-    source_position = np.arange(5*3).reshape(5, 3)
-    receiver_position = np.arange(10*3).reshape(10, 3)
     frequencies = np.array([100, 200, 400, 800])
-    data = np.ones((5, 10, 4))
+    data = np.ones((source_position.shape[0], receiver_position.shape[0], 4))
+    if source_position.shape[0] == 1:
+        source_position = source_position.flatten()
+    if receiver_position.shape[0] == 1:
+        receiver_position = receiver_position.flatten()
     # Source and receiver data
     sofa.SourcePosition = source_position
     sofa.ReceiverPosition = receiver_position
     sofa.Data_Real = np.real(data)
     sofa.Data_Imag = np.imag(data)
     sofa.N = np.array(frequencies).flatten()
-
     sf.io.write_sofa(os.path.join(tmpdir, 'test.sofa'), sofa)
     assert isinstance(sofa, sf.Sofa)
