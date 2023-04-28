@@ -352,3 +352,31 @@ def test___readonly():
     assert sf.Sofa._read_only("rm")
     assert not sf.Sofa._read_only("m")
     assert not sf.Sofa._read_only(None)
+
+
+def test_io_FreeFieldDirectivityTF(tmpdir):
+    sofa = sf.Sofa('FreeFieldDirectivityTF')
+    source_position = np.arange(5*3).reshape(5, 3)
+    receiver_position = np.arange(10*3).reshape(10, 3)
+    frequencies = np.array([100, 200, 400, 800])
+    data = np.ones((5, 10, 4))
+    sofa.GLOBAL_ApplicationName = 'Mesh2scattering'
+    sofa.GLOBAL_ApplicationVersion = 'version'
+    sofa.GLOBAL_History = "numerically simulated data"
+
+    # Source and receiver data
+    sofa.SourcePosition = source_position
+    sofa.SourcePosition_Units = "meter"
+    sofa.SourcePosition_Type = "cartesian"
+    # sofa.SourceView = np.array(surface_view)
+    # sofa.SourceUp = np.array(surface_up)
+
+    sofa.ReceiverPosition = receiver_position
+    sofa.ReceiverPosition_Units = "meter"
+    sofa.ReceiverPosition_Type = "cartesian"
+    sofa.Data_Real = np.real(data)
+    sofa.Data_Imag = np.imag(data)
+    sofa.N = np.array(frequencies).flatten()
+
+    sf.io.write_sofa(os.path.join(tmpdir, 'test.sofa'), sofa)
+    assert isinstance(sofa, sf.Sofa)
