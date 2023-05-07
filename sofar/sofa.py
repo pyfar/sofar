@@ -526,7 +526,7 @@ class Sofa():
 
         dimensions : str
             The shape of the new entry as a string. See
-            ``self.info('dimensions')``.
+            :py:func:`~Sofa.list_dimensions`.
 
         Examples
         --------
@@ -581,9 +581,10 @@ class Sofa():
         """
         Delete variable or attribute from SOFA object.
 
-        Note that mandatory data can not be deleted. Call
-        :py:func:`Sofa.info("optional") <sofar.sofar.Sofa.info>` to list all
-        optional variables and attributes.
+        Note that mandatory data can not be deleted. Check the
+        `sofar documentation
+        <https://sofar.readthedocs.io/en/stable/resources/conventions.html>`_
+        for a complete list of optional variables and attributes.
 
         Parameters
         ----------
