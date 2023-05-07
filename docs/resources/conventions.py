@@ -10,7 +10,12 @@ base_dir = os.path.dirname(__file__)
 # get conventions (paths, names, version) and upgrade rules -------------------
 paths = sf.utils._get_conventions('path')
 names_versions = sf.utils._get_conventions('name_version')
-_, _, _, upgrade_rules = sf.Sofa('GeneralTF')._verification_rules()
+
+# using Sofa()._verification_rules() does not work on readthedocs
+upgrade_rules = os.path.join(
+    os.path.dirname(paths[0]), '..', 'rules', 'upgrade.json')
+with open(upgrade_rules) as file:
+    upgrade_rules = json.load(file)
 
 # write general information ---------------------------------------------------
 docs = (
