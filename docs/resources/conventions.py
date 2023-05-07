@@ -7,14 +7,10 @@ import sofar as sf  # noqa
 
 base_dir = os.path.dirname(__file__)
 
-# get convention paths, names, and version ------------------------------------
+# get conventions (paths, names, version) and upgrade rules -------------------
 paths = sf.utils._get_conventions('path')
 names_versions = sf.utils._get_conventions('name_version')
-
-upgrade_rules = os.path.join(
-    base_dir, '..', '..', 'sofar', 'sofa_conventions', 'rules', 'upgrade.json')
-with open(upgrade_rules, "r") as file:
-    upgrade_rules = json.load(file)
+_, _, _, upgrade_rules = sf.Sofa('GeneralTF')._verification_rules()
 
 # write general information ---------------------------------------------------
 docs = (
