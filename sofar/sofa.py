@@ -295,6 +295,13 @@ class Sofa():
                 attribute will be printed.
         """
 
+        # warn for upcoming deprecation
+        warnings.warn((
+            'Sofa.info() will be deprecated in sofar 1.3.0 The conventions are'
+            ' now documented at '
+            'https://sofar.readthedocs.io/en/stable/resources/conventions.html'),  # noqa
+            UserWarning)
+
         # update the private attribute `_convention` to make sure the required
         # meta data is in place
         if not hasattr(self, "_convention"):
