@@ -15,7 +15,7 @@ In the following, SOFA conventions are described in tables with the information
   * **String:** A string array of data
 
 * **Default:** The default value
-* **Dimensions:** The dimensions of the data. Lower case letters denote the data that sets the dimension. See :ref:`getting_information_about_SOFA_objects` for details.
+* **Dimensions:** The dimensions of the data. Lower case letters denote the data that sets the dimension.
 
   * **E:** Number of emitters
   * **R:** Number of receivers
@@ -4388,6 +4388,8 @@ Deprecated
 
 **GeneralFIRE v1.0**
 
+This convention is deprecated. Use **GeneralFIR-E_2.0** instead.
+
 This conventions stores IRs for general purposes, i.e., only the mandatory, SOFA general metadata are pre-defined
 
 .. list-table::
@@ -4585,6 +4587,8 @@ This conventions stores IRs for general purposes, i.e., only the mandatory, SOFA
 .. _MultiSpeakerBRIR_v0.3:
 
 **MultiSpeakerBRIR v0.3**
+
+This convention is deprecated. Use **SingleRoomMIMOSRIR_1.0** instead.
 
 This convention is for BRIRs recorded in reverberant conditions from multiple loudspeaker sources at a number of listener orientations.
 
@@ -4839,6 +4843,8 @@ This convention is for BRIRs recorded in reverberant conditions from multiple lo
 
 **SimpleFreeFieldHRIR v0.4**
 
+This convention is deprecated. Use **SimpleFreeFieldHRIR_1.0** instead.
+
 This convention set is for HRIRs recorded under free-field conditions or other IRs created under conditions where room information is irrelevant
 
 .. list-table::
@@ -5066,6 +5072,8 @@ This convention set is for HRIRs recorded under free-field conditions or other I
 .. _SimpleFreeFieldTF_v0.4:
 
 **SimpleFreeFieldTF v0.4**
+
+This convention is deprecated. Use **SimpleFreeFieldHRTF_1.0** instead.
 
 This conventions is for TFs created under conditions where room information is irrelevant
 
@@ -5300,6 +5308,8 @@ This conventions is for TFs created under conditions where room information is i
 
 **SimpleFreeFieldTF v1.0**
 
+This convention is deprecated. Use **SimpleFreeFieldHRTF_1.0** instead.
+
 This conventions is for TFs created under conditions where room information is irrelevant
 
 .. list-table::
@@ -5532,6 +5542,8 @@ This conventions is for TFs created under conditions where room information is i
 .. _SimpleHeadphoneIR_v0.1:
 
 **SimpleHeadphoneIR v0.1**
+
+This convention is deprecated. Use **SimpleHeadphoneIR_1.0** instead.
 
 Conventions for IRs with a 1-to-1 correspondence between emitter and receiver. The main application for this convention is to store headphone IRs recorded for each emitter and each ear.
 
@@ -5801,6 +5813,8 @@ Conventions for IRs with a 1-to-1 correspondence between emitter and receiver. T
 
 **SimpleHeadphoneIR v0.2**
 
+This convention is deprecated. Use **SimpleHeadphoneIR_1.0** instead.
+
 Conventions for IRs with a 1-to-1 correspondence between emitter and receiver. The main application for this convention is to store headphone IRs recorded for each emitter and each ear.
 
 .. list-table::
@@ -6069,6 +6083,8 @@ Conventions for IRs with a 1-to-1 correspondence between emitter and receiver. T
 
 **SingleRoomDRIR v0.2**
 
+This convention is deprecated. Use **SingleRoomSRIR_1.0** instead.
+
 This convention stores arbitrary number of receivers while providing an information about the room. The main application is to store DRIRs for a single room.
 
 .. list-table::
@@ -6316,6 +6332,8 @@ This convention stores arbitrary number of receivers while providing an informat
 .. _SingleRoomDRIR_v0.3:
 
 **SingleRoomDRIR v0.3**
+
+This convention is deprecated. Use **SingleRoomSRIR_1.0** instead.
 
 This convention stores arbitrary number of receivers while providing an information about the room. The main application is to store DRIRs for a single room.
 

@@ -1,4 +1,3 @@
-# %%
 import os
 import sys
 import json
@@ -6,9 +5,16 @@ sys.path.insert(0, os.path.abspath(os.path.join('..', '..')))
 
 import sofar as sf  # noqa
 
+base_dir = os.path.dirname(__file__)
+
 # get convention paths, names, and version ------------------------------------
 paths = sf.utils._get_conventions('path')
 names_versions = sf.utils._get_conventions('name_version')
+
+upgrade_rules = os.path.join(
+    base_dir, '..', '..', 'sofar', 'sofa_conventions', 'rules', 'upgrade.json')
+with open(upgrade_rules, "r") as file:
+    upgrade_rules = json.load(file)
 
 # write general information ---------------------------------------------------
 docs = (
@@ -68,14 +74,26 @@ for path, name_version in zip(paths, names_versions):
     with open(path, 'r') as file:
         convention = json.load(file)
 
-    # write section titles
+    # write section title
     if 'deprecated' in path and not deprecated:
         docs += 'Deprecated\n==========\n\n'
         deprecated = True
 
-    # write convention name, version, and purpose
+    # write convention name, version
     docs += f'.. _{name}_v{version}:\n\n'
     docs += f'**{name} v{version}**\n\n'
+
+    # name new convention if current convention is deprecated
+    if deprecated:
+        if name not in upgrade_rules:
+            upgrade_to = None
+        for upgrade in upgrade_rules[name]['from_to']:
+            if version in upgrade[0]:
+                upgrade_to = upgrade[1]
+                docs += ('This convention is deprecated. '
+                         f'Use **{", ".join(upgrade_to)}** instead.\n\n')
+
+    # name purpose of the convention
     docs += f'{convention["GLOBAL:SOFAConventions"]["comment"]}\n\n'
 
     # write header
@@ -125,6 +143,6 @@ for path, name_version in zip(paths, names_versions):
     docs += '\n:ref:`back to top <conventions>`\n\n'
 
 # write docs to rst file ------------------------------------------------------
-docs_file = os.path.join(os.path.dirname(__file__), 'conventions.rst')
+docs_file = os.path.join(base_dir, 'conventions.rst')
 with open(docs_file, 'w') as file:
     file.writelines(docs)
