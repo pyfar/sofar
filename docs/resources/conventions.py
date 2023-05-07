@@ -10,7 +10,7 @@ base_dir = os.path.dirname(__file__)
 # get conventions (paths, names, version) and upgrade rules -------------------
 paths = sf.utils._get_conventions('path')
 names_versions = sf.utils._get_conventions('name_version')
-_, _, _, upgrade_rules = sf.Sofa('GeneralTF')._verification_rules()
+#_, _, _, upgrade_rules = sf.Sofa('GeneralTF')._verification_rules()
 
 # write general information ---------------------------------------------------
 docs = (
@@ -65,6 +65,8 @@ docs += '\nCurrent\n=======\n\n'
 deprecated = False
 for path, name_version in zip(paths, names_versions):
     name, version = name_version
+
+    raise ValueError(path)
 
     # read convention from json file
     with open(path, 'r') as file:
