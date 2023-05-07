@@ -19,7 +19,8 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('..'))
 
-import sofar
+import sofar  # noqa
+import resources.conventions  # noqa: build conventions for documentation
 
 # -- General configuration ---------------------------------------------
 

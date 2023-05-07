@@ -6,8 +6,12 @@ Quick tour of SOFA and sofar
 If you are new to SOFA and/or sofar, this is a good place to start. SOFA is
 short for *Spatially Oriented Format for Acoustics* and is an open file format
 for saving acoustic data, as for example head-related impulse responses
-(HRIRs). A good places to get more information about SOFA is
-`sofaconventions.org`_.
+(HRIRs). A good places to get more information about SOFA are
+
+* :ref:`Documentation of the SOFA conventions <conventions_introduction>`
+* The `SOFA paper <https://doi.org/10.17743/jaes.2022.0026>`_
+* `sofaconventions.org`_.
+* The SOFA standard `AES69-2022 <https://www.aes.org/publications/standards/search.cfm?docID=99>`_
 
 Creating SOFA objects
 =====================
@@ -36,6 +40,8 @@ values of the `SimpleFreeFieldHRIR` convention. Note that ``sf.Sofa()`` can
 also return a sofa object that has only the mandatory attributes. However, it
 is recommended to start with all attributes and discard empty optional
 attributes before saving the data.
+
+.. _getting_information_about_SOFA_objects:
 
 Getting information about SOFA objects
 ======================================
