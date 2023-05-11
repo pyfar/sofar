@@ -87,6 +87,8 @@ jobs:
       - run:
           name: Sphinx
           command: |
+            git submodule sync --recursive
+            git submodule update --recursive --init
             pip install -e .
             cd docs/
             make html SPHINXOPTS="-W"
