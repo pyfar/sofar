@@ -59,7 +59,7 @@ for path, name_version in zip(paths, names_versions):
     label = f'{name} v{version}'
     if 'deprecated' in path:
         label += ' (deprecated)'
-    reference = f'{name}_v{version}'
+    reference = f'{name}_{version}'
 
     docs += f'* :ref:`{label} <{reference}>`\n'
 
@@ -81,7 +81,7 @@ for path, name_version in zip(paths, names_versions):
         deprecated = True
 
     # write convention name, version
-    docs += f'.. _{name}_v{version}:\n\n'
+    docs += f'.. _{name}_{version}:\n\n'
     docs += f'**{name} v{version}**\n\n'
 
     # name new convention if current convention is deprecated
@@ -91,8 +91,10 @@ for path, name_version in zip(paths, names_versions):
         for upgrade in upgrade_rules[name]['from_to']:
             if version in upgrade[0]:
                 upgrade_to = upgrade[1]
+                references = [f':ref:`{u} <{u}>`' for u in upgrade_to]
+                ':ref:`{label} <{reference}>`'
                 docs += ('This convention is deprecated. '
-                         f'Use **{", ".join(upgrade_to)}** instead.\n\n')
+                         f'Use {", ".join(references)} instead.\n\n')
 
     # name purpose of the convention
     docs += f'{convention["GLOBAL:SOFAConventions"]["comment"]}\n\n'

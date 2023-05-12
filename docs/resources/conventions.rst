@@ -35,37 +35,37 @@ In the following, SOFA conventions are described in tables with the information
 Conventions
 ===========
 
-* :ref:`FreeFieldDirectivityTF v1.0 <FreeFieldDirectivityTF_v1.0>`
-* :ref:`FreeFieldDirectivityTF v1.1 <FreeFieldDirectivityTF_v1.1>`
-* :ref:`FreeFieldHRIR v1.0 <FreeFieldHRIR_v1.0>`
-* :ref:`FreeFieldHRTF v1.0 <FreeFieldHRTF_v1.0>`
-* :ref:`GeneralFIR-E v2.0 <GeneralFIR-E_v2.0>`
-* :ref:`GeneralFIR v1.0 <GeneralFIR_v1.0>`
-* :ref:`GeneralSOS v1.0 <GeneralSOS_v1.0>`
-* :ref:`GeneralTF-E v1.0 <GeneralTF-E_v1.0>`
-* :ref:`GeneralTF v1.0 <GeneralTF_v1.0>`
-* :ref:`GeneralTF v2.0 <GeneralTF_v2.0>`
-* :ref:`SimpleFreeFieldHRIR v1.0 <SimpleFreeFieldHRIR_v1.0>`
-* :ref:`SimpleFreeFieldHRSOS v1.0 <SimpleFreeFieldHRSOS_v1.0>`
-* :ref:`SimpleFreeFieldHRTF v1.0 <SimpleFreeFieldHRTF_v1.0>`
-* :ref:`SimpleFreeFieldSOS v1.0 <SimpleFreeFieldSOS_v1.0>`
-* :ref:`SimpleHeadphoneIR v1.0 <SimpleHeadphoneIR_v1.0>`
-* :ref:`SingleRoomMIMOSRIR v1.0 <SingleRoomMIMOSRIR_v1.0>`
-* :ref:`SingleRoomSRIR v1.0 <SingleRoomSRIR_v1.0>`
-* :ref:`GeneralFIRE v1.0 (deprecated) <GeneralFIRE_v1.0>`
-* :ref:`MultiSpeakerBRIR v0.3 (deprecated) <MultiSpeakerBRIR_v0.3>`
-* :ref:`SimpleFreeFieldHRIR v0.4 (deprecated) <SimpleFreeFieldHRIR_v0.4>`
-* :ref:`SimpleFreeFieldTF v0.4 (deprecated) <SimpleFreeFieldTF_v0.4>`
-* :ref:`SimpleFreeFieldTF v1.0 (deprecated) <SimpleFreeFieldTF_v1.0>`
-* :ref:`SimpleHeadphoneIR v0.1 (deprecated) <SimpleHeadphoneIR_v0.1>`
-* :ref:`SimpleHeadphoneIR v0.2 (deprecated) <SimpleHeadphoneIR_v0.2>`
-* :ref:`SingleRoomDRIR v0.2 (deprecated) <SingleRoomDRIR_v0.2>`
-* :ref:`SingleRoomDRIR v0.3 (deprecated) <SingleRoomDRIR_v0.3>`
+* :ref:`FreeFieldDirectivityTF v1.0 <FreeFieldDirectivityTF_1.0>`
+* :ref:`FreeFieldDirectivityTF v1.1 <FreeFieldDirectivityTF_1.1>`
+* :ref:`FreeFieldHRIR v1.0 <FreeFieldHRIR_1.0>`
+* :ref:`FreeFieldHRTF v1.0 <FreeFieldHRTF_1.0>`
+* :ref:`GeneralFIR-E v2.0 <GeneralFIR-E_2.0>`
+* :ref:`GeneralFIR v1.0 <GeneralFIR_1.0>`
+* :ref:`GeneralSOS v1.0 <GeneralSOS_1.0>`
+* :ref:`GeneralTF-E v1.0 <GeneralTF-E_1.0>`
+* :ref:`GeneralTF v1.0 <GeneralTF_1.0>`
+* :ref:`GeneralTF v2.0 <GeneralTF_2.0>`
+* :ref:`SimpleFreeFieldHRIR v1.0 <SimpleFreeFieldHRIR_1.0>`
+* :ref:`SimpleFreeFieldHRSOS v1.0 <SimpleFreeFieldHRSOS_1.0>`
+* :ref:`SimpleFreeFieldHRTF v1.0 <SimpleFreeFieldHRTF_1.0>`
+* :ref:`SimpleFreeFieldSOS v1.0 <SimpleFreeFieldSOS_1.0>`
+* :ref:`SimpleHeadphoneIR v1.0 <SimpleHeadphoneIR_1.0>`
+* :ref:`SingleRoomMIMOSRIR v1.0 <SingleRoomMIMOSRIR_1.0>`
+* :ref:`SingleRoomSRIR v1.0 <SingleRoomSRIR_1.0>`
+* :ref:`GeneralFIRE v1.0 (deprecated) <GeneralFIRE_1.0>`
+* :ref:`MultiSpeakerBRIR v0.3 (deprecated) <MultiSpeakerBRIR_0.3>`
+* :ref:`SimpleFreeFieldHRIR v0.4 (deprecated) <SimpleFreeFieldHRIR_0.4>`
+* :ref:`SimpleFreeFieldTF v0.4 (deprecated) <SimpleFreeFieldTF_0.4>`
+* :ref:`SimpleFreeFieldTF v1.0 (deprecated) <SimpleFreeFieldTF_1.0>`
+* :ref:`SimpleHeadphoneIR v0.1 (deprecated) <SimpleHeadphoneIR_0.1>`
+* :ref:`SimpleHeadphoneIR v0.2 (deprecated) <SimpleHeadphoneIR_0.2>`
+* :ref:`SingleRoomDRIR v0.2 (deprecated) <SingleRoomDRIR_0.2>`
+* :ref:`SingleRoomDRIR v0.3 (deprecated) <SingleRoomDRIR_0.3>`
 
 Current
 =======
 
-.. _FreeFieldDirectivityTF_v1.0:
+.. _FreeFieldDirectivityTF_1.0:
 
 **FreeFieldDirectivityTF v1.0**
 
@@ -368,7 +368,7 @@ This conventions stores directivities of acoustic sources (instruments, loudspea
 
 :ref:`back to top <conventions>`
 
-.. _FreeFieldDirectivityTF_v1.1:
+.. _FreeFieldDirectivityTF_1.1:
 
 **FreeFieldDirectivityTF v1.1**
 
@@ -676,7 +676,7 @@ This conventions stores directivities of acoustic sources (instruments, loudspea
 
 :ref:`back to top <conventions>`
 
-.. _FreeFieldHRIR_v1.0:
+.. _FreeFieldHRIR_1.0:
 
 **FreeFieldHRIR v1.0**
 
@@ -904,7 +904,7 @@ An extension of SimpleFreeFieldHRIR in order to consider more complex data sets 
 
 :ref:`back to top <conventions>`
 
-.. _FreeFieldHRTF_v1.0:
+.. _FreeFieldHRTF_1.0:
 
 **FreeFieldHRTF v1.0**
 
@@ -1137,7 +1137,7 @@ This conventions is for HRTFs created under conditions where room information is
 
 :ref:`back to top <conventions>`
 
-.. _GeneralFIR-E_v2.0:
+.. _GeneralFIR-E_2.0:
 
 **GeneralFIR-E v2.0**
 
@@ -1335,7 +1335,7 @@ This conventions stores IRs for general purposes, i.e., only the mandatory, SOFA
 
 :ref:`back to top <conventions>`
 
-.. _GeneralFIR_v1.0:
+.. _GeneralFIR_1.0:
 
 **GeneralFIR v1.0**
 
@@ -1548,7 +1548,7 @@ This conventions stores IRs for general purposes, i.e., only the mandatory, SOFA
 
 :ref:`back to top <conventions>`
 
-.. _GeneralSOS_v1.0:
+.. _GeneralSOS_1.0:
 
 **GeneralSOS v1.0**
 
@@ -1761,7 +1761,7 @@ This conventions follows GeneralFIR but the data is stored as second-order secti
 
 :ref:`back to top <conventions>`
 
-.. _GeneralTF-E_v1.0:
+.. _GeneralTF-E_1.0:
 
 **GeneralTF-E v1.0**
 
@@ -1964,7 +1964,7 @@ This conventions stores TFs depending in the Emiiter for general purposes, i.e.,
 
 :ref:`back to top <conventions>`
 
-.. _GeneralTF_v1.0:
+.. _GeneralTF_1.0:
 
 **GeneralTF v1.0**
 
@@ -2167,7 +2167,7 @@ This conventions stores TFs for general purposes, i.e., only the mandatory, SOFA
 
 :ref:`back to top <conventions>`
 
-.. _GeneralTF_v2.0:
+.. _GeneralTF_2.0:
 
 **GeneralTF v2.0**
 
@@ -2370,7 +2370,7 @@ This conventions stores TFs for general purposes, i.e., only the mandatory, SOFA
 
 :ref:`back to top <conventions>`
 
-.. _SimpleFreeFieldHRIR_v1.0:
+.. _SimpleFreeFieldHRIR_1.0:
 
 **SimpleFreeFieldHRIR v1.0**
 
@@ -2618,7 +2618,7 @@ This convention set is for HRIRs recorded under free-field conditions or other I
 
 :ref:`back to top <conventions>`
 
-.. _SimpleFreeFieldHRSOS_v1.0:
+.. _SimpleFreeFieldHRSOS_1.0:
 
 **SimpleFreeFieldHRSOS v1.0**
 
@@ -2846,7 +2846,7 @@ This convention set follows SimpleFreeFieldHRIR but the data is stored as second
 
 :ref:`back to top <conventions>`
 
-.. _SimpleFreeFieldHRTF_v1.0:
+.. _SimpleFreeFieldHRTF_1.0:
 
 **SimpleFreeFieldHRTF v1.0**
 
@@ -3079,7 +3079,7 @@ This conventions is for HRTFs created under conditions where room information is
 
 :ref:`back to top <conventions>`
 
-.. _SimpleFreeFieldSOS_v1.0:
+.. _SimpleFreeFieldSOS_1.0:
 
 **SimpleFreeFieldSOS v1.0**
 
@@ -3307,7 +3307,7 @@ This convention set follows SimpleFreeFieldHRIR but the data is stored as second
 
 :ref:`back to top <conventions>`
 
-.. _SimpleHeadphoneIR_v1.0:
+.. _SimpleHeadphoneIR_1.0:
 
 **SimpleHeadphoneIR v1.0**
 
@@ -3575,7 +3575,7 @@ Conventions for IRs with a 1-to-1 correspondence between emitter and receiver. T
 
 :ref:`back to top <conventions>`
 
-.. _SingleRoomMIMOSRIR_v1.0:
+.. _SingleRoomMIMOSRIR_1.0:
 
 **SingleRoomMIMOSRIR v1.0**
 
@@ -3978,7 +3978,7 @@ Single-room multiple-input multiple-output spatial room impulse responses, depen
 
 :ref:`back to top <conventions>`
 
-.. _SingleRoomSRIR_v1.0:
+.. _SingleRoomSRIR_1.0:
 
 **SingleRoomSRIR v1.0**
 
@@ -4384,11 +4384,11 @@ For measuring SRIRs in a single room with a single excitation source (e.g., a lo
 Deprecated
 ==========
 
-.. _GeneralFIRE_v1.0:
+.. _GeneralFIRE_1.0:
 
 **GeneralFIRE v1.0**
 
-This convention is deprecated. Use **GeneralFIR-E_2.0** instead.
+This convention is deprecated. Use :ref:`GeneralFIR-E_2.0 <GeneralFIR-E_2.0>` instead.
 
 This conventions stores IRs for general purposes, i.e., only the mandatory, SOFA general metadata are pre-defined
 
@@ -4584,11 +4584,11 @@ This conventions stores IRs for general purposes, i.e., only the mandatory, SOFA
 
 :ref:`back to top <conventions>`
 
-.. _MultiSpeakerBRIR_v0.3:
+.. _MultiSpeakerBRIR_0.3:
 
 **MultiSpeakerBRIR v0.3**
 
-This convention is deprecated. Use **SingleRoomMIMOSRIR_1.0** instead.
+This convention is deprecated. Use :ref:`SingleRoomMIMOSRIR_1.0 <SingleRoomMIMOSRIR_1.0>` instead.
 
 This convention is for BRIRs recorded in reverberant conditions from multiple loudspeaker sources at a number of listener orientations.
 
@@ -4839,11 +4839,11 @@ This convention is for BRIRs recorded in reverberant conditions from multiple lo
 
 :ref:`back to top <conventions>`
 
-.. _SimpleFreeFieldHRIR_v0.4:
+.. _SimpleFreeFieldHRIR_0.4:
 
 **SimpleFreeFieldHRIR v0.4**
 
-This convention is deprecated. Use **SimpleFreeFieldHRIR_1.0** instead.
+This convention is deprecated. Use :ref:`SimpleFreeFieldHRIR_1.0 <SimpleFreeFieldHRIR_1.0>` instead.
 
 This convention set is for HRIRs recorded under free-field conditions or other IRs created under conditions where room information is irrelevant
 
@@ -5069,11 +5069,11 @@ This convention set is for HRIRs recorded under free-field conditions or other I
 
 :ref:`back to top <conventions>`
 
-.. _SimpleFreeFieldTF_v0.4:
+.. _SimpleFreeFieldTF_0.4:
 
 **SimpleFreeFieldTF v0.4**
 
-This convention is deprecated. Use **SimpleFreeFieldHRTF_1.0** instead.
+This convention is deprecated. Use :ref:`SimpleFreeFieldHRTF_1.0 <SimpleFreeFieldHRTF_1.0>` instead.
 
 This conventions is for TFs created under conditions where room information is irrelevant
 
@@ -5304,11 +5304,11 @@ This conventions is for TFs created under conditions where room information is i
 
 :ref:`back to top <conventions>`
 
-.. _SimpleFreeFieldTF_v1.0:
+.. _SimpleFreeFieldTF_1.0:
 
 **SimpleFreeFieldTF v1.0**
 
-This convention is deprecated. Use **SimpleFreeFieldHRTF_1.0** instead.
+This convention is deprecated. Use :ref:`SimpleFreeFieldHRTF_1.0 <SimpleFreeFieldHRTF_1.0>` instead.
 
 This conventions is for TFs created under conditions where room information is irrelevant
 
@@ -5539,11 +5539,11 @@ This conventions is for TFs created under conditions where room information is i
 
 :ref:`back to top <conventions>`
 
-.. _SimpleHeadphoneIR_v0.1:
+.. _SimpleHeadphoneIR_0.1:
 
 **SimpleHeadphoneIR v0.1**
 
-This convention is deprecated. Use **SimpleHeadphoneIR_1.0** instead.
+This convention is deprecated. Use :ref:`SimpleHeadphoneIR_1.0 <SimpleHeadphoneIR_1.0>` instead.
 
 Conventions for IRs with a 1-to-1 correspondence between emitter and receiver. The main application for this convention is to store headphone IRs recorded for each emitter and each ear.
 
@@ -5809,11 +5809,11 @@ Conventions for IRs with a 1-to-1 correspondence between emitter and receiver. T
 
 :ref:`back to top <conventions>`
 
-.. _SimpleHeadphoneIR_v0.2:
+.. _SimpleHeadphoneIR_0.2:
 
 **SimpleHeadphoneIR v0.2**
 
-This convention is deprecated. Use **SimpleHeadphoneIR_1.0** instead.
+This convention is deprecated. Use :ref:`SimpleHeadphoneIR_1.0 <SimpleHeadphoneIR_1.0>` instead.
 
 Conventions for IRs with a 1-to-1 correspondence between emitter and receiver. The main application for this convention is to store headphone IRs recorded for each emitter and each ear.
 
@@ -6079,11 +6079,11 @@ Conventions for IRs with a 1-to-1 correspondence between emitter and receiver. T
 
 :ref:`back to top <conventions>`
 
-.. _SingleRoomDRIR_v0.2:
+.. _SingleRoomDRIR_0.2:
 
 **SingleRoomDRIR v0.2**
 
-This convention is deprecated. Use **SingleRoomSRIR_1.0** instead.
+This convention is deprecated. Use :ref:`SingleRoomSRIR_1.0 <SingleRoomSRIR_1.0>` instead.
 
 This convention stores arbitrary number of receivers while providing an information about the room. The main application is to store DRIRs for a single room.
 
@@ -6329,11 +6329,11 @@ This convention stores arbitrary number of receivers while providing an informat
 
 :ref:`back to top <conventions>`
 
-.. _SingleRoomDRIR_v0.3:
+.. _SingleRoomDRIR_0.3:
 
 **SingleRoomDRIR v0.3**
 
-This convention is deprecated. Use **SingleRoomSRIR_1.0** instead.
+This convention is deprecated. Use :ref:`SingleRoomSRIR_1.0 <SingleRoomSRIR_1.0>` instead.
 
 This convention stores arbitrary number of receivers while providing an information about the room. The main application is to store DRIRs for a single room.
 
