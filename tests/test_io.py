@@ -6,6 +6,7 @@ from sofar.utils import (_get_conventions,
 from sofar.io import (_format_value_for_netcdf,
                       _format_value_from_netcdf)
 import os
+import pathlib
 from tempfile import TemporaryDirectory
 import pytest
 from pytest import raises
@@ -14,7 +15,7 @@ import numpy.testing as npt
 from netCDF4 import Dataset
 
 
-def test_read_sofa(capfd):
+def test_read_write_sofa(capfd):
 
     temp_dir = TemporaryDirectory()
     filename = os.path.join(temp_dir.name, "test.sofa")
@@ -23,6 +24,11 @@ def test_read_sofa(capfd):
     # test defaults
     sf.write_sofa(filename, sofa)
     sofa = sf.read_sofa(filename)
+    assert hasattr(sofa, "_api")
+
+    # test with path object
+    sf.write_sofa(pathlib.Path(filename), sofa)
+    sofa = sf.read_sofa(pathlib.Path(filename))
     assert hasattr(sofa, "_api")
 
     # reading without updating API
@@ -47,7 +53,7 @@ def test_read_sofa(capfd):
     with Dataset(filename, "r+", format="NETCDF4") as file:
         setattr(file, "SOFAConventionsVersion", "0.1")
     # ValueError when version should be matched
-    with raises(ValueError, match="Version 0.1 does not exist for"):
+    with raises(ValueError, match="v0.1 is not a valid SOFA Convention"):
         sf.read_sofa(filename)
 
     # read file containing a variable with wrong shape
@@ -64,10 +70,6 @@ def test_read_sofa(capfd):
     # data can be read without updating API
     sf.read_sofa(filename, verify=False)
 
-    # test assertion for wrong filename
-    with raises(ValueError, match="Filename must end with .sofa"):
-        sf.read_sofa('sofa.exe')
-
 
 def test_read_sofa_custom_data():
     """Test if sofa files with custom data are loaded correctly"""
@@ -83,12 +85,26 @@ def test_read_sofa_custom_data():
     assert sofa.GLOBAL_Warming == 'critical'
 
 
-def test_write_sofa_assertion():
-    """Test assertion for wrong filename ending"""
+def test_read_netcdf():
+    tmp = TemporaryDirectory()
+    files = [os.path.join(tmp.name, "invalid.sofa"),
+             os.path.join(tmp.name, "invalid.netcdf")]
 
-    sofa = sf.Sofa("SimpleFreeFieldHRIR")
-    with raises(ValueError, match="Filename must end with .sofa"):
-        sf.write_sofa("sofa.exe", sofa)
+    # create data with invalid SOFA convention and version
+    sofa = sf.Sofa("GeneralTF")
+    sofa.protected = False
+    sofa.GLOBAL_SOFAConventions = "MadeUp"
+    sofa.protected = True
+
+    # test reading
+    for file in files:
+        # write data
+        sf.io._write_sofa(file, sofa, verify=False)
+        # can not be read with read_sofa
+        with raises(ValueError):
+            sf.read_sofa(file)
+        sofa_read = sf.read_sofa_as_netcdf(file)
+        sf.equals(sofa, sofa_read)
 
 
 def test_write_sofa_outdated_version():
@@ -299,23 +315,15 @@ def test_format_value_from_netcdf():
 
 def test_verify_convention_and_version():
 
-    # test different possibilities for version
-    version = _verify_convention_and_version("latest", "1.0", "GeneralTF")
-    assert version == "2.0"
-
-    version = _verify_convention_and_version("2.0", "1.0", "GeneralTF")
-    assert version == "2.0"
-
-    version = _verify_convention_and_version("match", "1.0", "GeneralTF")
-    assert version == "1.0"
+    # test with existing convention and version (no error returns None)
+    out = _verify_convention_and_version("1.0", "GeneralTF")
+    assert out is None
 
     # test assertions
     with raises(ValueError, match="Convention 'Funky' does not exist"):
-        _verify_convention_and_version("latest", "1.0", "Funky")
-    with raises(ValueError, match="Version 1.1 does not exist"):
-        _verify_convention_and_version("match", "1.1", "GeneralTF")
-    with raises(ValueError, match="Version 1.2 does not exist"):
-        _verify_convention_and_version("1.2", "1.0", "GeneralTF")
+        _verify_convention_and_version("1.0", "Funky")
+    with raises(ValueError, match="v1.1 is not a valid SOFA Convention"):
+        _verify_convention_and_version("1.1", "GeneralTF")
 
 
 def test_atleast_nd():

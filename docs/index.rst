@@ -25,6 +25,15 @@ Documentation
    sofar.Sofa
    sofar.functions
 
+
+SOFA conventions
+================
+
+.. toctree::
+   :maxdepth: 1
+
+   resources/conventions
+
 Contributing
 ===============
 

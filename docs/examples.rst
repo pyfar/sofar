@@ -6,8 +6,12 @@ Quick tour of SOFA and sofar
 If you are new to SOFA and/or sofar, this is a good place to start. SOFA is
 short for *Spatially Oriented Format for Acoustics* and is an open file format
 for saving acoustic data, as for example head-related impulse responses
-(HRIRs). A good places to get more information about SOFA is
-`sofaconventions.org`_.
+(HRIRs). A good places to get more information about SOFA are
+
+* :ref:`Documentation of the SOFA conventions <conventions_introduction>`
+* The `SOFA paper <https://doi.org/10.17743/jaes.2022.0026>`_
+* `sofaconventions.org`_.
+* The SOFA standard `AES69-2022 <https://www.aes.org/publications/standards/search.cfm?docID=99>`_
 
 Creating SOFA objects
 =====================
@@ -37,32 +41,15 @@ also return a sofa object that has only the mandatory attributes. However, it
 is recommended to start with all attributes and discard empty optional
 attributes before saving the data.
 
+.. _getting_information_about_SOFA_objects:
+
 Getting information about SOFA objects
 ======================================
 
-There are a couple of functions to get a quick insight into SOFA objects that
-are explained in more detail below
+To get an overview of the convention, go to the
+:ref:`documentation of the SOFA conventions <conventions_introduction>`.
 
-* ``sofa.info`` gives you information about the convention (what data must be
-  provided, what data is optional, what shapes can the data have). This is
-  helpful when creating a new SOFA object.
-* ``sofa.inspect`` prints the data stored in a SOFA object or at least gives
-  the shape in case of large arrays that would clutter the output. This is
-  helpful when reading data from an existing SOFA object.
-* ``sofa.list_dimensions`` prints the dimensions of the data inside the SOFA
-  object.
-* ``sofa.get_dimension`` returns the size of a specific dimension.
-
-To list all attributes inside a SOFA object, type the following
-
-.. code-block:: python
-
-    sofa.info("all")
-
-Note that this function can also be used to list only the mandatory or
-optional fields.
-
-You might have noted from ``sofa.info("all")`` that three different kinds of
+You might have noted from the documentation that three different kinds of
 data types can be stored in SOFA files:
 
 * **Attributes:**
@@ -80,24 +67,20 @@ data types can be stored in SOFA files:
     Variables of type *string* store strings and can be entered as strings,
     lists of string, or numpy string arrays.
 
-Lets take a look and list all information for only SOFA variable:
+The data can be mandatory, optional, and read only and must have a shape
+(dimension in SOFA language) according to the underlying convention. Read on
+for more information.
 
-.. code-block:: python
+To get a quick insight into SOFA objects use
 
-    sofa.info("Data_IR")
-    >>> SimpleFreeFieldHRIR 1.0 (SOFA version 2.0)
-    >>> -------------------------------------------
-    >>> Data_IR
-    >>>     type: double
-    >>>     mandatory: True
-    >>>     read only: False
-    >>>     default: [0, 0]
-    >>>     shape: MRN
-    >>>     comment: None
+* ``sofa.inspect`` prints the data stored in a SOFA object or at least gives
+  the shape in case of large arrays that would clutter the output. This is
+  helpful when reading data from an existing SOFA object.
+* ``sofa.list_dimensions`` prints the dimensions of the data inside the SOFA
+  object.
+* ``sofa.get_dimension`` returns the size of a specific dimension.
 
-`Data_IR` is a mandatory double variable of shape `MRN` in which the actual
-HRIRs are stored. The letters M, R, and N are the `dimensions` of the SOFA
-object. They can be seen via
+For the *SimpleFreeFieldHRIR* SOFA object we have the following dimensions
 
 .. code-block:: python
 
@@ -110,7 +93,7 @@ object. They can be seen via
     >>> I = 1 single dimension, fixed
     >>> S = 0 maximum string length
 
-For the `SimpleFreeFieldHRIR` convention, `M` denotes the number of source
+In this case, `M` denotes the number of source
 positions for which HRIRs are available, `R` is the number of ears - which is
 two - and `N` gives the lengths of the HRIRs in samples. `S` is zero, because
 the convention does not have any string variables. `C` is always three, because
@@ -118,9 +101,9 @@ coordinates are either given by x, y, and z values or by their azimuth,
 elevation and radius in degree.
 
 It is important to be aware of the dimensions and enter data as determined by
-the `shape` printed by ``sofa.info()``. SOFA sets the `dimensions`
+the convention. SOFA sets the `dimensions`
 implicitly. This means the dimensions are derived from the data itself, as
-indicated by the output of :code:`sofa.list_dimensions` above (set by...). In
+indicated by the output of :code:`sofa.list_dimensions` above (*set by...*). In
 some cases, variables can have different shapes. An example for this is the
 `ReceiverPosition` which can be of shape RCI or RCM. To get a dimension as a
 variable use
@@ -148,7 +131,7 @@ and want to quickly inspect it. You could use
 
 Note that the above does not show the entire information for the sake of
 brevity. This will most likely give you a better idea of the data then
-``sofa.info`` and ``sofa.list_dimensions``.
+looking at the definition of the convention or calling ``sofa.list_dimensions``.
 
 Adding data to SOFA objects
 ===========================

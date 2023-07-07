@@ -84,9 +84,18 @@ def test_upgrade_conventions(path, capfd):
     targets = sofa.upgrade_convention()
     out, _ = capfd.readouterr()
 
+    # don't verify conventions that might require user action after
+    if os.path.basename(path) in ["FreeFieldDirectivityTF_1.0.json"]:
+        # FreeFieldDirectivityTF_1.0
+        # - optional dependency GLOBAL_EmitterDescription
+        #   might need to be added
+        verify = False
+    else:
+        verify = True
+
     if targets:
         for target in targets:
-            sofa.upgrade_convention(target)
+            sofa.upgrade_convention(target, verify=verify)
             out, _ = capfd.readouterr()
             assert "Upgrading" in out
     else:

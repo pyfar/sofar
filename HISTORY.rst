@@ -1,6 +1,14 @@
 History
 =======
 
+1.1.0 (2023-7-7)
+----------------
+* Deprecate FreeFieldDirectivityTV 1.0 in favor of FreeFieldDirectivityTV 1.1 (according to sofaconventoins.org and AES69-2022)
+* Add `sofar.read_sofa_as_netcdf` for reading SOFA files with erroneous data
+* Document SOFA conventions on https://sofar.readthedocs.io/en/stable/resources/conventions.html. `Sofa.info()` will this be deprecated in sofar v1.3.0
+* `sofar.read_sofa` and `sofar.write_sofa` now accept filenames and path objects
+* Add testing for Python 3.11
+
 1.0.0 (2022-12-16)
 ------------------
 * Use SOFA conventions of version 2.1 from https://github.com/pyfar/sofa_conventions

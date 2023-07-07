@@ -55,5 +55,5 @@ format*, Audio Engineering Society, Inc., New York, NY, USA.
 
 P. Majdak, F. Zotter, F. Brinkmann, J. De Muynke, M. Mihocic, and M.
 Noisternig, "Spatially Oriented Format for Acoustics 2.1: Introduction and
-Recent Advances,” *J. Audio Eng. Soc.*, vol. 70, no. 7/8, pp. 565–584,
+Recent Advances", *J. Audio Eng. Soc.*, vol. 70, no. 7/8, pp. 565-584,
 Jul. 2022. DOI: https://doi.org/10.17743/jaes.2022.0026

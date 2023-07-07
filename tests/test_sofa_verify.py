@@ -115,9 +115,9 @@ def test_case_insensitivity():
 
     # data type (must be case sensitive) --------------------------------------
     sofa = sf.Sofa("SimpleFreeFieldHRIR")
-    sofa._protected = False
+    sofa.protected = False
     sofa.GLOBAL_DataType = "fir"
-    sofa._protected = True
+    sofa.protected = True
     with raises(ValueError, match="GLOBAL_DataType is fir"):
         sofa.verify()
 
@@ -153,9 +153,9 @@ def test_missing_default_attributes(capfd):
 
     # test missing default attribute
     sofa = sf.Sofa("GeneralTF")
-    sofa._protected = False
+    sofa.protected = False
     delattr(sofa, "GLOBAL_Conventions")
-    sofa._protected = True
+    sofa.protected = True
 
     # raises error
     with raises(ValueError, match="Detected missing mandatory data"):
@@ -242,42 +242,42 @@ def test_wrong_name():
 
     # attribute with missing variable
     sofa = sf.Sofa("GeneralTF")
-    sofa._protected = False
+    sofa.protected = False
     sofa.IR_Type = "pressure"
     sofa._custom = {"IR_Type": {"default": None,
                                 "flags": None,
                                 "dimensions": None,
                                 "type": "attribute",
                                 "comment": ""}}
-    sofa._protected = True
+    sofa.protected = True
 
     with raises(ValueError, match="Detected attributes with missing"):
         sofa.verify()
 
     # attribute with no underscore
     sofa = sf.Sofa("GeneralTF")
-    sofa._protected = False
+    sofa.protected = False
     sofa.IRType = "pressure"
     sofa._custom = {"IRType": {"default": None,
                                "flags": None,
                                "dimensions": None,
                                "type": "attribute",
                                "comment": ""}}
-    sofa._protected = True
+    sofa.protected = True
 
     with raises(ValueError, match="Detected attribute names with too many"):
         sofa.verify()
 
     # variable with underscore
     sofa = sf.Sofa("GeneralTF")
-    sofa._protected = False
+    sofa.protected = False
     sofa.IR_Data = 1
     sofa._custom = {"IR_Data": {"default": None,
                                 "flags": None,
                                 "dimensions": "IM",
                                 "type": "double",
                                 "comment": ""}}
-    sofa._protected = True
+    sofa.protected = True
 
     with raises(ValueError, match="Detected variable names with too many"):
         sofa.verify()

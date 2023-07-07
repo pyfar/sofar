@@ -333,7 +333,7 @@ def _convention_csv2dict(file: str):
     return convention
 
 
-def _check_congruency(save_dir=None):
+def _check_congruency(save_dir=None, branch="master"):
     """
     SOFA conventions are stored in two different places - is this a good idea?
     They should be identical, but let's find out.
@@ -346,9 +346,14 @@ def _check_congruency(save_dir=None):
         directory to save diverging conventions for further inspections
     """
 
-    urls = ["https://www.sofaconventions.org/conventions/",
-            ("https://raw.githubusercontent.com/sofacoustics/SOFAtoolbox/"
-             "master/SOFAtoolbox/conventions/")]
+    # urls for checking which conventions exist
+    urls_check = ["https://www.sofaconventions.org/conventions/",
+                  ("https://github.com/sofacoustics/SOFAtoolbox/tree/"
+                   f"{branch}/SOFAtoolbox/conventions/")]
+    # urls for loading the convention files
+    urls_load = ["https://www.sofaconventions.org/conventions/",
+                 ("https://raw.githubusercontent.com/sofacoustics/SOFAtoolbox/"
+                  f"{branch}/SOFAtoolbox/conventions/")]
     subdirs = ["sofaconventions", "sofatoolbox"]
 
     # check save_dir
@@ -359,21 +364,29 @@ def _check_congruency(save_dir=None):
             if not os.path.isdir(os.path.join(save_dir, subdir)):
                 os.makedirs(os.path.join(save_dir, subdir))
 
-    # get file names of conventions from sofaconventions.org and SOFAtoolbox
-    url = urls[0]
+    # get file names of conventions from sofaconventions.org
+    url = urls_check[0]
     page = requests.get(url).text
     soup = BeautifulSoup(page, 'html.parser')
     sofaconventions = [os.path.split(node.get('href'))[1]
                        for node in soup.find_all('a')
                        if node.get('href').endswith(".csv")]
 
-    url = ("https://github.com/sofacoustics/SOFAtoolbox/tree/"
-           "master/SOFAtoolbox/conventions/")
-    page = requests.get(url).text
-    soup = BeautifulSoup(page, 'html.parser')
-    sofatoolbox = [os.path.split(node.get('href'))[1]
-                   for node in soup.find_all('a')
-                   if node.get('href').endswith(".csv")]
+    if not sofaconventions:
+        raise ValueError(f"Did not find any conventions at {url}")
+
+    # get file names of conventions from github
+    url = urls_check[1]
+    page = requests.get(url).json()
+    sofatoolbox = []
+    for content in page["payload"]["tree"]["items"]:
+        if content["contentType"] == "file" and \
+                content["path"].startswith("SOFAtoolbox/conventions") and \
+                content["name"].endswith("csv"):
+            sofatoolbox.append(content["name"])
+
+    if not sofatoolbox:
+        raise ValueError(f"Did not find any conventions at {url}")
 
     # check if lists are identical. Remove items not contained in both lists
     report = ""
@@ -394,7 +407,7 @@ def _check_congruency(save_dir=None):
     for convention in sofaconventions:
 
         # download SOFA convention definitions to package directory
-        data = [requests.get(url + convention) for url in urls]
+        data = [requests.get(url + convention) for url in urls_load]
         # remove trailing tabs and windows style line breaks
         data = [d.content.replace(b"\r\n", b"\n").replace(b"\t\n", b"\n")
                 for d in data]

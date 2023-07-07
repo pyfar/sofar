@@ -3,7 +3,8 @@ import os
 import numpy as np
 from netCDF4 import Dataset, chartostring, stringtochar
 import warnings
-import packaging
+import pathlib
+from packaging.version import parse
 import sofar as sf
 from .utils import _verify_convention_and_version, _atleast_nd
 
@@ -18,8 +19,7 @@ def read_sofa(filename, verify=True, verbose=True):
     Parameters
     ----------
     filename : str
-        The filename. '.sofa' is appended to the filename, if it is not
-        explicitly given.
+        The full path to the sofa data.
     verify : bool, optional
         Verify and update the SOFA object by calling :py:func:`~Sofa.verify`.
         This helps to find potential errors in the default values and is thus
@@ -32,7 +32,7 @@ def read_sofa(filename, verify=True, verbose=True):
     Returns
     -------
     sofa : Sofa
-        The SOFA object filled with the default values of the convention.
+        Object containing the data from `filename`.
 
     Notes
     -----
@@ -52,9 +52,63 @@ def read_sofa(filename, verify=True, verbose=True):
        will be a scalar inside SOFA objects after reading from disk.
     """
 
+    return _read_netcdf(filename, verify, verbose, mode="sofa")
+
+
+def read_sofa_as_netcdf(filename):
+    """
+    Read corrupted SOFA data from disk.
+
+    .. note::
+        `read_sofa_as_netcdf` is intended to read and fix corrupted SOFA data
+        that could not be read by :py:func:`~read_sofa`. The recommend workflow
+        is
+
+        - Try to read the data with `read_sofa` and ``verify=True``
+        - If this fails, try the above with ``verify=False``
+        - If this fails, use `read_sofa_as_netcdf`
+
+        The SOFA object  returned by `read_sofa_as_netcdf` may not work
+        correctly before the issues with the data were fixed, i.e., before the
+        data are in agreement with the SOFA standard AES-69.
+
+    Numeric data is returned as floats or numpy float arrays unless they have
+    missing data, in which case they are returned as numpy masked arrays.
+
+    Parameters
+    ----------
+    filename : str
+        The full path to the NetCDF data.
+
+    Returns
+    -------
+    sofa : Sofa
+        Object containing the data from `filename`.
+
+    Notes
+    -----
+
+    1. Missing dimensions are appended when writing the SOFA object to disk.
+       E.g., if ``sofa.Data_IR`` is of shape (1, 2) it is written as an array
+       of shape (1, 2, 1) because the SOFA standard AES69-2020 defines it as a
+       three dimensional array with the dimensions (`M: measurements`,
+       `R: receivers`, `N: samples`)
+    2. When reading data from a SOFA file, array data is always returned as
+       numpy arrays and singleton trailing dimensions are discarded (numpy
+       default). I.e., ``sofa.Data_IR`` will again be an array of shape (1, 2)
+       after writing and reading to and from disk.
+    3. One dimensional arrays with only one element will be converted to scalar
+       values. E.g. ``sofa.Data_SamplingRate`` is stored as an array of shape
+       (1, ) inside SOFA files (according to the SOFA standard AES69-2020) but
+       will be a scalar inside SOFA objects after reading from disk.
+    """
+    return _read_netcdf(filename, False, False, mode="netcdf")
+
+
+def _read_netcdf(filename, verify, verbose, mode):
+
     # check the filename
-    if not filename.endswith('.sofa'):
-        raise ValueError("Filename must end with .sofa")
+    filename = pathlib.Path(filename).with_suffix('.sofa')
     if not os.path.isfile(filename):
         raise ValueError(f"{filename} does not exist")
 
@@ -68,28 +122,24 @@ def read_sofa(filename, verify=True, verbose=True):
     # open new NETCDF4 file for reading
     with Dataset(filename, "r", format="NETCDF4") as file:
 
-        # get convention name and version
-        convention = getattr(file, "SOFAConventions")
-        all_attr.append("GLOBAL_SOFAConventions")
-        version_in = getattr(file, "SOFAConventionsVersion")
-        all_attr.append("GLOBAL_SOFAConventionsVersion")
+        if mode == "sofa":
+            # get convention name and version
+            convention = getattr(file, "SOFAConventions")
+            version = getattr(file, "SOFAConventionsVersion")
 
-        # check if convention and version exist
-        version_out = _verify_convention_and_version(
-            version_in, version_in, convention)
+            # check if convention and version exist
+            _verify_convention_and_version(version, convention)
 
-        # get SOFA object with default values
-        sofa = sf.Sofa(convention, version=version_out, verify=verify)
+            # get SOFA object with default values
+            sofa = sf.Sofa(convention, version=version, verify=verify)
+        else:
+            sofa = sf.Sofa(None)
 
         # allow writing read only attributes
-        sofa._protected = False
+        sofa.protected = False
 
         # load global attributes
         for attr in file.ncattrs():
-
-            if attr in ["SOFAConventionsVersion", "SOFAConventions"]:
-                # convention and version were already set above
-                continue
 
             value = getattr(file, attr)
             all_attr.append(f"GLOBAL_{attr}")
@@ -98,7 +148,7 @@ def read_sofa(filename, verify=True, verbose=True):
                 sofa._add_custom_api_entry(
                     f"GLOBAL_{attr}", value, None, None, "attribute")
                 custom.append(f"GLOBAL_{attr}")
-                sofa._protected = False
+                sofa.protected = False
             else:
                 setattr(sofa, f"GLOBAL_{attr}", value)
 
@@ -117,7 +167,7 @@ def read_sofa(filename, verify=True, verbose=True):
                 sofa._add_custom_api_entry(var.replace(".", "_"), value, None,
                                            dimensions, dtype)
                 custom.append(var.replace(".", "_"))
-                sofa._protected = False
+                sofa.protected = False
 
             # load variable attributes
             for attr in [a for a in file[var].ncattrs() if a not in skip]:
@@ -130,7 +180,7 @@ def read_sofa(filename, verify=True, verbose=True):
                         var.replace(".", "_") + "_" + attr, value, None,
                         None, "attribute")
                     custom.append(var.replace(".", "_") + "_" + attr)
-                    sofa._protected = False
+                    sofa.protected = False
                 else:
                     setattr(sofa, var.replace(".", "_") + "_" + attr, value)
 
@@ -142,7 +192,7 @@ def read_sofa(filename, verify=True, verbose=True):
             delattr(sofa, attr)
 
     # do not allow writing read only attributes any more
-    sofa._protected = True
+    sofa.protected = True
 
     # notice about custom entries
     if custom and verbose:
@@ -206,20 +256,23 @@ def _write_sofa(filename: str, sofa: sf.Sofa, compression=4, verify=True):
     """
 
     # check the filename
-    if not filename.endswith('.sofa'):
-        raise ValueError("Filename must end with .sofa")
+    filename = pathlib.Path(filename).with_suffix('.sofa')
 
-    # check if the latest version is used for writing and warn otherwise
-    # if case required for writing SOFA test data that violates the conventions
-    if sofa.GLOBAL_SOFAConventions != "invalid-value":
-        latest = sf.Sofa(sofa.GLOBAL_SOFAConventions)
-        latest = latest.GLOBAL_SOFAConventionsVersion
-        current = sofa.GLOBAL_SOFAConventionsVersion
+    if verify:
+        # check if the latest version is used for writing and warn otherwise
+        # if case required for writing SOFA test data that violates the
+        # conventions
+        if sofa.GLOBAL_SOFAConventions != "invalid-value":
+            latest = sf.Sofa(sofa.GLOBAL_SOFAConventions)
+            latest = latest.GLOBAL_SOFAConventionsVersion
+            current = sofa.GLOBAL_SOFAConventionsVersion
 
-        if packaging.version.parse(current) < packaging.version.parse(latest):
-            warnings.warn(("Writing SOFA object with outdated Convention "
-                           f"version {current}. Use version='latest' to write "
-                           f"data with version {latest}."))
+            if parse(current) < parse(latest):
+                warnings.warn((
+                    "Writing SOFA object with outdated Convention "
+                    f"version {current}. It is recommend to upgrade "
+                    " data with Sofa.upgrade_convention() before "
+                    "writing to disk if possible."))
 
     # setting the netCDF compression parameter
     use_zlib = compression != 0

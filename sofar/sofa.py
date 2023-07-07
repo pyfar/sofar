@@ -89,35 +89,43 @@ class Sofa():
         """See class docstring"""
 
         # get convention
-        self._convention = self._load_convention(convention, version)
+        if convention is not None:
+            self._convention = self._load_convention(convention, version)
 
-        # update read only attributes
-        self._read_only_attr = [
-            key for key in self._convention.keys()
-            if self._read_only(self._convention[key]["flags"])]
+            # update read only attributes
+            self._read_only_attr = [
+                key for key in self._convention.keys()
+                if self._read_only(self._convention[key]["flags"])]
 
-        # add attributes with default values
-        self._convention_to_sofa(mandatory)
+            # add attributes with default values
+            self._convention_to_sofa(mandatory)
 
-        # add and update the API
-        # (mandatory=False can not be verified because some conventions have
-        # default values that have optional variables as dependencies)
-        if verify and not mandatory:
-            self.verify(mode="read")
+            # add and update the API
+            # (mandatory=False can not be verified because some conventions
+            # have default values that have optional variables as dependencies)
+            if verify and not mandatory:
+                self.verify(mode="read")
 
-        self._protected = True
+            self.protected = True
+        else:
+            verify = False
+            self._convention = {}
 
     def __setattr__(self, name: str, value):
         # don't allow new attributes to be added outside the class
-        if self._protected and not hasattr(self, name):
+        if self.protected and not hasattr(self, name):
             raise TypeError(f"{name} is an invalid attribute")
 
         # don't allow setting read only attributes
-        if name in self._read_only_attr and self._protected:
-            raise TypeError(f"{name} is a read only attribute")
+        if name in self._read_only_attr and self.protected:
+            raise TypeError((
+                f"{name} is a read only attribute. Iy you know what you are "
+                "doing, you can set Sofa.protected = False to write read "
+                "only data (e.g., to repair corrupted SOFA data)."))
 
         # convert to numpy array or scalar
-        if not isinstance(value, (str, dict, np.ndarray)):
+        if not isinstance(value, (str, dict, np.ndarray)) \
+                and name != "protected":
             value = np.atleast_2d(value)
             if value.size == 1:
                 value = value.flatten()[0]
@@ -129,7 +137,7 @@ class Sofa():
         if not hasattr(self, name):
             raise TypeError(f"{name} is not an attribute")
         # delete anything if not frozen, delete non mandatory
-        if not self._protected or \
+        if not self.protected or \
                 not self._mandatory(self._convention[name]["flags"]):
             super().__delattr__(name)
 
@@ -287,9 +295,17 @@ class Sofa():
                 attribute will be printed.
         """
 
+        # warn for upcoming deprecation
+        warnings.warn((
+            'Sofa.info() will be deprecated in sofar 1.3.0 The conventions are'
+            ' now documented at '
+            'https://sofar.readthedocs.io/en/stable/resources/conventions.html'),  # noqa
+            UserWarning)
+
         # update the private attribute `_convention` to make sure the required
         # meta data is in place
-        self._update_convention(version="match")
+        if not hasattr(self, "_convention"):
+            self._reset_convention()
 
         # list of all attributes
         keys = [k for k in self.__dict__.keys() if not k.startswith("_")]
@@ -461,13 +477,13 @@ class Sofa():
         """
 
         # initialize
-        self._update_convention(version="match")
+        self._reset_convention()
         added = "Added the following missing data with their default values:\n"
 
         # current data
         keys = [key for key in self.__dict__.keys() if not key.startswith("_")]
 
-        self._protected = False
+        self.protected = False
 
         # loop data in convention
         for key in self._convention.keys():
@@ -480,7 +496,7 @@ class Sofa():
                 added += f"- {key} "
                 added += f"({'mandatory' if is_mandatory else 'optional'})\n"
 
-        self._protected = True
+        self.protected = True
 
         if verbose:
             if "-" in added:
@@ -510,7 +526,7 @@ class Sofa():
 
         dimensions : str
             The shape of the new entry as a string. See
-            ``self.info('dimensions')``.
+            :py:func:`~Sofa.list_dimensions`.
 
         Examples
         --------
@@ -565,9 +581,10 @@ class Sofa():
         """
         Delete variable or attribute from SOFA object.
 
-        Note that mandatory data can not be deleted. Call
-        :py:func:`Sofa.info("optional") <sofar.sofar.Sofa.info>` to list all
-        optional variables and attributes.
+        Note that mandatory data can not be deleted. Check the
+        `sofar documentation
+        <https://sofar.readthedocs.io/en/stable/resources/conventions.html>`_
+        for a complete list of optional variables and attributes.
 
         Parameters
         ----------
@@ -575,6 +592,26 @@ class Sofa():
             Name of the variable or attribute to be deleted
         """
         delattr(self, name)
+
+    @property
+    def protected(self):
+        """
+        If Sofa.protected is ``True``, read only data can not be changed. Only
+        change this to ``False`` if you know what you are doing, e.g., if you
+        need to repair corrupted SOFA data.
+        """
+        return self._protected
+
+    @protected.setter
+    def protected(self, value: bool):
+        """
+        If Sofa.protected is ``True``, read only data can not be changed. Only
+        change this to ``False`` if you know what you are doing, e.g., if you
+        need to repair corrupted SOFA data.
+        """
+        if not isinstance(value, bool):
+            raise ValueError("Sofa.protected can only be True or False")
+        self._protected = value
 
     def _add_entry(self, name, value, dtype, dimensions):
         """
@@ -633,7 +670,7 @@ class Sofa():
             double, string, or attribute
         """
         # create custom API if it not exists
-        self._protected = False
+        self.protected = False
 
         # lower case letters to indicate custom dimensions
         if dimensions is not None:
@@ -652,11 +689,11 @@ class Sofa():
                 "type": dtype,
                 "default": None,
                 "comment": ""}
-        self._update_convention(version="match")
+            self._convention[key] = self._custom[key]
 
         # add attribute to object
         setattr(self, key, value)
-        self._protected = True
+        self.protected = True
 
     def upgrade_convention(self, target=None, verify=True):
         """
@@ -687,7 +724,7 @@ class Sofa():
         """
 
         # check input ---------------------------------------------------------
-        self._update_convention(version="match")
+        self._reset_convention()
 
         # get deprecations and information about Sofa object
         _, _, deprecations, upgrade = self._verification_rules()
@@ -763,7 +800,7 @@ class Sofa():
                 "GLOBAL_Version",
                 "GLOBAL_DataType"]
 
-        self._protected = False
+        self.protected = False
         for key in keys:
             setattr(self, key, self._convention[key]["default"])
 
@@ -813,7 +850,7 @@ class Sofa():
 
         # check for missing mandatory data
         self.add_missing(True, False)
-        self._protected = True
+        self.protected = True
 
         # display general message
         if upgrade["message"] is not None:
@@ -908,7 +945,7 @@ class Sofa():
 
         # ---------------------------------------------------------------------
         # 0. update the convention
-        self._update_convention("match")
+        self._reset_convention()
 
         # ---------------------------------------------------------------------
         # 1. check if the mandatory attributes are contained
@@ -921,9 +958,9 @@ class Sofa():
 
                 if issue_handling != "raise":
                     # add missing data with default value
-                    self._protected = False
+                    self.protected = False
                     setattr(self, key, self._convention[key]["default"])
-                    self._protected = True
+                    self.protected = True
 
                 # prepare to raise warning
                 missing += "- " + key + "\n"
@@ -1104,10 +1141,10 @@ class Sofa():
         # 4. Get dimensions (E, R, M, N, S, c, I, and custom)
 
         # initialize required API fields
-        self._protected = False
+        self.protected = False
         self._dimensions = {}
         self._api = {}
-        self._protected = True
+        self.protected = True
 
         # get keys for checking the dimensions (all SOFA variables)
         keys = [key for key in self.__dict__.keys()
@@ -1548,49 +1585,36 @@ class Sofa():
         """Return a copy of the SOFA object."""
         return deepcopy(self)
 
-    def _update_convention(self, version):
+    def _reset_convention(self):
         """
-        Add SOFA convention to SOFA object in private attribute `_convention`.
-        If The object already contains a convention, it will be overwritten.
-
-        Parameters
-        ----------
-        version : str
-            ``'latest'``
-                Use the latest API and upgrade the SOFA file if required.
-            ``'match'``
-                Match the version of the sofa file.
-            str
-                Version string, e.g., ``'1.0'``.
+        - Add SOFA convention to SOFA object in private attribute
+          `_convention`. If The object already contains a convention, it will
+          be overwritten.
+        - If the SOFA object contains custom entries, check if any of the
+          custom entries part of the convention. If yes, delete the entry from
+          self._custom
+        - If the SOFA objects contains custom entries, add entries from
+          self._custom to self._convention
         """
 
         # verify convention and version
         c_current = self.GLOBAL_SOFAConventions
         v_current = str(self.GLOBAL_SOFAConventionsVersion)
 
-        v_new = _verify_convention_and_version(
-                version, v_current, c_current)
+        _verify_convention_and_version(v_current, c_current)
 
         # load and add convention and version
         convention = self._load_convention(
-            c_current, v_new)
+            c_current, v_current)
         self._convention = convention
 
-        if v_current != v_new:
-            self._protected = False
-            self.GLOBAL_SOFAConventionsVersion = v_new
-            self._protected = True
-
-        # feedback in case of up/downgrade
-        if float(v_current) < float(v_new):
-            warnings.warn(("Upgraded SOFA object from "
-                           f"version {v_current} to {v_new}"))
-        elif float(v_current) > float(v_new):
-            warnings.warn(("Downgraded SOFA object from "
-                           f"version {v_current} to {v_new}"))
-
-        # check if custom fields can be added
         if hasattr(self, "_custom"):
+            # check of custom fields can be removed
+            for key in self._convention:
+                if key in self._custom:
+                    del self._custom[key]
+
+            # check if custom fields can be added
             for key in self._custom:
                 self._convention[key] = self._custom[key]
 
@@ -1684,7 +1708,7 @@ class Sofa():
 
         # write API and date specific fields (some read only)
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self._protected = False
+        self.protected = False
         self.GLOBAL_DateCreated = now
         self.GLOBAL_DateModified = now
         self.GLOBAL_APIName = "sofar SOFA API for Python (pyfar.org)"
@@ -1694,7 +1718,7 @@ class Sofa():
             f"{platform.python_version()} "
             f"[{platform.python_implementation()} - "
             f"{platform.python_compiler()}]")
-        self._protected = True
+        self.protected = True
 
     @staticmethod
     def _get_size_and_shape_of_string_var(value, key):
