@@ -178,7 +178,7 @@ before building the documentation.
 Submodules
 ~~~~~~~~~~
 
-To update the submodules containing the conventions and verification rules run
+To update the submodule containing the conventions and verification rules run
 
 $ git submodule update --remote sofar/sofa_conventions
 
