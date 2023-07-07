@@ -1,6 +1,10 @@
 History
 =======
 
+1.1.1 (2023-7-7)
+----------------
+* Fix deploying to PyPi.org
+
 1.1.0 (2023-7-7)
 ----------------
 * Deprecate FreeFieldDirectivityTV 1.0 in favor of FreeFieldDirectivityTV 1.1 (according to sofaconventoins.org and AES69-2022)
