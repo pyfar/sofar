@@ -49,7 +49,7 @@ def test__get_conventions(capfd):
         _get_conventions(return_type="None")
 
 
-@pytest.mark.parametrize('branch', ['master', 'develop'])
+@pytest.mark.parametrize('branch', ['master', 'development'])
 def test__congruency(capfd, branch):
     """
     Check if conventions from SOFAToolbox and sofaconventions.org are
