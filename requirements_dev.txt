@@ -3,7 +3,6 @@ bump2version
 wheel
 watchdog
 flake8
-tox
 coverage
 Sphinx
 twine
@@ -14,7 +13,6 @@ numpy>=1.14.0
 scipy>=1.5.0
 deepdiff
 insipid-sphinx-theme
-tox-wheel
 autodocsumm
 netCDF4
 beautifulsoup4
