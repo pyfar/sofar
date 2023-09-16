@@ -31,7 +31,7 @@ class Sofa():
         Verify the SOFA object by calling :py:func:`~Sofa.verify`. This helps
         to find potential errors in the default values and is thus recommended
         If creating a file does not work, try to call `Sofa` with
-        ``verify=False``. The default ``None`` defaults to ``True`` for
+        ``verify=False``. The default ``'auto'`` defaults to ``True`` for
         stable conventions with versions of 1.0 or higher and to ``False``
         otherwise.
 
@@ -88,7 +88,7 @@ class Sofa():
     _read_only_attr = []
 
     def __init__(self, convention, mandatory=False, version="latest",
-                 verify=None):
+                 verify='auto'):
         """See class docstring"""
 
         # get convention
@@ -106,7 +106,7 @@ class Sofa():
             # set default for verify
             version = \
                 self._convention['GLOBAL_SOFAConventionsVersion']['default']
-            if verify is None:
+            if verify == 'auto':
                 verify = True if parse(version) >= parse('1.0') else False
 
             # add and update the API
@@ -408,7 +408,7 @@ class Sofa():
             console.
         issue_handling : str, optional
             Defines how issues detected during verification of the SOFA object
-            are handeled (see :py:func:`~sofar.sofar.Sofa.verify`)
+            are handled (see :py:func:`~sofar.sofar.Sofa.verify`)
 
             ``'raise'``
                 Warnings and errors are raised if issues are detected

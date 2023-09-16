@@ -9,7 +9,7 @@ import sofar as sf
 from .utils import _verify_convention_and_version, _atleast_nd
 
 
-def read_sofa(filename, verify=None, verbose=True):
+def read_sofa(filename, verify='auto', verbose=True):
     """
     Read SOFA file from disk and convert it to SOFA object.
 
@@ -24,7 +24,7 @@ def read_sofa(filename, verify=None, verbose=True):
         Verify and update the SOFA object by calling :py:func:`~Sofa.verify`.
         This helps to find potential errors in the default values and is thus
         recommended. If reading a file does not work, try to call `Sofa` with
-        ``verify=False``. The default is ``None`` defaults to ``True`` for
+        ``verify=False``. The default is ``'auto'`` defaults to ``True`` for
         stable conventions with versions of 1.0 or higher and to ``False``
         otherwise.
     verbose : bool, optional
