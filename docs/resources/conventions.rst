@@ -35,7 +35,8 @@ In the following, SOFA conventions are described in tables with the information
 Conventions
 ===========
 
-* :ref:`FreeFieldDirectivityTF v1.0 <FreeFieldDirectivityTF_1.0>`
+* :ref:`AnnotatedEmitterAudio v0.2 <AnnotatedEmitterAudio_0.2>`
+* :ref:`AnnotatedReceiverAudio v0.2 <AnnotatedReceiverAudio_0.2>`
 * :ref:`FreeFieldDirectivityTF v1.1 <FreeFieldDirectivityTF_1.1>`
 * :ref:`FreeFieldHRIR v1.0 <FreeFieldHRIR_1.0>`
 * :ref:`FreeFieldHRTF v1.0 <FreeFieldHRTF_1.0>`
@@ -52,6 +53,9 @@ Conventions
 * :ref:`SimpleHeadphoneIR v1.0 <SimpleHeadphoneIR_1.0>`
 * :ref:`SingleRoomMIMOSRIR v1.0 <SingleRoomMIMOSRIR_1.0>`
 * :ref:`SingleRoomSRIR v1.0 <SingleRoomSRIR_1.0>`
+* :ref:`AnnotatedEmitterAudio v0.1 (deprecated) <AnnotatedEmitterAudio_0.1>`
+* :ref:`AnnotatedReceiverAudio v0.1 (deprecated) <AnnotatedReceiverAudio_0.1>`
+* :ref:`FreeFieldDirectivityTF v1.0 (deprecated) <FreeFieldDirectivityTF_1.0>`
 * :ref:`GeneralFIRE v1.0 (deprecated) <GeneralFIRE_1.0>`
 * :ref:`MultiSpeakerBRIR v0.3 (deprecated) <MultiSpeakerBRIR_0.3>`
 * :ref:`SimpleFreeFieldHRIR v0.4 (deprecated) <SimpleFreeFieldHRIR_0.4>`
@@ -61,15 +65,17 @@ Conventions
 * :ref:`SimpleHeadphoneIR v0.2 (deprecated) <SimpleHeadphoneIR_0.2>`
 * :ref:`SingleRoomDRIR v0.2 (deprecated) <SingleRoomDRIR_0.2>`
 * :ref:`SingleRoomDRIR v0.3 (deprecated) <SingleRoomDRIR_0.3>`
+* :ref:`SingleTrackedAudio v0.1 (deprecated) <SingleTrackedAudio_0.1>`
+* :ref:`SingleTrackedAudio v0.2 (deprecated) <SingleTrackedAudio_0.2>`
 
 Current
 =======
 
-.. _FreeFieldDirectivityTF_1.0:
+.. _AnnotatedEmitterAudio_0.2:
 
-**FreeFieldDirectivityTF v1.0**
+**AnnotatedEmitterAudio v0.2**
 
-This conventions stores directivities of acoustic sources (instruments, loudspeakers, singers, talkers, etc) in the frequency domain for multiple musical notes in free field.
+
 
 .. list-table::
    :widths: 20 50 25 30 100
@@ -91,39 +97,14 @@ This conventions stores directivities of acoustic sources (instruments, loudspea
      - r, m
      - 
    * - GLOBAL_SOFAConventions (*attribute*)
-     - FreeFieldDirectivityTF
+     - AnnotatedEmitterAudio
      - 
      - r, m
      - 
    * - GLOBAL_SOFAConventionsVersion (*attribute*)
-     - 1.0
+     - 0.2
      - 
      - r, m
-     - 
-   * - GLOBAL_DataType (*attribute*)
-     - TF
-     - 
-     - r, m
-     - We store frequency-dependent data here
-   * - GLOBAL_RoomType (*attribute*)
-     - free field
-     - 
-     - m
-     - The room information can be arbitrary, but the spatial setup assumes free field.
-   * - GLOBAL_Title (*attribute*)
-     - 
-     - 
-     - m
-     - 
-   * - GLOBAL_DateCreated (*attribute*)
-     - 
-     - 
-     - m
-     - 
-   * - GLOBAL_DateModified (*attribute*)
-     - 
-     - 
-     - m
      - 
    * - GLOBAL_APIName (*attribute*)
      - 
@@ -135,8 +116,38 @@ This conventions stores directivities of acoustic sources (instruments, loudspea
      - 
      - r, m
      - 
+   * - GLOBAL_ApplicationName (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_ApplicationVersion (*attribute*)
+     - 
+     - 
+     - 
+     - 
    * - GLOBAL_AuthorContact (*attribute*)
      - 
+     - 
+     - m
+     - 
+   * - GLOBAL_Comment (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_DataType (*attribute*)
+     - Audio
+     - 
+     - r, m
+     - 
+   * - GLOBAL_History (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_License (*attribute*)
+     - No license provided, ask the author for permission
      - 
      - m
      - 
@@ -145,10 +156,208 @@ This conventions stores directivities of acoustic sources (instruments, loudspea
      - 
      - m
      - 
-   * - GLOBAL_License (*attribute*)
-     - No license provided, ask the author for permission
+   * - GLOBAL_References (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_RoomType (*attribute*)
+     - free field
      - 
      - m
+     - 
+   * - GLOBAL_Origin (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_DateCreated (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - GLOBAL_DateModified (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - GLOBAL_Title (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - ListenerPosition (*double*)
+     - [0, 0, 0]
+     - IC, MC
+     - m
+     - Position of the head. IC if not tracked, MC if tracked.
+   * - ListenerPosition_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - ListenerPosition_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - ReceiverPosition (*double*)
+     - [[0, 0.09, 0], [0, -0.09, 0]]
+     - rC, rCM
+     - m
+     - Position of the ears. RC if not tracked, RCM if tracked.
+   * - ReceiverPosition_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - ReceiverPosition_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - SourcePosition (*double*)
+     - [0, 0, 0]
+     - IC, MC
+     - m
+     - Position of the virtual ensemble. IC if not tracked, MC if tracked.
+   * - SourcePosition_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - SourcePosition_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - EmitterPosition (*double*)
+     - [0, 0, 0]
+     - eC, eCM
+     - m
+     - Position of the virtual source(s). eC if not tracked, eCM if tracked.
+   * - EmitterPosition_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - EmitterPosition_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - ListenerUp (*double*)
+     - [0, 0, 1]
+     - IC, MC
+     - m
+     - Must be of the same dimensionality as ListenerView.
+   * - ListenerView (*double*)
+     - [1, 0, 0]
+     - IC, MC
+     - m
+     - Orientation of the head. IC if not tracked, MC if tracked.
+   * - ListenerView_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - ListenerView_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - M (*double*)
+     - 0
+     - m
+     - m
+     - Time stamp of the measurements in M, defines the size of M.
+   * - M_LongName (*attribute*)
+     - time
+     - 
+     - m
+     - Narrative name for M
+   * - M_Units (*attribute*)
+     - second
+     - 
+     - m
+     - Units used for M
+   * - Response (*string*)
+     - ['']
+     - I, C, S
+     - 
+     - the subject’s response
+   * - Response_Type (*attribute*)
+     - 
+     - 
+     - 
+     - type depends on the dimension
+   * - Response_LongName (*attribute*)
+     - 
+     - 
+     - 
+     - narrative description of the response type
+   * - Data_Emitter (*double*)
+     - [0, 0]
+     - In, En
+     - m
+     - audio data at the emitter(s); n=number of audio samples
+   * - Data_SamplingRate (*double*)
+     - 44100
+     - I
+     - m
+     - 
+   * - Data_SamplingRate_Units (*attribute*)
+     - hertz
+     - 
+     - m
+     - 
+
+:ref:`back to top <conventions>`
+
+.. _AnnotatedReceiverAudio_0.2:
+
+**AnnotatedReceiverAudio v0.2**
+
+
+
+.. list-table::
+   :widths: 20 50 25 30 100
+   :header-rows: 1
+
+   * - Name (Type)
+     - Default
+     - Dim.
+     - Flags
+     - Comment
+   * - GLOBAL_Conventions (*attribute*)
+     - SOFA
+     - 
+     - r, m
+     - 
+   * - GLOBAL_Version (*attribute*)
+     - 2.1
+     - 
+     - r, m
+     - 
+   * - GLOBAL_SOFAConventions (*attribute*)
+     - AnnotatedReceiverAudio
+     - 
+     - r, m
+     - 
+   * - GLOBAL_SOFAConventionsVersion (*attribute*)
+     - 0.2
+     - 
+     - r, m
+     - 
+   * - GLOBAL_APIName (*attribute*)
+     - 
+     - 
+     - r, m
+     - 
+   * - GLOBAL_APIVersion (*attribute*)
+     - 
+     - 
+     - r, m
      - 
    * - GLOBAL_ApplicationName (*attribute*)
      - 
@@ -160,56 +369,71 @@ This conventions stores directivities of acoustic sources (instruments, loudspea
      - 
      - 
      - 
-   * - GLOBAL_Comment (*attribute*)
+   * - GLOBAL_AuthorContact (*attribute*)
      - 
      - 
      - m
+     - 
+   * - GLOBAL_Comment (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_DataType (*attribute*)
+     - Audio
+     - 
+     - r, m
      - 
    * - GLOBAL_History (*attribute*)
      - 
      - 
      - 
      - 
+   * - GLOBAL_License (*attribute*)
+     - No license provided, ask the author for permission
+     - 
+     - m
+     - 
+   * - GLOBAL_Organization (*attribute*)
+     - 
+     - 
+     - m
+     - 
    * - GLOBAL_References (*attribute*)
      - 
      - 
      - 
+     - 
+   * - GLOBAL_RoomType (*attribute*)
+     - free field
+     - 
+     - m
      - 
    * - GLOBAL_Origin (*attribute*)
      - 
      - 
      - 
      - 
-   * - GLOBAL_DatabaseName (*attribute*)
+   * - GLOBAL_DateCreated (*attribute*)
      - 
      - 
      - m
-     - Name of the database. Used for classification of the data
-   * - GLOBAL_Musician (*attribute*)
      - 
-     - 
-     - 
-     - Narrative description of the musician such as position, behavior, or personal data if not data-protected, e.g., 'Christiane Schmidt sitting on the chair', or 'artificial excitation by R2D2'.
-   * - GLOBAL_Description (*attribute*)
-     - 
-     - 
-     - 
-     - Narrative description of a measurement. For musical instruments/singers, the note (C1, D1, etc) or the dynamic (pp., ff., etc), or the string played, the playing style (pizzicato, legato, etc.), or the type of excitation (e.g., hit location of a cymbal). For loudspeakers, the system and driver units.
-   * - GLOBAL_SourceType (*attribute*)
+   * - GLOBAL_DateModified (*attribute*)
      - 
      - 
      - m
-     - Narrative description of the acoustic source, e.g., 'Violin', 'Female singer', or '2-way loudspeaker'
-   * - GLOBAL_SourceManufacturer (*attribute*)
+     - 
+   * - GLOBAL_Title (*attribute*)
      - 
      - 
      - m
-     - Narrative description of the manufacturer of the source, e.g., 'Stradivari, Lady Blunt, 1721' or 'LoudspeakerCompany'
+     - 
    * - ListenerPosition (*double*)
      - [0, 0, 0]
      - IC, MC
      - m
-     - Position of the microphone array during the measurements.
+     - Position of the head. IC if not tracked, MC if tracked.
    * - ListenerPosition_Type (*attribute*)
      - cartesian
      - 
@@ -220,38 +444,18 @@ This conventions stores directivities of acoustic sources (instruments, loudspea
      - 
      - m
      - 
-   * - ListenerView (*double*)
-     - [1, 0, 0]
-     - IC, MC
+   * - ReceiverPosition (*double*)
+     - [[0, 0.09, 0], [0, -0.09, 0]]
+     - rC, rCM
      - m
-     - Orientation of the microphone array
-   * - ListenerView_Type (*attribute*)
+     - Position of the ears. RC if not tracked, RCM if tracked.
+   * - ReceiverPosition_Type (*attribute*)
      - cartesian
      - 
      - m
      - 
-   * - ListenerView_Units (*attribute*)
-     - metre
-     - 
-     - m
-     - 
-   * - ListenerUp (*double*)
-     - [0, 0, 1]
-     - IC, MC
-     - m
-     - Up vector of the microphone array
-   * - ReceiverPosition (*double*)
-     - [0, 0, 1]
-     - IC, RC, RCM
-     - m
-     - Positions of the microphones during the measurements (relative to the Listener)
-   * - ReceiverPosition_Type (*attribute*)
-     - spherical
-     - 
-     - m
-     - 
    * - ReceiverPosition_Units (*attribute*)
-     - degree, degree, metre
+     - metre
      - 
      - m
      - 
@@ -259,7 +463,7 @@ This conventions stores directivities of acoustic sources (instruments, loudspea
      - [0, 0, 0]
      - IC, MC
      - m
-     - Position of the acoustic source (instrument)
+     - Position of the virtual ensemble. IC if not tracked, MC if tracked.
    * - SourcePosition_Type (*attribute*)
      - cartesian
      - 
@@ -270,46 +474,11 @@ This conventions stores directivities of acoustic sources (instruments, loudspea
      - 
      - m
      - 
-   * - SourcePosition_Reference (*attribute*)
-     - 
-     - 
-     - m
-     - Narrative description of the spatial reference of the source position, e.g., for the trumpet, 'The bell'. Mandatory in order to provide a reference across different instruments
-   * - SourceView (*double*)
-     - [1, 0, 0]
-     - IC, MC
-     - m
-     - Orientation of the acoustic source (instrument)
-   * - SourceView_Type (*attribute*)
-     - cartesian
-     - 
-     - m
-     - 
-   * - SourceView_Units (*attribute*)
-     - metre
-     - 
-     - m
-     - 
-   * - SourceView_Reference (*attribute*)
-     - 
-     - 
-     - m
-     - Narrative description of the spatial reference of the source view, e.g., for the trumpet, 'Viewing direction of the bell'. Mandatory in order to provide a reference across different instruments
-   * - SourceUp (*double*)
-     - [0, 0, 1]
-     - IC, MC
-     - m
-     - Up vector of the acoustic source (instrument)
-   * - SourceUp_Reference (*attribute*)
-     - 
-     - 
-     - m
-     - Narrative description of the spatial reference of the source up, e.g., for the trumpet, 'Along the keys, keys up'. Mandatory in order to provide a reference across different instruments
    * - EmitterPosition (*double*)
      - [0, 0, 0]
-     - IC, MC
+     - eC, eCM
      - m
-     - A more detailed structure of the Source. In a simple settings, a single Emitter is considered that is collocated with the source.
+     - Position of the virtual source(s). eC if not tracked, eCM if tracked.
    * - EmitterPosition_Type (*attribute*)
      - cartesian
      - 
@@ -320,51 +489,71 @@ This conventions stores directivities of acoustic sources (instruments, loudspea
      - 
      - m
      - 
-   * - EmitterDescription (*string*)
-     - ['']
-     - IS, MS
-     - 
-     - A more detailed structure of the source. In a simple setting, a single Emitter is considered that is collocated with the source. In a more complicated setting, this may be the strings of a violin or the units of a loudspeaker.
-   * - MIDINote (*double*)
-     - 0
-     - I, M
-     - 
-     - Defines the note played by the source during the measurement. The note is specified a MIDI note by the [https://www.midi.org/specifications-old/item/the-midi-1-0-specification MIDI specifications, version 1.0]. Not mandatory, but recommended for tonal instruments.
-   * - Description (*string*)
-     - ['']
-     - MS
-     - 
-     - This variable is used when the description varies with M.
-   * - SourceTuningFrequency (*double*)
-     - 440
-     - I, M
-     - 
-     - Frequency (in hertz) to which a musical instrument is tuned to corresponding to the note A4 (MIDINote=69). Recommended for tonal instruments.
-   * - N (*double*)
-     - 0
-     - N
+   * - ListenerUp (*double*)
+     - [0, 0, 1]
+     - IC, MC
      - m
-     - Frequency values
-   * - N_LongName (*attribute*)
-     - frequency
+     - Must be of the same dimensionality as ListenerView.
+   * - ListenerView (*double*)
+     - [1, 0, 0]
+     - IC, MC
+     - m
+     - Orientation of the head. IC if not tracked, MC if tracked.
+   * - ListenerView_Type (*attribute*)
+     - cartesian
      - 
      - m
      - 
-   * - N_Units (*attribute*)
+   * - ListenerView_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - M (*double*)
+     - 0
+     - m
+     - m
+     - Time stamp of the measurements in M, defines the size of M.
+   * - M_LongName (*attribute*)
+     - time
+     - 
+     - m
+     - Narrative name for M
+   * - M_Units (*attribute*)
+     - second
+     - 
+     - m
+     - Units used for M
+   * - Response (*string*)
+     - ['']
+     - I, C, S
+     - 
+     - the subject’s response
+   * - Response_Type (*attribute*)
+     - 
+     - 
+     - 
+     - type depends on the dimension
+   * - Response_LongName (*attribute*)
+     - 
+     - 
+     - 
+     - narrative description of the response type
+   * - Data_Receiver (*double*)
+     - [0, 0]
+     - In, Rn
+     - m
+     - (binaural) audio data at the receivers; n=number of audio samples
+   * - Data_SamplingRate (*double*)
+     - 44100
+     - I
+     - m
+     - 
+   * - Data_SamplingRate_Units (*attribute*)
      - hertz
      - 
      - m
-     - Units used for N
-   * - Data_Real (*double*)
-     - 0
-     - mrn
-     - m
-     - Real part of the complex spectrum. The default value 0 indicates that all data fields are initialized with zero values.
-   * - Data_Imag (*double*)
-     - 0
-     - MRN
-     - m
-     - Imaginary part of the complex spectrum
+     - 
 
 :ref:`back to top <conventions>`
 
@@ -4384,6 +4573,801 @@ For measuring SRIRs in a single room with a single excitation source (e.g., a lo
 Deprecated
 ==========
 
+.. _AnnotatedEmitterAudio_0.1:
+
+**AnnotatedEmitterAudio v0.1**
+
+This convention is deprecated. Use :ref:`AnnotatedEmitterAudio_0.2 <AnnotatedEmitterAudio_0.2>` instead.
+
+
+
+.. list-table::
+   :widths: 20 50 25 30 100
+   :header-rows: 1
+
+   * - Name (Type)
+     - Default
+     - Dim.
+     - Flags
+     - Comment
+   * - GLOBAL_Conventions (*attribute*)
+     - SOFA
+     - 
+     - r, m
+     - 
+   * - GLOBAL_Version (*attribute*)
+     - 2.1
+     - 
+     - r, m
+     - 
+   * - GLOBAL_SOFAConventions (*attribute*)
+     - AnnotatedEmitterAudio
+     - 
+     - r, m
+     - 
+   * - GLOBAL_SOFAConventionsVersion (*attribute*)
+     - 0.1
+     - 
+     - r, m
+     - 
+   * - GLOBAL_APIName (*attribute*)
+     - 
+     - 
+     - r, m
+     - 
+   * - GLOBAL_APIVersion (*attribute*)
+     - 
+     - 
+     - r, m
+     - 
+   * - GLOBAL_ApplicationName (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_ApplicationVersion (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_AuthorContact (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - GLOBAL_Comment (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_DataType (*attribute*)
+     - Audio
+     - 
+     - r, m
+     - 
+   * - GLOBAL_History (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_License (*attribute*)
+     - No license provided, ask the author for permission
+     - 
+     - m
+     - 
+   * - GLOBAL_Organization (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - GLOBAL_References (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_RoomType (*attribute*)
+     - free field
+     - 
+     - m
+     - 
+   * - GLOBAL_Origin (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_DateCreated (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - GLOBAL_DateModified (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - GLOBAL_Title (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - ListenerPosition (*double*)
+     - [0, 0, 0]
+     - IC, MC
+     - m
+     - Position of the head. IC if not tracked, MC if tracked.
+   * - ListenerPosition_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - ListenerPosition_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - ReceiverPosition (*double*)
+     - [[0, 0.09, 0], [0, -0.09, 0]]
+     - rC, rCM
+     - m
+     - Position of the ears. RC if not tracked, RCM if tracked.
+   * - ReceiverPosition_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - ReceiverPosition_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - SourcePosition (*double*)
+     - [0, 0, 0]
+     - IC, MC
+     - m
+     - Position of the virtual ensemble. IC if not tracked, MC if tracked.
+   * - SourcePosition_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - SourcePosition_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - EmitterPosition (*double*)
+     - [0, 0, 0]
+     - eC, eCM
+     - m
+     - Position of the virtual source(s). eC if not tracked, eCM if tracked.
+   * - EmitterPosition_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - EmitterPosition_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - ListenerUp (*double*)
+     - [0, 0, 1]
+     - IC, MC
+     - m
+     - Must be of the same dimensionality as ListenerView.
+   * - ListenerView (*double*)
+     - [1, 0, 0]
+     - IC, MC
+     - m
+     - Orientation of the head. IC if not tracked, MC if tracked.
+   * - ListenerView_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - ListenerView_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - M (*double*)
+     - 0
+     - m
+     - m
+     - Time stamp of the measurements in M, defines the size of M.
+   * - M_LongName (*attribute*)
+     - time
+     - 
+     - m
+     - Narrative name for M
+   * - M_Units (*attribute*)
+     - second
+     - 
+     - m
+     - Units used for M
+   * - Response (*attribute*)
+     - 
+     - I, C, S
+     - 
+     - the subject’s response
+   * - Response_Type (*attribute*)
+     - 
+     - I, C, S
+     - 
+     - type depends on the dimension
+   * - Response_LongName (*attribute*)
+     - 
+     - S
+     - 
+     - narrative description of the response type
+   * - Data_Emitter (*double*)
+     - [0, 0]
+     - In, En
+     - m
+     - audio data at the emitter(s); n=number of audio samples
+   * - Data_SamplingRate (*double*)
+     - 44100
+     - I
+     - m
+     - 
+   * - Data_SamplingRate_Units (*attribute*)
+     - hertz
+     - 
+     - m
+     - 
+
+:ref:`back to top <conventions>`
+
+.. _AnnotatedReceiverAudio_0.1:
+
+**AnnotatedReceiverAudio v0.1**
+
+This convention is deprecated. Use :ref:`AnnotatedReceiverAudio_0.2 <AnnotatedReceiverAudio_0.2>` instead.
+
+
+
+.. list-table::
+   :widths: 20 50 25 30 100
+   :header-rows: 1
+
+   * - Name (Type)
+     - Default
+     - Dim.
+     - Flags
+     - Comment
+   * - GLOBAL_Conventions (*attribute*)
+     - SOFA
+     - 
+     - r, m
+     - 
+   * - GLOBAL_Version (*attribute*)
+     - 2.1
+     - 
+     - r, m
+     - 
+   * - GLOBAL_SOFAConventions (*attribute*)
+     - AnnotatedReceiverAudio
+     - 
+     - r, m
+     - 
+   * - GLOBAL_SOFAConventionsVersion (*attribute*)
+     - 0.1
+     - 
+     - r, m
+     - 
+   * - GLOBAL_APIName (*attribute*)
+     - 
+     - 
+     - r, m
+     - 
+   * - GLOBAL_APIVersion (*attribute*)
+     - 
+     - 
+     - r, m
+     - 
+   * - GLOBAL_ApplicationName (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_ApplicationVersion (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_AuthorContact (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - GLOBAL_Comment (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_DataType (*attribute*)
+     - Audio
+     - 
+     - r, m
+     - 
+   * - GLOBAL_History (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_License (*attribute*)
+     - No license provided, ask the author for permission
+     - 
+     - m
+     - 
+   * - GLOBAL_Organization (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - GLOBAL_References (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_RoomType (*attribute*)
+     - free field
+     - 
+     - m
+     - 
+   * - GLOBAL_Origin (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_DateCreated (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - GLOBAL_DateModified (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - GLOBAL_Title (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - ListenerPosition (*double*)
+     - [0, 0, 0]
+     - IC, MC
+     - m
+     - Position of the head. IC if not tracked, MC if tracked.
+   * - ListenerPosition_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - ListenerPosition_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - ReceiverPosition (*double*)
+     - [[0, 0.09, 0], [0, -0.09, 0]]
+     - rC, rCM
+     - m
+     - Position of the ears. RC if not tracked, RCM if tracked.
+   * - ReceiverPosition_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - ReceiverPosition_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - SourcePosition (*double*)
+     - [0, 0, 0]
+     - IC, MC
+     - m
+     - Position of the virtual ensemble. IC if not tracked, MC if tracked.
+   * - SourcePosition_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - SourcePosition_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - EmitterPosition (*double*)
+     - [0, 0, 0]
+     - eC, eCM
+     - m
+     - Position of the virtual source(s). eC if not tracked, eCM if tracked.
+   * - EmitterPosition_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - EmitterPosition_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - ListenerUp (*double*)
+     - [0, 0, 1]
+     - IC, MC
+     - m
+     - Must be of the same dimensionality as ListenerView.
+   * - ListenerView (*double*)
+     - [1, 0, 0]
+     - IC, MC
+     - m
+     - Orientation of the head. IC if not tracked, MC if tracked.
+   * - ListenerView_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - ListenerView_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - M (*double*)
+     - 0
+     - m
+     - m
+     - Time stamp of the measurements in M, defines the size of M.
+   * - M_LongName (*attribute*)
+     - time
+     - 
+     - m
+     - Narrative name for M
+   * - M_Units (*attribute*)
+     - second
+     - 
+     - m
+     - Units used for M
+   * - Response (*attribute*)
+     - 
+     - I, C, S
+     - 
+     - the subject’s response
+   * - Response_Type (*attribute*)
+     - 
+     - I, C, S
+     - 
+     - type depends on the dimension
+   * - Response_LongName (*attribute*)
+     - 
+     - S
+     - 
+     - narrative description of the response type
+   * - Data_Receiver (*double*)
+     - [0, 0]
+     - In, Rn
+     - m
+     - (binaural) audio data at the receivers; n=number of audio samples
+   * - Data_SamplingRate (*double*)
+     - 44100
+     - I
+     - m
+     - 
+   * - Data_SamplingRate_Units (*attribute*)
+     - hertz
+     - 
+     - m
+     - 
+
+:ref:`back to top <conventions>`
+
+.. _FreeFieldDirectivityTF_1.0:
+
+**FreeFieldDirectivityTF v1.0**
+
+This convention is deprecated. Use :ref:`FreeFieldDirectivityTF_1.1 <FreeFieldDirectivityTF_1.1>` instead.
+
+This conventions stores directivities of acoustic sources (instruments, loudspeakers, singers, talkers, etc) in the frequency domain for multiple musical notes in free field.
+
+.. list-table::
+   :widths: 20 50 25 30 100
+   :header-rows: 1
+
+   * - Name (Type)
+     - Default
+     - Dim.
+     - Flags
+     - Comment
+   * - GLOBAL_Conventions (*attribute*)
+     - SOFA
+     - 
+     - r, m
+     - 
+   * - GLOBAL_Version (*attribute*)
+     - 2.1
+     - 
+     - r, m
+     - 
+   * - GLOBAL_SOFAConventions (*attribute*)
+     - FreeFieldDirectivityTF
+     - 
+     - r, m
+     - 
+   * - GLOBAL_SOFAConventionsVersion (*attribute*)
+     - 1.0
+     - 
+     - r, m
+     - 
+   * - GLOBAL_DataType (*attribute*)
+     - TF
+     - 
+     - r, m
+     - We store frequency-dependent data here
+   * - GLOBAL_RoomType (*attribute*)
+     - free field
+     - 
+     - m
+     - The room information can be arbitrary, but the spatial setup assumes free field.
+   * - GLOBAL_Title (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - GLOBAL_DateCreated (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - GLOBAL_DateModified (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - GLOBAL_APIName (*attribute*)
+     - 
+     - 
+     - r, m
+     - 
+   * - GLOBAL_APIVersion (*attribute*)
+     - 
+     - 
+     - r, m
+     - 
+   * - GLOBAL_AuthorContact (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - GLOBAL_Organization (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - GLOBAL_License (*attribute*)
+     - No license provided, ask the author for permission
+     - 
+     - m
+     - 
+   * - GLOBAL_ApplicationName (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_ApplicationVersion (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_Comment (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - GLOBAL_History (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_References (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_Origin (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_DatabaseName (*attribute*)
+     - 
+     - 
+     - m
+     - Name of the database. Used for classification of the data
+   * - GLOBAL_Musician (*attribute*)
+     - 
+     - 
+     - 
+     - Narrative description of the musician such as position, behavior, or personal data if not data-protected, e.g., 'Christiane Schmidt sitting on the chair', or 'artificial excitation by R2D2'.
+   * - GLOBAL_Description (*attribute*)
+     - 
+     - 
+     - 
+     - Narrative description of a measurement. For musical instruments/singers, the note (C1, D1, etc) or the dynamic (pp., ff., etc), or the string played, the playing style (pizzicato, legato, etc.), or the type of excitation (e.g., hit location of a cymbal). For loudspeakers, the system and driver units.
+   * - GLOBAL_SourceType (*attribute*)
+     - 
+     - 
+     - m
+     - Narrative description of the acoustic source, e.g., 'Violin', 'Female singer', or '2-way loudspeaker'
+   * - GLOBAL_SourceManufacturer (*attribute*)
+     - 
+     - 
+     - m
+     - Narrative description of the manufacturer of the source, e.g., 'Stradivari, Lady Blunt, 1721' or 'LoudspeakerCompany'
+   * - ListenerPosition (*double*)
+     - [0, 0, 0]
+     - IC, MC
+     - m
+     - Position of the microphone array during the measurements.
+   * - ListenerPosition_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - ListenerPosition_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - ListenerView (*double*)
+     - [1, 0, 0]
+     - IC, MC
+     - m
+     - Orientation of the microphone array
+   * - ListenerView_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - ListenerView_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - ListenerUp (*double*)
+     - [0, 0, 1]
+     - IC, MC
+     - m
+     - Up vector of the microphone array
+   * - ReceiverPosition (*double*)
+     - [0, 0, 1]
+     - IC, RC, RCM
+     - m
+     - Positions of the microphones during the measurements (relative to the Listener)
+   * - ReceiverPosition_Type (*attribute*)
+     - spherical
+     - 
+     - m
+     - 
+   * - ReceiverPosition_Units (*attribute*)
+     - degree, degree, metre
+     - 
+     - m
+     - 
+   * - SourcePosition (*double*)
+     - [0, 0, 0]
+     - IC, MC
+     - m
+     - Position of the acoustic source (instrument)
+   * - SourcePosition_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - SourcePosition_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - SourcePosition_Reference (*attribute*)
+     - 
+     - 
+     - m
+     - Narrative description of the spatial reference of the source position, e.g., for the trumpet, 'The bell'. Mandatory in order to provide a reference across different instruments
+   * - SourceView (*double*)
+     - [1, 0, 0]
+     - IC, MC
+     - m
+     - Orientation of the acoustic source (instrument)
+   * - SourceView_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - SourceView_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - SourceView_Reference (*attribute*)
+     - 
+     - 
+     - m
+     - Narrative description of the spatial reference of the source view, e.g., for the trumpet, 'Viewing direction of the bell'. Mandatory in order to provide a reference across different instruments
+   * - SourceUp (*double*)
+     - [0, 0, 1]
+     - IC, MC
+     - m
+     - Up vector of the acoustic source (instrument)
+   * - SourceUp_Reference (*attribute*)
+     - 
+     - 
+     - m
+     - Narrative description of the spatial reference of the source up, e.g., for the trumpet, 'Along the keys, keys up'. Mandatory in order to provide a reference across different instruments
+   * - EmitterPosition (*double*)
+     - [0, 0, 0]
+     - IC, MC
+     - m
+     - A more detailed structure of the Source. In a simple settings, a single Emitter is considered that is collocated with the source.
+   * - EmitterPosition_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - EmitterPosition_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - EmitterDescription (*string*)
+     - ['']
+     - IS, MS
+     - 
+     - A more detailed structure of the source. In a simple setting, a single Emitter is considered that is collocated with the source. In a more complicated setting, this may be the strings of a violin or the units of a loudspeaker.
+   * - MIDINote (*double*)
+     - 0
+     - I, M
+     - 
+     - Defines the note played by the source during the measurement. The note is specified a MIDI note by the [https://www.midi.org/specifications-old/item/the-midi-1-0-specification MIDI specifications, version 1.0]. Not mandatory, but recommended for tonal instruments.
+   * - Description (*string*)
+     - ['']
+     - MS
+     - 
+     - This variable is used when the description varies with M.
+   * - SourceTuningFrequency (*double*)
+     - 440
+     - I, M
+     - 
+     - Frequency (in hertz) to which a musical instrument is tuned to corresponding to the note A4 (MIDINote=69). Recommended for tonal instruments.
+   * - N (*double*)
+     - 0
+     - N
+     - m
+     - Frequency values
+   * - N_LongName (*attribute*)
+     - frequency
+     - 
+     - m
+     - 
+   * - N_Units (*attribute*)
+     - hertz
+     - 
+     - m
+     - Units used for N
+   * - Data_Real (*double*)
+     - 0
+     - mrn
+     - m
+     - Real part of the complex spectrum. The default value 0 indicates that all data fields are initialized with zero values.
+   * - Data_Imag (*double*)
+     - 0
+     - MRN
+     - m
+     - Imaginary part of the complex spectrum
+
+:ref:`back to top <conventions>`
+
 .. _GeneralFIRE_1.0:
 
 **GeneralFIRE v1.0**
@@ -6574,6 +7558,526 @@ This convention stores arbitrary number of receivers while providing an informat
    * - Data_Delay (*double*)
      - [0]
      - IR, MR
+     - m
+     - 
+
+:ref:`back to top <conventions>`
+
+.. _SingleTrackedAudio_0.1:
+
+**SingleTrackedAudio v0.1**
+
+This convention is deprecated. Use AnnotatedEmitterAudio or AnnotatedReceiverAudio instead.
+
+
+
+.. list-table::
+   :widths: 20 50 25 30 100
+   :header-rows: 1
+
+   * - Name (Type)
+     - Default
+     - Dim.
+     - Flags
+     - Comment
+   * - GLOBAL_Conventions (*attribute*)
+     - SOFA
+     - 
+     - r, m
+     - 
+   * - GLOBAL_Version (*attribute*)
+     - 2.1
+     - 
+     - r, m
+     - 
+   * - GLOBAL_SOFAConventions (*attribute*)
+     - SingleTrackedAudio
+     - 
+     - r, m
+     - 
+   * - GLOBAL_SOFAConventionsVersion (*attribute*)
+     - 0.1
+     - 
+     - r, m
+     - 
+   * - GLOBAL_APIName (*attribute*)
+     - 
+     - 
+     - r, m
+     - 
+   * - GLOBAL_APIVersion (*attribute*)
+     - 
+     - 
+     - r, m
+     - 
+   * - GLOBAL_ApplicationName (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_ApplicationVersion (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_AuthorContact (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - GLOBAL_Comment (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_DataType (*attribute*)
+     - FIR
+     - 
+     - r, m
+     - 
+   * - GLOBAL_History (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_License (*attribute*)
+     - No license provided, ask the author for permission
+     - 
+     - m
+     - 
+   * - GLOBAL_Organization (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - GLOBAL_References (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_RoomType (*attribute*)
+     - free field
+     - 
+     - m
+     - 
+   * - GLOBAL_Origin (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_DateCreated (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - GLOBAL_DateModified (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - GLOBAL_Title (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - ListenerPosition (*double*)
+     - [0, 0, 0]
+     - IC, MC
+     - m
+     - Position of the head. IC if not tracked, MC if tracked.
+   * - ListenerPosition_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - ListenerPosition_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - ReceiverPosition (*double*)
+     - [[0, 0.09, 0], [0, -0.09, 0]]
+     - IC, RC, RCM
+     - m
+     - Position of the ears. RC if not tracked, RCM if tracked.
+   * - ReceiverPosition_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - ReceiverPosition_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - SourcePosition (*double*)
+     - [0, 0, 0]
+     - IC, MC
+     - m
+     - Position of the virtual ensemble. IC if not tracked, MC if tracked.
+   * - SourcePosition_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - SourcePosition_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - EmitterPosition (*double*)
+     - [0, 0, 0]
+     - eC, eCM
+     - m
+     - Position of the virtual source(s). eC if not tracked, eCM if tracked.
+   * - EmitterPosition_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - EmitterPosition_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - ListenerUp (*double*)
+     - [0, 0, 1]
+     - IC, MC
+     - m
+     - Must be of the same dimensionality as ListenerView.
+   * - ListenerView (*double*)
+     - [1, 0, 0]
+     - IC, MC
+     - m
+     - Orientation of the head. IC if not tracked, MC if tracked.
+   * - ListenerView_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - ListenerView_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - M (*double*)
+     - 0
+     - m
+     - m
+     - Time stamp of the measurements in M,defines the size of M.
+   * - EmitterUp (*double*)
+     - [0, 0, 0]
+     - EC, ECM
+     - 
+     - Must be of the same dimensionality as EmitterView.
+   * - EmitterView (*double*)
+     - [0, 0, 0]
+     - EC, ECM
+     - 
+     - Orientation of the virtual source(s). EC if not tracked, ECM if tracked.
+   * - EmitterView_Type (*attribute*)
+     - cartesian
+     - 
+     - 
+     - 
+   * - EmitterView_Units (*attribute*)
+     - metre
+     - 
+     - 
+     - 
+   * - M_LongName (*attribute*)
+     - time
+     - 
+     - m
+     - Narrative name for M
+   * - M_Units (*attribute*)
+     - second
+     - 
+     - m
+     - Units used for M
+   * - Data_Sample (*double*)
+     - [0, 0]
+     - rn
+     - m
+     - n=number of audio samples
+   * - Data_SamplingRate (*double*)
+     - 44100
+     - I
+     - m
+     - 
+   * - Data_SamplingRate_Units (*attribute*)
+     - hertz
+     - 
+     - m
+     - 
+
+:ref:`back to top <conventions>`
+
+.. _SingleTrackedAudio_0.2:
+
+**SingleTrackedAudio v0.2**
+
+This convention is deprecated. Use AnnotatedEmitterAudio or AnnotatedReceiverAudio instead.
+
+
+
+.. list-table::
+   :widths: 20 50 25 30 100
+   :header-rows: 1
+
+   * - Name (Type)
+     - Default
+     - Dim.
+     - Flags
+     - Comment
+   * - GLOBAL_Conventions (*attribute*)
+     - SOFA
+     - 
+     - r, m
+     - 
+   * - GLOBAL_Version (*attribute*)
+     - 2.1
+     - 
+     - r, m
+     - 
+   * - GLOBAL_SOFAConventions (*attribute*)
+     - SingleTrackedAudio
+     - 
+     - r, m
+     - 
+   * - GLOBAL_SOFAConventionsVersion (*attribute*)
+     - 0.2
+     - 
+     - r, m
+     - 
+   * - GLOBAL_APIName (*attribute*)
+     - 
+     - 
+     - r, m
+     - 
+   * - GLOBAL_APIVersion (*attribute*)
+     - 
+     - 
+     - r, m
+     - 
+   * - GLOBAL_ApplicationName (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_ApplicationVersion (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_AuthorContact (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - GLOBAL_Comment (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_DataType (*attribute*)
+     - FIR
+     - 
+     - r, m
+     - 
+   * - GLOBAL_History (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_License (*attribute*)
+     - No license provided, ask the author for permission
+     - 
+     - m
+     - 
+   * - GLOBAL_Organization (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - GLOBAL_References (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_RoomType (*attribute*)
+     - free field
+     - 
+     - m
+     - 
+   * - GLOBAL_Origin (*attribute*)
+     - 
+     - 
+     - 
+     - 
+   * - GLOBAL_DateCreated (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - GLOBAL_DateModified (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - GLOBAL_Title (*attribute*)
+     - 
+     - 
+     - m
+     - 
+   * - ListenerPosition (*double*)
+     - [0, 0, 0]
+     - IC, MC
+     - m
+     - Position of the head. IC if not tracked, MC if tracked.
+   * - ListenerPosition_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - ListenerPosition_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - ReceiverPosition (*double*)
+     - [[0, 0.09, 0], [0, -0.09, 0]]
+     - IC, RC, RCM
+     - m
+     - Position of the ears. RC if not tracked, RCM if tracked.
+   * - ReceiverPosition_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - ReceiverPosition_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - SourcePosition (*double*)
+     - [0, 0, 0]
+     - IC, MC
+     - m
+     - Position of the virtual ensemble. IC if not tracked, MC if tracked.
+   * - SourcePosition_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - SourcePosition_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - EmitterPosition (*double*)
+     - [0, 0, 0]
+     - eC, eCM
+     - m
+     - Position of the virtual source(s). eC if not tracked, eCM if tracked.
+   * - EmitterPosition_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - EmitterPosition_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - ListenerUp (*double*)
+     - [0, 0, 1]
+     - IC, MC
+     - m
+     - Must be of the same dimensionality as ListenerView.
+   * - ListenerView (*double*)
+     - [1, 0, 0]
+     - IC, MC
+     - m
+     - Orientation of the head. IC if not tracked, MC if tracked.
+   * - ListenerView_Type (*attribute*)
+     - cartesian
+     - 
+     - m
+     - 
+   * - ListenerView_Units (*attribute*)
+     - metre
+     - 
+     - m
+     - 
+   * - EmitterUp (*double*)
+     - [0, 0, 0]
+     - EC, ECM
+     - 
+     - Must be of the same dimensionality as EmitterView.
+   * - EmitterView (*double*)
+     - [0, 0, 0]
+     - EC, ECM
+     - 
+     - Orientation of the virtual source(s). EC if not tracked, ECM if tracked.
+   * - EmitterView_Type (*attribute*)
+     - cartesian
+     - 
+     - 
+     - 
+   * - EmitterView_Units (*attribute*)
+     - metre
+     - 
+     - 
+     - 
+   * - M (*double*)
+     - 0
+     - m
+     - m
+     - Time stamp of the measurements in M,defines the size of M.
+   * - M_LongName (*attribute*)
+     - time
+     - 
+     - m
+     - Narrative name for M
+   * - M_Units (*attribute*)
+     - second
+     - 
+     - m
+     - Units used for M
+   * - Response (*attribute*)
+     - 
+     - S, C, I
+     - 
+     - the subject’s response
+   * - Response_Type (*attribute*)
+     - 
+     - S, C, I
+     - 
+     - type depends on the dimension
+   * - Response_LongName (*attribute*)
+     - Date
+     - S
+     - 
+     - narrative description of the response type
+   * - Data_Receiver (*double*)
+     - [0, 0]
+     - nR
+     - 
+     - (binaural) audio data at the receivers; n=number of audio samples
+   * - Data_Emitter (*double*)
+     - [0, 0]
+     - nE
+     - 
+     - (source) audio data at the emitters; n=number of audio samples
+   * - Data_SamplingRate (*double*)
+     - 44100
+     - I
+     - m
+     - 
+   * - Data_SamplingRate_Units (*attribute*)
+     - hertz
+     - 
      - m
      - 
 
