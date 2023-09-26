@@ -203,7 +203,7 @@ def _read_netcdf(filename, verify, verbose, mode):
                f"{', '.join(custom)}"))
 
     # set default for verify
-    if verify is None:
+    if verify == 'auto':
         verify = True if parse(version) >= parse('1.0') else False
 
     # update api

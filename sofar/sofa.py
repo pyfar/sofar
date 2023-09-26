@@ -711,7 +711,7 @@ class Sofa():
         setattr(self, key, value)
         self.protected = True
 
-    def upgrade_convention(self, target=None, verify=True):
+    def upgrade_convention(self, target=None, verify='auto'):
         """
         Upgrade Sofa data to newer conventions.
 
@@ -729,7 +729,9 @@ class Sofa():
             conventions to which the data can be updated.
         verify : bool, optional
             Flag to specify if the data should be verified after the upgrade
-            using :py:func:`~Sofa.verify`. The default is ``True``.
+            using :py:func:`~Sofa.verify`. The default ``'auto'`` defaults to
+            ``True`` for stable conventions with versions of 1.0 or higher and
+            to ``False`` otherwise.
 
         Returns
         -------
@@ -872,6 +874,10 @@ class Sofa():
         if upgrade["message"] is not None:
             print(upgrade["message"])
 
+        # set default for verify
+        if verify == 'auto':
+            version = self.GLOBAL_SOFAConventionsVersion
+            verify = True if parse(version) >= parse('1.0') else False
         if verify:
             self.verify()
 
