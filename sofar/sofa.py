@@ -763,7 +763,6 @@ class Sofa():
 
         # check for upgrades --------------------------------------------------
         if is_deprecated:
-            version_matched = False
             # check if upgrade is available for this convention
             if convention_current not in upgrade:
                 print((f"Convention {convention_current} v{version_current} is"
@@ -773,7 +772,6 @@ class Sofa():
             # check if upgrade is available for this version
             for from_to in upgrade[convention_current]["from_to"]:
                 if version_current in from_to[0]:
-                    version_matched = True
                     targets = from_to[1]
 
                     if target in targets:
@@ -791,9 +789,6 @@ class Sofa():
                         print(upgrades)
                         return targets
                     break
-            if not version_matched:
-                print((f"Convention {convention_current} v{version_current} is"
-                       " outdated but is missing upgrade rules"))
         else:
             print((f"Convention {convention_current} v{version_current} "
                    "is up to date"))
