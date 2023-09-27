@@ -60,7 +60,7 @@ class Sofa():
        ``sofa.Data_IR`` is converted to a numpy array of shape (1, 2)
     2. Missing dimensions are appended when writing the SOFA object to disk,
        i.e., ``sofa.Data_IR`` is written as an array of shape (1, 2, 1) because
-       the SOFA standard AES69-2020 defines it as a three dimensional array
+       the SOFA standard AES69 defines it as a three dimensional array
        with the dimensions (`M: measurements`, `R: receivers`, `N: samples`)
     3. When reading data from a SOFA file, array data is always returned as
        numpy arrays and singleton trailing dimensions are discarded (numpy
@@ -68,7 +68,7 @@ class Sofa():
        after writing and reading to and from disk.
     4. One dimensional arrays with only one element will be converted to scalar
        values. E.g. ``sofa.Data_SamplingRate`` is stored as an array of shape
-       (1, ) inside SOFA files (according to the SOFA standard AES69-2020) but
+       (1, ) inside SOFA files (according to the SOFA standard AES69) but
        will be a scalar inside SOFA objects after reading from disk.
 
 
@@ -1095,7 +1095,7 @@ class Sofa():
         current_error = ""
         for key in keys:
 
-            # AES69-2020 Sec. 4.7.1
+            # AES69 Sec. 4.7.1
             if key.startswith("PRIVATE") or key.startswith("API"):
                 current_error += "- " + key + "\n"
             if (key.startswith("GLOBAL") and not key.startswith("GLOBAL_")) or\
@@ -1458,7 +1458,7 @@ class Sofa():
                 or not isinstance(ref[0], str):
             raise TypeError("ref must be a list of length 1 containing a str")
 
-        # Following the SOFA standard AES69-2020, units may be separated by
+        # Following the SOFA standard AES69, units may be separated by
         # `, ` (comma and space), `,` (comma only), and ` ` (space only).
         # (regexp ', ?' matches ', ' and ',')
         units_ref = re.split(', ?', ref[0])
@@ -1496,7 +1496,7 @@ class Sofa():
         -------
         reference_units : str
         """
-        # Following the SOFA standard AES69-2020, units may be separated by
+        # Following the SOFA standard AES69, units may be separated by
         # `, ` (comma and space), `,` (comma only), and ` ` (space only).
         # (regexp ', ?' matches ', ' and ',')
         units_test = re.split(', ?| ', test.lower())
