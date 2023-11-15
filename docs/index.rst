@@ -12,7 +12,6 @@ Getting Started
    :maxdepth: 1
 
    readme
-   examples
 
 
 Documentation

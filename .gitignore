@@ -68,3 +68,6 @@ docs/_build
 
 # Private tests
 tests/private
+
+# intermediate files
+examples/resources/my_first.sofa
