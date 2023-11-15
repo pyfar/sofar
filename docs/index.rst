@@ -13,7 +13,6 @@ Getting Started
 
    readme
    examples
-   working_with_sofa_files
 
 
 Documentation

@@ -1,0 +1,4 @@
+CC BY 4.0 	Fabian Brinkmann, Alexander Lindau, Stefan Weinzierl, Gunnar
+Geissler, Steven van de Par, Markus Müller-Trapet, Rob Opdam, Michael Vorländer
+(Original data from the FABIAN HRTF database,
+http://dx.doi.org/10.14279/depositonce-5718.5)
