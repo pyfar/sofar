@@ -17,6 +17,11 @@ upgrade_rules = os.path.join(
 with open(upgrade_rules) as file:
     upgrade_rules = json.load(file)
 
+deprecation_rules = os.path.join(
+    os.path.dirname(paths[0]), '..', 'rules', 'deprecations.json')
+with open(deprecation_rules) as file:
+    deprecation_rules = json.load(file)
+
 # write general information ---------------------------------------------------
 docs = (
     '.. _conventions_introduction:\n\n'
@@ -86,15 +91,20 @@ for path, name_version in zip(paths, names_versions):
 
     # name new convention if current convention is deprecated
     if deprecated:
-        if name not in upgrade_rules:
-            upgrade_to = None
-        for upgrade in upgrade_rules[name]['from_to']:
-            if version in upgrade[0]:
-                upgrade_to = upgrade[1]
-                references = [f':ref:`{u} <{u}>`' for u in upgrade_to]
-                ':ref:`{label} <{reference}>`'
-                docs += ('This convention is deprecated. '
-                         f'Use {", ".join(references)} instead.\n\n')
+        # upgrade rules give best feedback
+        if name in upgrade_rules:
+            for upgrade in upgrade_rules[name]['from_to']:
+                if version in upgrade[0]:
+                    upgrade_to = upgrade[1]
+                    references = [f':ref:`{u} <{u}>`' for u in upgrade_to]
+                    ':ref:`{label} <{reference}>`'
+                    docs += ('This convention is deprecated. '
+                             f'Use {", ".join(references)} instead.\n\n')
+        # deprecations are used if no upgrade rules are available
+        elif name in deprecation_rules['GLOBAL:SOFAConventions']:
+            docs += ("This convention is deprecated. Use "
+                     f"{deprecation_rules['GLOBAL:SOFAConventions'][name]} "
+                     "instead.\n\n")
 
     # name purpose of the convention
     docs += f'{convention["GLOBAL:SOFAConventions"]["comment"]}\n\n'

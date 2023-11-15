@@ -5,6 +5,7 @@ from datetime import datetime
 import platform
 import numpy as np
 import warnings
+from packaging.version import parse
 from copy import deepcopy
 import sofar as sf
 from .utils import (_nd_newaxis, _atleast_nd, _get_conventions,
@@ -30,7 +31,9 @@ class Sofa():
         Verify the SOFA object by calling :py:func:`~Sofa.verify`. This helps
         to find potential errors in the default values and is thus recommended
         If creating a file does not work, try to call `Sofa` with
-        ``verify=False``. The default is ``True``.
+        ``verify=False``. The default ``'auto'`` defaults to ``True`` for
+        stable conventions with versions of 1.0 or higher and to ``False``
+        otherwise.
 
     Returns
     -------
@@ -85,7 +88,7 @@ class Sofa():
     _read_only_attr = []
 
     def __init__(self, convention, mandatory=False, version="latest",
-                 verify=True):
+                 verify='auto'):
         """See class docstring"""
 
         # get convention
@@ -100,11 +103,24 @@ class Sofa():
             # add attributes with default values
             self._convention_to_sofa(mandatory)
 
+            # set default for verify
+            version = \
+                self._convention['GLOBAL_SOFAConventionsVersion']['default']
+            if verify == 'auto':
+                verify = True if parse(version) >= parse('1.0') else False
+
             # add and update the API
             # (mandatory=False can not be verified because some conventions
             # have default values that have optional variables as dependencies)
             if verify and not mandatory:
                 self.verify(mode="read")
+            # warning for preliminary conventions if verification is bypassed
+            elif parse(version) < parse('1.0'):
+                warnings.warn(UserWarning((
+                    f"Detected preliminary conventions version {version}. "
+                    "Upgrade data to version >= 1.0 if possible. Preliminary "
+                    "conventions might change in the future, which could "
+                    "invalidate data that was written before the changes.")))
 
             self.protected = True
         else:
@@ -392,7 +408,7 @@ class Sofa():
             console.
         issue_handling : str, optional
             Defines how issues detected during verification of the SOFA object
-            are handeled (see :py:func:`~sofar.sofar.Sofa.verify`)
+            are handled (see :py:func:`~sofar.sofar.Sofa.verify`)
 
             ``'raise'``
                 Warnings and errors are raised if issues are detected
@@ -695,7 +711,7 @@ class Sofa():
         setattr(self, key, value)
         self.protected = True
 
-    def upgrade_convention(self, target=None, verify=True):
+    def upgrade_convention(self, target=None, verify='auto'):
         """
         Upgrade Sofa data to newer conventions.
 
@@ -713,7 +729,9 @@ class Sofa():
             conventions to which the data can be updated.
         verify : bool, optional
             Flag to specify if the data should be verified after the upgrade
-            using :py:func:`~Sofa.verify`. The default is ``True``.
+            using :py:func:`~Sofa.verify`. The default ``'auto'`` defaults to
+            ``True`` for stable conventions with versions of 1.0 or higher and
+            to ``False`` otherwise.
 
         Returns
         -------
@@ -851,6 +869,10 @@ class Sofa():
         if upgrade["message"] is not None:
             print(upgrade["message"])
 
+        # set default for verify
+        if verify == 'auto':
+            version = self.GLOBAL_SOFAConventionsVersion
+            verify = True if parse(version) >= parse('1.0') else False
         if verify:
             self.verify()
 
