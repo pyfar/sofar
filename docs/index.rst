@@ -14,8 +14,18 @@ Getting Started
    readme
 
 
-Documentation
-=============
+Examples
+========
+
+.. toctree::
+   :maxdepth: 1
+
+   notebooks_quick_tour
+   notebooks_working_with_sofa_files
+
+
+Sofar Documentation
+===================
 
 .. toctree::
    :maxdepth: 2
@@ -36,7 +46,7 @@ Contributing
 ===============
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    contributing
 

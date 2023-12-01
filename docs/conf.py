@@ -36,7 +36,9 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.autosummary',
     'sphinx.ext.imgmath',
-    'autodocsumm']
+    'autodocsumm',
+    'nbsphinx',
+    'nbsphinx_link',]
 
 # show tocs for classes and functions of modules using the autodocsumm
 # package
