@@ -8,10 +8,14 @@ version: 2
 build:
   os: ubuntu-22.04
   tools:
-    python: "miniconda3-4.7"
+    python: "3.10"
+  apt_packages:
+    - pandoc
   jobs:
     pre_create_environment:
       - cd docs && ln -f -s ../examples/data data && cd ..
+    pre_build:
+      - python -m pip install -e .
 
 # include submodule for documenting the SOFA conventions
 submodules:
@@ -26,6 +30,7 @@ sphinx:
 formats:
   - pdf
 
-# use conda to install dependencies
-conda:
-  environment: docs/rtd_environment.yml
+# use pip to install dependencies
+python:
+  install:
+    - requirements: requirements_dev.txt
