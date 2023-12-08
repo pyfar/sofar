@@ -22,9 +22,6 @@ sys.path.insert(0, os.path.abspath('..'))
 import sofar  # noqa
 import resources.conventions  # noqa: build conventions for documentation
 
-# -- Configuration for git submodules ----------------------------------
-sys.path.append(os.path.abspath('../sofar/sofa_conventions'))
-
 # -- General configuration ---------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
