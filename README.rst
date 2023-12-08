@@ -2,6 +2,14 @@
 Readme
 ======
 
+.. image:: https://badge.fury.io/py/sofar.svg
+    :target: https://badge.fury.io/py/sofar
+.. image:: https://readthedocs.org/projects/sofar/badge/?version=latest
+    :target: https://sofar.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+.. image:: https://circleci.com/gh/pyfar/sofar.svg?style=shield
+    :target: https://circleci.com/gh/pyfar/sofar
+
 Sofar is maybe the most complete Python package for the SOFA file format so
 far. SOFA files store spatially distributed acoustic data such as impulse
 responses or transfer functions. They are defined by the AES69-2022 standard
