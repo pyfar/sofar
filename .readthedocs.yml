@@ -15,7 +15,7 @@ build:
     pre_create_environment:
       - cd docs && ln -f -s ../examples/data data && cd ..
     pre_build:
-      - pip install -e .
+      - python -m pip install -e .
 
 # include submodule for documenting the SOFA conventions
 submodules:
