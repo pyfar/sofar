@@ -4,8 +4,7 @@ SOFA objects
 ============
 
 This section documents sofar SOFA objects. Functions that work on SOFA objects
-are described in the :ref:`sofar_functions` guide. For examples on how to use
-sofar refer to the :ref:`quick_tour`.
+are described in the :ref:`sofar_functions` guide.
 
 .. autoclass:: sofar.Sofa
    :members:
