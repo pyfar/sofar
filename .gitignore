@@ -66,5 +66,6 @@ docs/_build
 .appveyor.token
 *.bak
 
-# Private tests
+# Local folders
 tests/private
+docs/data

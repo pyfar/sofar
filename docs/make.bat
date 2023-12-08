@@ -26,6 +26,7 @@ if errorlevel 9009 (
 	exit /b 1
 )
 
+mklink /d data ..\examples\data
 %SPHINXBUILD% -M %1 %SOURCEDIR% %BUILDDIR% %SPHINXOPTS%
 goto end
 
