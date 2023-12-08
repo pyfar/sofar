@@ -9,6 +9,9 @@ build:
   os: ubuntu-22.04
   tools:
     python: "miniconda3-4.7"
+  jobs:
+    pre_create_environment:
+      - ln -f -s examples/data docs/data
 
 # include submodule for documenting the SOFA conventions
 submodules:
