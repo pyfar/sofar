@@ -11,7 +11,7 @@ build:
     python: "miniconda3-4.7"
   jobs:
     pre_create_environment:
-      - ln -f -s examples/data docs/data
+      - cd docs && ln -f -s ../examples/data data && cd ..
 
 # include submodule for documenting the SOFA conventions
 submodules:
