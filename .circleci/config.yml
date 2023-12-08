@@ -85,6 +85,7 @@ jobs:
           name: Examples
           command: |
             pip install -e .
+            git submodule sync --recursive && git submodule update --recursive --init
             pytest --nbmake examples/*.ipynb
 
   test_documentation_build:
