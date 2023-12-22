@@ -16,3 +16,7 @@ insipid-sphinx-theme
 autodocsumm
 netCDF4
 beautifulsoup4
+nbsphinx
+nbsphinx-link
+ipykernel
+nbmake
