@@ -69,3 +69,6 @@ docs/_build
 # Local folders
 tests/private
 docs/data
+
+# intermediate files
+examples/data/my_first.sofa
