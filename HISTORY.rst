@@ -4,6 +4,7 @@ History
 1.1.2 (2024-2-22)
 -----------------
 * Fix for working with rye package manager (PR #75)
+* Add testing for Python 3.12 (PR #76)
 
 1.1.1 (2023-7-7)
 ----------------
