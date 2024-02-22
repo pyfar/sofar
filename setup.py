@@ -15,7 +15,8 @@ requirements = [
     'netCDF4',
     'numpy>=1.14.0',
     'beautifulsoup4',
-    'requests'
+    'requests',
+    'packaging'
 ]
 
 setup_requirements = ['pytest-runner', ]
@@ -44,7 +45,8 @@ setup(
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
-        'Programming Language :: Python :: 3.11'
+        'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12'
     ],
     description="Maybe the most complete python package for SOFA files so far",
     install_requires=requirements,
@@ -64,7 +66,7 @@ setup(
         "Documentation": "https://sofar.readthedocs.io/",
         "Source Code": "https://github.com/pyfar/sofar",
     },
-    version='1.1.1',
+    version='1.1.2',
     zip_safe=False,
     python_requires='>=3.8'
 )
