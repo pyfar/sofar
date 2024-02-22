@@ -15,7 +15,8 @@ requirements = [
     'netCDF4',
     'numpy>=1.14.0',
     'beautifulsoup4',
-    'requests'
+    'requests',
+    'packaging'
 ]
 
 setup_requirements = ['pytest-runner', ]
