@@ -73,7 +73,7 @@ class Sofa():
 
 
     For more examples refer to the `Quick tour of SOFA and sofar` at
-    https://sofar.readthedocs.io/en/latest/
+    https://sofar.readthedocs.io/en/stable/
     """
 
     # these have to be set here, because they are used in __setattr__ and

@@ -127,7 +127,7 @@ You can create an html report on the test `coverage <https://coverage.readthedoc
 Writing the Documentation
 -------------------------
 
-Sofar follows the `numpy style guide <https://numpydoc.readthedocs.io/en/latest/format.html>`_ for the docstring. A docstring has to consist at least of
+Sofar follows the `numpy style guide <https://numpydoc.readthedocs.io/en/stable/format.html>`_ for the docstring. A docstring has to consist at least of
 
 - A short and/or extended summary,
 - the Parameters section, and
