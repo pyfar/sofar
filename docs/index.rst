@@ -1,10 +1,3 @@
-.. |sofar_logo| image:: resources/sofar.png
-   :width: 150
-   :alt: sofar
-
-|sofar_logo|
-
-
 Getting Started
 ===============
 
