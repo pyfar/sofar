@@ -6,6 +6,7 @@ from glob import glob
 import pytest
 from pytest import raises
 import numpy as np
+import warnings
 
 # get verification rules
 _, unit_aliases, _, _ = sf.Sofa._verification_rules()
@@ -82,19 +83,25 @@ def test_issue_handling(capfd):
         sf.Sofa._verify_handle_issues(
             warning_msg, error_msg + "error", issue_handling)
 
-    # report warning
-    issue_handling = "report"
-    with pytest.warns(None) as warning:
+    # print warning
+    issue_handling = "print"
+    with warnings.catch_warnings():
+        warnings.simplefilter('error')
         _, issues = sf.Sofa._verify_handle_issues(
             warning_msg + "warning", error_msg, issue_handling)
+    out, _ = capfd.readouterr()
     assert "warning" in issues
+    assert 'warning' in out
     assert "ERROR" not in issues
-    assert len(warning) == 0
-    # report error
+    assert "ERROR" not in out
+    # print error
     _, issues = sf.Sofa._verify_handle_issues(
             warning_msg, error_msg + "error", issue_handling)
+    out, _ = capfd.readouterr()
     assert "error" in issues
+    assert 'error' in out
     assert "WARNING" not in issues
+    assert "WARNING" not in out
 
     # test invalid data for netCDF attribute
     issue_handling = "ignore"
