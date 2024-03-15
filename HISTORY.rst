@@ -1,6 +1,11 @@
 History
 =======
 
+1.1.3 (2024-3-15)
+-----------------
+* Update documentation to pydata theme (PR #78)
+* Update testing for pytest 8.0 and above (PR #79)
+
 1.1.2 (2024-2-22)
 -----------------
 * Fix for working with rye package manager (PR #75)
