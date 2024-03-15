@@ -67,7 +67,7 @@ setup(
         "Documentation": "https://sofar.readthedocs.io/",
         "Source Code": "https://github.com/pyfar/sofar",
     },
-    version='1.1.2',
+    version='1.1.3',
     zip_safe=False,
     python_requires='>=3.8'
 )
