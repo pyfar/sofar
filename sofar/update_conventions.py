@@ -1,5 +1,6 @@
 import contextlib
 import os
+import re
 import glob
 import json
 import requests
@@ -377,13 +378,18 @@ def _check_congruency(save_dir=None, branch="master"):
 
     # get file names of conventions from github
     url = urls_check[1]
-    page = requests.get(url).json()
-    sofatoolbox = []
-    for content in page["payload"]["tree"]["items"]:
-        if content["contentType"] == "file" and \
-                content["path"].startswith("SOFAtoolbox/conventions") and \
-                content["name"].endswith("csv"):
-            sofatoolbox.append(content["name"])
+    page = requests.get(url).text
+    sofatoolbox = re.findall(
+        r'"SOFAtoolbox/conventions/([^"]+\.csv)"', page)
+
+    # This worked before approx. March 2024. Old version is kept for reference.
+    # page = requests.get(url).json()
+    # sofatoolbox = []
+    # for content in page["payload"]["tree"]["items"]:
+    #     if content["contentType"] == "file" and \
+    #             content["path"].startswith("SOFAtoolbox/conventions") and \
+    #             content["name"].endswith("csv"):
+    #         sofatoolbox.append(content["name"])
 
     if not sofatoolbox:
         raise ValueError(f"Did not find any conventions at {url}")
