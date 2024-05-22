@@ -120,7 +120,7 @@ class SofaStream():
         """
         Get information about the data inside a SOFA-file
 
-        Prints all relevant information about attributes, variables and their
+        Prints all information about attributes, variables and their
         shape, dimensions and values that are contained in a SOFA-file.
 
         Parameters
@@ -130,8 +130,6 @@ class SofaStream():
             plain text. The default ``None`` only print the information to the
             console.
         """
-
-        ## Catch Error if Attribute not in Dataset??
 
         # Header of inspect-print
         info_str = (
@@ -192,10 +190,3 @@ class SofaStream():
 
         # print to console
         print(info_str)
-
-# %%
-
-fn = r'C:\Users\HP\Downloads\FABIAN_HRIR_measured_HATO_0.sofa'
-
-with SofaStream(fn) as file:
-    file.inspect()
