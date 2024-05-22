@@ -13,7 +13,7 @@ sofar refer to the :ref:`quick_tour`.
    :show-inheritance:
    :exclude-members:
 
-.. autoclass:: sofar.Sofastream
+.. autoclass:: sofar.SofaStream
    :members:
    :undoc-members:
    :show-inheritance:
