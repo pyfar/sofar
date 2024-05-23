@@ -51,7 +51,7 @@ Refer to the `contribution guidelines`_ for more information.
 .. _sofa_conventions : https://github.com/pyfar/sofa_conventions
 .. _contribution guidelines: https://github.com/pyfar/sofar/blob/develop/CONTRIBUTING.rst
 .. _pyfar.org: https://pyfar.org
-.. _read the docs: https://sofar.readthedocs.io/en/latest
+.. _read the docs: https://sofar.readthedocs.io/en/stable
 .. _sofaconventions.org: https://sofaconventions.org
 
 References

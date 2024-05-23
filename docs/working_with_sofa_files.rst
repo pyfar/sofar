@@ -119,7 +119,7 @@ Next steps
 For detailed information about sofar refer to the :ref:`sofar_SOFA` and :ref:`sofar_functions` documentation.
 Pyfar also offers methods for digital signal processing that wont be detailed
 here. A god way to dive into that is the
-`pyfar documentation <https://pyfar.readthedocs.io/en/latest/>`_ and the
+`pyfar documentation <https://pyfar.readthedocs.io/en/stable/>`_ and the
 `pyfar examples notebook <https://mybinder.org/v2/gh/pyfar/pyfar/main?filepath=examples%2Fpyfar_demo.ipynb>`_.
 
 .. |source_lateral| image:: resources/working_with_sofa_source_lateral.png
