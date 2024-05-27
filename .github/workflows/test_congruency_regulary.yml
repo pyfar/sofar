@@ -1,4 +1,4 @@
-name: run congruency regularly
+name: test congruency regularly
 
 on:
   workflow_dispatch:
