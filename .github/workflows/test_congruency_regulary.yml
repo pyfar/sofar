@@ -1,10 +1,9 @@
 name: run congruency regularly
 
 on:
-  schedule: [
+  schedule:
     # run every Monday at 10:00 UTC
-    cron: '30 19 * * 1'
-  ]
+    - cron: '31 19 * * 1'
 
 jobs:
   build:
