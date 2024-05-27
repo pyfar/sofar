@@ -2,7 +2,7 @@ name: run congruency regularly
 
 on:
   schedule:
-    - cron: '33 19 * * 1'  # run every Monday at 10:00 UTC
+    - cron: '49 * * * 1'  # run every Monday at 10:00 UTC
 
 jobs:
   build:
