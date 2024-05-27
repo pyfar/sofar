@@ -2,7 +2,7 @@ name: run congruency regularly
 
 schedule: [
     # run every Monday at 10:00 UTC
-    cron: '15 19 * * 1'
+    cron: '18 19 * * 1'
 ]
 
 jobs:
