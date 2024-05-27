@@ -1,6 +1,6 @@
 name: run congruency regularly
 
-on: [
+schedule: [
     # run every Monday at 10:00 UTC
     cron: '15 19 * * 1'
 ]
