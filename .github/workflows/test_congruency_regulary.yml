@@ -1,6 +1,7 @@
 name: run congruency regularly
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '49 * * * 1'  # run every Monday at 10:00 UTC
 
