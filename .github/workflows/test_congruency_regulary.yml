@@ -1,4 +1,3 @@
-congruency
 name: run congruency regularly
 
 on: [
