@@ -382,15 +382,6 @@ def _check_congruency(save_dir=None, branch="master"):
     sofatoolbox = re.findall(
         r'"SOFAtoolbox/conventions/([^"]+\.csv)"', page)
 
-    # This worked before approx. March 2024. Old version is kept for reference.
-    # page = requests.get(url).json()
-    # sofatoolbox = []
-    # for content in page["payload"]["tree"]["items"]:
-    #     if content["contentType"] == "file" and \
-    #             content["path"].startswith("SOFAtoolbox/conventions") and \
-    #             content["name"].endswith("csv"):
-    #         sofatoolbox.append(content["name"])
-
     if not sofatoolbox:
         raise ValueError(f"Did not find any conventions at {url}")
 
