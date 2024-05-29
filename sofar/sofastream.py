@@ -1,17 +1,13 @@
 from netCDF4 import Dataset
 import numpy as np
 
+
 class SofaStream():
     """
-    Get specific data from SOFA-file without reading entire file into memory.
+    Get data from SOFA-file without reading entire file into memory.
 
-    :class:`SofaStream` opens a SOFA-file and retreives only the requested
-    data. To access certain data just append its name to your
-    :class:`SofaStream`-instance, e.g. ``'.GLOBAL_RoomType'``.
-    :class:`SofaStream` uses the namespace of sofar – for more information on
-    available data and its associated names refer to the :ref:`conventions
-    section <conventions_introduction>`. Also make sure to check the examples
-    below on how to use :class:`SofaStream`.
+    :class:`SofaStream` opens a SOFA-file and retrieves only the requested
+    data. See the examples below on how to use :class:`SofaStream`.
 
     Parameters
     ----------
@@ -20,29 +16,15 @@ class SofaStream():
 
     Returns
     --------
-    sofastream : SofaStream
-
-    Notes
-    -----
-    Accessing data:
-
-    SofaStream is supposed to be used within a with-statement. To acces data
-    append the corresponding name to your instance of :class:`SofaStream`.
-
-    Depending on the type of the requested data you either get the values
-    directly or need to slice the returned variable:
-
-    - If an attribute is called, its value is returned directly.
-    - If a variable is called, a netCDF4-variable is returned. To get the
-      values it needs to be sliced (see examples).
+    sofa_stream : SofaStream
 
     Examples
     --------
     Get an attribute from a SOFA-file:
 
-        >>> from sofar import SofaStream
+        >>> import sofar as sf
         >>> filename = "path/to/file.sofa"
-        >>> with SofaStream(filename) as file:
+        >>> with sf.SofaStream(filename) as file:
         >>>     data = file.GLOBAL_RoomType
         >>>     print(data)
         free field
@@ -71,6 +53,8 @@ class SofaStream():
         >>>     specific_irs = data[:,0,:]
         >>>     print(specific_irs.shape)
         (11950, 256)
+
+    If you want to use all the data from a SOFA-file use :class:`SOFA` instead.
     """
 
     def __init__(self, filename):
@@ -94,10 +78,8 @@ class SofaStream():
 
         # Handle variable-attributes (e.g. '_Units' and '_Type')
         var_attr = None
-        if "_Units" in name_netcdf or "_Type" in name_netcdf:
-            name_split = name_netcdf.split('_')
-            name_netcdf = name_split[0]
-            var_attr = name_split[1]
+        if "_" in name_netcdf:
+            name_netcdf, var_attr = name_netcdf.split('_')
 
         # get value if passed attribute points to a netCDF4-variable
         if name_netcdf in dset_variables:
@@ -112,7 +94,7 @@ class SofaStream():
             self._data = self._file.getncattr(name_netcdf)
 
         else:
-            raise ValueError("attribute is not in dataset")
+            raise AttributeError(f"{name} is not contained in SOFA-file")
 
         return self._data
 
@@ -120,8 +102,11 @@ class SofaStream():
         """
         Get information about the data inside a SOFA-file
 
-        Prints all information about attributes, variables and their
-        shape, dimensions and values that are contained in a SOFA-file.
+        Prints the values of all attributes and variables with six or less
+        entries and the shapes and type of all numeric and string variables.
+        When printing the values of arrays, single dimensions are discarded for
+        easy of display, i.e., an array of shape (1, 3, 2) will be displayed as
+        an array of shape (3, 2).
 
         Parameters
         ----------
@@ -135,8 +120,8 @@ class SofaStream():
         info_str = (
             f"{self._file.getncattr('SOFAConventions')} "
             f"{self._file.getncattr('SOFAConventionsVersion')} "
-            f"(SOFA version {self._file.getncattr('Version')})")
-        info_str += "\n" + "-" * len(info_str) + "\n"
+            f"(SOFA version {self._file.getncattr('Version')})\n")
+        info_str += "-" * len(info_str) + "\n"
 
         # information for attributes
         for attr in self._file.ncattrs():

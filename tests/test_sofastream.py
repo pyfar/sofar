@@ -1,23 +1,11 @@
 from sofar import SofaStream
-import sofar as sf
 from tempfile import TemporaryDirectory
 from pytest import raises
-import pytest
 import netCDF4
 import numpy as np
 import os
+import sofar as sf
 
-# Temporary SOFA-file
-@pytest.fixture
-def temp_sofa_file(tmp_path_factory):
-
-    filename = tmp_path_factory.mktemp("data") / "test_sofastream.sofa"
-    sofa = sf.Sofa("SimpleFreeFieldHRIR")
-    sofa.Data_IR = np.array([[0, 1], [2, 3], [4, 5]])
-    sofa.GLOBAL_RoomType = "free field"
-    sofa.Data_SamplingRate_Units = "hertz"
-    sf.write_sofa(filename, sofa)
-    return filename
 
 def test_sofastream_output(temp_sofa_file):
 
@@ -41,11 +29,14 @@ def test_sofastream_output(temp_sofa_file):
         isinstance(att_data, str)
         assert att_data == "free field"
 
-def test_sofastream_warnings(temp_sofa_file):
+
+def test_sofastream_attribute_error(temp_sofa_file):
 
     with SofaStream(temp_sofa_file) as file:
-        with raises(ValueError, match="attribute is not in dataset"):
+        with raises(AttributeError,
+                    match="Wrong_Attribute is not contained in SOFA-file"):
             file.Wrong_Attribute
+
 
 def test_sofastream_inspect(capfd, temp_sofa_file):
 
@@ -55,12 +46,12 @@ def test_sofastream_inspect(capfd, temp_sofa_file):
     with SofaStream(temp_sofa_file) as file:
         file.inspect(inspect_file)
         out, _ = capfd.readouterr()
-        assert "GLOBAL_SOFAConventions : SimpleFreeFieldHRIR" in out
-        assert "Data_SamplingRate_Units : hertz" in out
-        assert ("Data_IR : (M=3, R=2, N=1)\n"
-                "  [[0. 1.]\n"
-                "   [2. 3.]\n"
-                "   [4. 5.]]") in out
+
+    sofa = sf.read_sofa(temp_sofa_file)
+    sofa.inspect()
+    out_sofa, _ = capfd.readouterr()
+
+    assert out_sofa == out
 
     # check text file
     with open(inspect_file, "r") as out_inspect:
