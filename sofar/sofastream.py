@@ -9,6 +9,9 @@ class SofaStream():
     :class:`SofaStream` opens a SOFA-file and retrieves only the requested
     data. See the examples below on how to use :class:`SofaStream`.
 
+    If you want to use all the data from a SOFA-file use :class:`Sofa`
+    class and :func:`read_sofa` function instead.
+
     Parameters
     ----------
     filename : str
@@ -53,8 +56,6 @@ class SofaStream():
         >>>     specific_irs = data[:,0,:]
         >>>     print(specific_irs.shape)
         (11950, 256)
-
-    If you want to use all the data from a SOFA-file use :class:`SOFA` instead.
     """
 
     def __init__(self, filename):
