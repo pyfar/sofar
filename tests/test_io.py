@@ -182,7 +182,7 @@ def test_roundtrip(mandatory):
 
 def test_roundtrip_multidimensional_string_variable():
     """
-    Test writing and reading multidimensional string variables (Wringting
+    Test writing and reading multidimensional string variables (Writing
     string variables with one dimension is done in the other roundtrip test).
     """
 

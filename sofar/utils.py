@@ -143,7 +143,7 @@ def equals(sofa_a, sofa_b, verbose=True, exclude=None):
         ``'GLOBAL'``
             Exclude all global attributes, i.e., fields starting with 'GLOBAL:'
         ``'DATE'``
-            Exclude date attributs, i.e., fields that contain 'Date'
+            Exclude date attributes, i.e., fields that contain 'Date'
         ``'ATTR'``
             Exclude all attributes, i.e., fields that contain ':'
 
