@@ -4,10 +4,11 @@ import numpy as np
 
 class SofaStream():
     """
-    Get data from SOFA-file without reading entire file into memory.
+    Read desired data from SOFA-file directly from disk without loading entire
+    file into memory.
 
     :class:`SofaStream` opens a SOFA-file and retrieves only the requested
-    data. See the examples below on how to use :class:`SofaStream`.
+    data.
 
     If you want to use all the data from a SOFA-file use :class:`Sofa`
     class and :func:`read_sofa` function instead.
@@ -20,6 +21,7 @@ class SofaStream():
     Returns
     --------
     sofa_stream : SofaStream
+        A SofaStream object which reads directly from the file.
 
     Examples
     --------
