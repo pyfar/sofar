@@ -2,11 +2,9 @@ Getting Started
 ===============
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    readme
-   examples
-   working_with_sofa_files
 
 
 Documentation
