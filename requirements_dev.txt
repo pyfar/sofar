@@ -6,7 +6,6 @@ flake8
 coverage
 Sphinx
 twine
-
 pytest
 pytest-runner
 pytest-cov
