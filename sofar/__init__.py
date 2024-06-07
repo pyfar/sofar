@@ -8,6 +8,8 @@ __version__ = '1.1.3'
 
 from .sofa import Sofa
 
+from .sofastream import SofaStream
+
 from .io import read_sofa, read_sofa_as_netcdf, write_sofa
 
 from .utils import (list_conventions,
@@ -18,6 +20,7 @@ from .update_conventions import update_conventions
 
 
 __all__ = ['Sofa',
+           'SofaStream',
            'update_conventions',
            'list_conventions',
            'read_sofa',

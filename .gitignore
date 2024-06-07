@@ -68,3 +68,6 @@ docs/_build
 
 # Private tests
 tests/private
+
+# Automatically created conventions-file
+docs/resources/conventions.rst
