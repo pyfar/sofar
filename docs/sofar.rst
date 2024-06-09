@@ -3,9 +3,11 @@ sofar
 
 .. toctree::
    :caption: Getting Started
-   :maxdepth: 2
+   :maxdepth: 1
 
    readme
+   examples
+   working_with_sofa_files
 
 
 .. toctree::
@@ -15,14 +17,12 @@ sofar
    modules
 
 
-SOFA conventions
-================
-
 .. toctree::
+   :caption: SOFA conventions
    :maxdepth: 1
 
    resources/conventions
-   
+
 
 .. toctree::
    :caption: Contributing

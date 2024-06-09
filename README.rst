@@ -55,12 +55,6 @@ Contributing
 
 Check out the `contributing guidelines`_ if you want to become part of pyfar.
 
-.. _pyfar workshop: https://mybinder.org/v2/gh/pyfar/gallery/main?labpath=docs/gallery/interactive/pyfar_introduction.ipynb
-.. _pyfar example gallery: https://pyfar-gallery.readthedocs.io/en/latest/examples_gallery.html
-.. _pyfar documentation: https://pyfar.readthedocs.io
-.. _pyfar.org: https://pyfar.org
-.. _help section: https://pyfar-gallery.readthedocs.io/en/latest/help
-.. _contributing guidelines: https://pyfar.readthedocs.io/en/stable/contributing.html
 References
 ==========
 
@@ -72,3 +66,11 @@ P. Majdak, F. Zotter, F. Brinkmann, J. De Muynke, M. Mihocic, and M.
 Noisternig, "Spatially Oriented Format for Acoustics 2.1: Introduction and
 Recent Advances", *J. Audio Eng. Soc.*, vol. 70, no. 7/8, pp. 565-584,
 Jul. 2022. DOI: https://doi.org/10.17743/jaes.2022.0026
+
+.. _sofa_conventions : https://github.com/pyfar/sofa_conventions
+.. _pyfar workshop: https://mybinder.org/v2/gh/pyfar/gallery/main?labpath=docs/gallery/interactive/pyfar_introduction.ipynb
+.. _pyfar example gallery: https://pyfar-gallery.readthedocs.io/en/latest/examples_gallery.html
+.. _pyfar documentation: https://pyfar.readthedocs.io
+.. _pyfar.org: https://pyfar.org
+.. _help section: https://pyfar-gallery.readthedocs.io/en/latest/help
+.. _contributing guidelines: https://pyfar.readthedocs.io/en/stable/contributing.html
