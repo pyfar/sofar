@@ -15,6 +15,15 @@ sofar
    modules
 
 
+SOFA conventions
+================
+
+.. toctree::
+   :maxdepth: 1
+
+   resources/conventions
+   
+
 .. toctree::
    :caption: Contributing
    :maxdepth: 1
