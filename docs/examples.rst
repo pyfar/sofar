@@ -235,7 +235,7 @@ to date.
 Next steps
 ==========
 
-For detailed information about sofar refer to the :ref:`sofar_SOFA` and :ref:`sofar_functions` documentation.
+For detailed information about sofar refer to the :mod:`sofar` documentation.
 For examples on how to work with the data inside SOFA files refer to :ref:`working_with_sofa`.
 
 

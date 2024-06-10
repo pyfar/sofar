@@ -1,0 +1,13 @@
+name: sofar
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pip
+  - numpy>=1.14.0
+  - pip:
+    - netCDF4
+    - beautifulsoup4
+    - requests
+    - packaging

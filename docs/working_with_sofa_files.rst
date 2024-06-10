@@ -116,7 +116,7 @@ formatting
 Next steps
 ==========
 
-For detailed information about sofar refer to the :ref:`sofar_SOFA` and :ref:`sofar_functions` documentation.
+For detailed information about sofar refer to the :mod:`sofar` documentation.
 Pyfar also offers methods for digital signal processing that wont be detailed
 here. A god way to dive into that is the
 `pyfar documentation <https://pyfar.readthedocs.io/en/stable/>`_ and the
