@@ -10,7 +10,7 @@ sofar
 .. image:: https://circleci.com/gh/pyfar/sofar.svg?style=shield
     :target: https://circleci.com/gh/pyfar/sofar
 .. image:: https://mybinder.org/badge_logo.svg
-    :target: https://mybinder.org/v2/gh/pyfar/gallery/main?labpath=docs/gallery/interactive/pyfar_introduction.ipynb
+    :target: https://mybinder.org/v2/gh/pyfar/gallery/main?labpath=docs/gallery/interactive/sofar_introduction.ipynb
 
 
 Sofar is maybe the most complete Python package for the SOFA file format so
