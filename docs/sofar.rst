@@ -6,8 +6,6 @@ sofar
    :maxdepth: 1
 
    readme
-   examples
-   working_with_sofa_files
 
 
 .. toctree::

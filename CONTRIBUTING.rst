@@ -6,7 +6,7 @@ Contributing
 
 Contributions are welcome, and they are greatly appreciated! Every little bit
 helps, and credit will always be given. The following helps you to start
-contributing specifically to pyfar. Please also consider the
+contributing specifically to sofar. Please also consider the
 `general contributing guidelines`_ for example regarding the style
 of code and documentation and some helpful hints.
 
@@ -75,5 +75,17 @@ Ready to contribute? Here's how to set up `sofar` for local development using th
 
 7. Submit a pull request on the develop branch through the GitHub website.
 
+
+Submodules
+~~~~~~~~~~
+
+To update the submodule containing the conventions and verification rules run
+
+.. code-block:: bash
+
+    $ git submodule update --init --recursive
+    $ git submodule update --recursive --remote
+
+and then commit the changes
 
 .. _general contributing guidelines: https://pyfar-gallery.readthedocs.io/en/latest/contribute/index.html
