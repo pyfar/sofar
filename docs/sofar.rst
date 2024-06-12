@@ -12,8 +12,9 @@ sofar
    :caption: Documentation
    :maxdepth: 2
 
-   modules
-
+   sofar.Sofa
+   sofar.functions
+   
 
 .. toctree::
    :caption: SOFA conventions
