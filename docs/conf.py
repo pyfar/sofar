@@ -89,6 +89,7 @@ highlight_language = "python3"
 # intersphinx mapping
 intersphinx_mapping = {
     'numpy': ('https://numpy.org/doc/stable/', None),
+    'gallery': ('https://pyfar-gallery.readthedocs.io/en/latest/', None),
     }
 
 # -- Options for HTML output -------------------------------------------------
