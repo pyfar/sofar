@@ -97,6 +97,7 @@ intersphinx_mapping = {
     'scipy': ('https://docs.scipy.org/doc/scipy/', None),
     'matplotlib': ('https://matplotlib.org/stable/', None),
     'pyfar': ('https://pyfar.readthedocs.io/en/stable/', None),
+    'gallery': ('https://pyfar-gallery.readthedocs.io/en/latest/', None),
     }
 
 # -- Options for HTML output -------------------------------------------------
