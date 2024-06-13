@@ -19,18 +19,20 @@ requirements = [
     'packaging'
 ]
 
-setup_requirements = ['pytest-runner', ]
+setup_requirements = [
+    'pytest-runner',
+]
 
 test_requirements = [
-    'pip'
     'pytest',
     'bump2version',
     'wheel',
     'watchdog',
-    'flake8',
+    'ruff',
     'coverage',
     'Sphinx',
-    'twine'
+    'twine',
+    'pydata-sphinx-theme',
 ]
 
 setup(
@@ -46,7 +48,7 @@ setup(
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
-        'Programming Language :: Python :: 3.12'
+        'Programming Language :: Python :: 3.12',
     ],
     description="Maybe the most complete python package for SOFA files so far",
     install_requires=requirements,
@@ -68,5 +70,5 @@ setup(
     },
     version='1.1.3',
     zip_safe=False,
-    python_requires='>=3.8'
+    python_requires='>=3.8',
 )

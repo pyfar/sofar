@@ -1,4 +1,3 @@
-include AUTHORS.rst
 include CONTRIBUTING.rst
 include HISTORY.rst
 include LICENSE
@@ -10,3 +9,9 @@ recursive-include sofar/sofa_conventions/conventions *.json
 recursive-include sofar/sofa_conventions/conventions/deprecated *.csv
 recursive-include sofar/sofa_conventions/conventions/deprecated *.json
 recursive-include sofar/sofa_conventions/rules *.json
+
+recursive-include tests *
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+
+recursive-include docs *.rst conf.py Makefile make.bat *.jpg *.png *.gif

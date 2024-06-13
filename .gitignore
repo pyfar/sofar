@@ -1,70 +1,124 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
 *.py[cod]
+*$py.class
 
 # C extensions
 *.so
 
-# Packages
-*.egg
-*.egg-info
-dist
-build
-eggs
-.eggs
-parts
-bin
-var
-sdist
-wheelhouse
-develop-eggs
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
 .installed.cfg
-lib
-lib64
-venv*/
-env/
-pyvenv*/
-.pytest_cache/
-**/__pycache__/
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
 
 # Installer logs
 pip-log.txt
+pip-delete-this-directory.txt
 
 # Unit test / coverage reports
+htmlcov/
 .coverage
 .coverage.*
+.cache
 nosetests.xml
 coverage.xml
-htmlcov
+*.cover
+.hypothesis/
+.pytest_cache/
 
 # Translations
 *.mo
+*.pot
 
-# Mr Developer
-.mr.developer.cfg
-.project
-.pydevproject
-.idea
-*.iml
-*.komodoproject
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
 
-# Complexity
-output/*.html
-output/*/index.html
+# Flask stuff:
+instance/
+.webassets-cache
 
-# Sphinx
-docs/_build
+# Scrapy stuff:
+.scrapy
 
-.DS_Store
-.vscode
-*~
-.*.sw[po]
-.build
-.ve
+# Sphinx documentation
+docs/_build/
+docs/_autosummary
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# pyenv
+.python-version
+
+# celery beat schedule file
+celerybeat-schedule
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
 .env
-.cache
-.pytest
-.bootstrap
-.appveyor.token
-*.bak
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
-# Private tests
-tests/private
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+
+# vs code
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
+
+# workaround for failing test discovery in vscode
+tests/*/__init__.py
+tests/private/
+
+# ignore downloads from pyfar gallery
+docs/header.rst
+docs/_static/favicon.ico
+docs/_static/header.rst
+docs/_static/css/custom.css
+docs/resources/logos/pyfar_logos_fixed_size_sofar.png
+docs/resources/conventions.rst

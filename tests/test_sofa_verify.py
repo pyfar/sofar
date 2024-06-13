@@ -11,7 +11,7 @@ import warnings
 # get verification rules
 _, unit_aliases, _, _ = sf.Sofa._verification_rules()
 
-# directory containing the verificatin data
+# directory containing the verification data
 basedir = os.path.join(os.path.dirname(__file__), "..", "sofar",
                        "sofa_conventions", "data")
 

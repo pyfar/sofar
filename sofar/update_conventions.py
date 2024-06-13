@@ -56,7 +56,7 @@ def update_conventions(conventions_path=None, assume_yes=False):
         # coping with keyboard input
         print(("Are you sure that you want to update the conventions? "
                "Read the documentation before continuing. "
-               "If updateing breaks sofar it has to be re-installed"
+               "If updating breaks sofar it has to be re-installed"
                "(y/n)"))
         response = input()
         if response != "y":
