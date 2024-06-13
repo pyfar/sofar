@@ -57,3 +57,70 @@ def test_sofastream_inspect(capfd, temp_sofa_file):
     with open(inspect_file, "r") as out_inspect:
         text = out_inspect.readlines()
     assert out == "".join(text)
+
+
+def test_list_dimensions(capfd, tmp_path_factory):
+
+    filename = tmp_path_factory.mktemp("data") / "test_sofastream_dim.sofa"
+
+    # test FIR Data
+    sofa = sf.Sofa("GeneralFIR")
+    sf.write_sofa(filename, sofa)
+    with SofaStream(filename) as file:
+        file.list_dimensions
+        out, _ = capfd.readouterr()
+        assert "N = 1 samples" in out
+
+    # test TF Data
+    sofa = sf.Sofa("GeneralTF")
+    sf.write_sofa(filename, sofa)
+    with SofaStream(filename) as file:
+        file.list_dimensions
+        out, _ = capfd.readouterr()
+        assert "N = 1 frequencies" in out
+
+    # test SOS Data
+    sofa = sf.Sofa("SimpleFreeFieldHRSOS")
+    sf.write_sofa(filename, sofa)
+    with SofaStream(filename) as file:
+        file.list_dimensions
+        out, _ = capfd.readouterr()
+        assert "N = 6 SOS coefficients" in out
+
+    # test non spherical harmonics data
+    sofa = sf.Sofa("GeneralFIR")
+    sf.write_sofa(filename, sofa)
+    with SofaStream(filename) as file:
+        file.list_dimensions
+        out, _ = capfd.readouterr()
+        assert "E = 1 emitter" in out
+        assert "R = 1 receiver" in out
+
+    # test spherical harmonics data
+    sofa.EmitterPosition_Type = "spherical harmonics"
+    sofa.ReceiverPosition_Type = "spherical harmonics"
+    sofa.EmitterPosition_Units = "degree, degree, metre"
+    sofa.ReceiverPosition_Units = "degree, degree, metre"
+    sf.write_sofa(filename, sofa)
+    with SofaStream(filename) as file:
+        file.list_dimensions
+        out, _ = capfd.readouterr()
+    assert "E = 1 emitter spherical harmonics coefficients" in out
+    assert "R = 1 receiver spherical harmonics coefficients" in out
+
+
+def test_get_dimensions(tmp_path_factory):
+    """Test getting the size of dimensions"""
+    filename = tmp_path_factory.mktemp("data") / "test_sofastream_dim.sofa"
+
+    # test FIR Data
+    sofa = sf.Sofa("GeneralFIR")
+    sf.write_sofa(filename, sofa)
+
+    with SofaStream(filename) as file:
+        size = file.get_dimension('N')
+        assert size == 1
+
+        # test wrong dimension error
+        with raises(ValueError, match="Q is not a valid dimension"):
+            file.get_dimension("Q")

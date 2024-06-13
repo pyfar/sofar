@@ -101,6 +101,108 @@ class SofaStream():
 
         return self._data
 
+    @property
+    def list_dimensions(self):
+        """
+        Print the dimensions of the SOFA-file
+
+        See :py:func:`~SofaStream.inspect` to see the shapes of the data inside
+        the SOFA-file and :py:func:`~SofaStream.get_dimension` to get the
+        size/value of a specific dimensions as integer number.
+
+        The SOFA standard defines the following dimensions that are used
+        to define the shape of the data entries:
+
+        M
+            number of measurements
+        N
+            number of samles, frequencies, SOS coefficients
+            (depending on self.GLOBAL_DataType)
+        R
+            Number of receivers or SH coefficients
+            (depending on ReceiverPosition_Type)
+        E
+            Number of emitters or SH coefficients
+            (depending on EmitterPosition_Type)
+        S
+            Maximum length of a string in a string array
+        C
+            Size of the coordinate dimension. This is always three.
+        I
+            Single dimension. This is always one.
+
+        """
+        dim = self._file.dimensions
+
+        # get verbose description for dimesion N
+        if self._file.getncattr('DataType').startswith("FIR"):
+            N_verbose = "samples"
+        elif self._file.getncattr('DataType').startswith("TF"):
+            N_verbose = "frequencies"
+        elif self._file.getncattr('DataType').startswith("SOS"):
+            N_verbose = "SOS coefficients"
+
+        # get verbose description for dimensions R and E
+        R_verbose = (
+            "receiver spherical harmonics coefficients"
+            if 'harmonic'
+            in self._file.variables['ReceiverPosition'].getncattr('Type')
+            else "receiver"
+            )
+        E_verbose = (
+            "emitter spherical harmonics coefficients"
+            if 'harmonic'
+            in self._file.variables['EmitterPosition'].getncattr('Type')
+            else "emitter"
+            )
+
+        dimensions = {
+            "M": "measurements",
+            "N": N_verbose,
+            "R": R_verbose,
+            "E": E_verbose,
+            "S": "maximum string length",
+            "C": "coordinate dimensions, fixed",
+            "I": "single dimension, fixed"}
+
+        info_str = ""
+        for key, value in dim.items():
+            value = value.size
+            dim_info = dimensions[key] if key in dimensions \
+                else "custom dimension"
+
+            info_str += f"{key} = {value} {dim_info}" + '\n'
+
+        print(info_str)
+
+    def get_dimension(self, dimension):
+        """
+        Get size of a SOFA dimension
+
+        SOFA dimensions specify the shape of the data contained in a SOFA-file
+        object. For a list of all dimensions see :py:func:`~list_dimensions`.
+
+        Parameters
+        ----------
+        dimension : str
+            The dimension as a string, e.g., ``'N'``.
+
+        Returns
+        -------
+        size : int
+            the size of the queried dimension.
+        """
+
+        # get dimensons from SOFA-file
+        dims = self._file.dimensions
+
+        if dimension not in dims.keys():
+            raise ValueError((
+                f"{dimension} is not a valid dimension. "
+                "See Sofa.list_dimensions for a list of valid dimensions."))
+
+        return dims[dimension].size
+
     def inspect(self, file=None):
         """
         Get information about the data inside a SOFA-file
