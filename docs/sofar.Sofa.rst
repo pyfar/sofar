@@ -10,7 +10,9 @@ To open a SOFA file without reading the entire file into memory,
 
 This section documents sofar SOFA objects and SofaStream. Functions that work
 on SOFA objects are described in the :ref:`sofar_functions` guide. For examples
-on how to use sofar refer to the :ref:`quick_tour`.
+on how to use sofar refer to the
+:ref:`sofa and SOFA <gallery:/gallery/interactive/sofar_introduction.ipynb>`
+examples.
 
 .. autoclass:: sofar.Sofa
    :members:
