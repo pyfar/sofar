@@ -45,7 +45,7 @@ jobs:
           name: Run tests
           command: git submodule sync --recursive && git submodule update --recursive --init && pytest
 
-  flake:
+  ruff:
     parameters:
       version:
         description: "version tag"
@@ -63,7 +63,7 @@ jobs:
           pip-dependency-file: requirements_dev.txt
       - run:
           name: Flake8
-          command: git submodule sync --recursive && git submodule update --recursive --init && flake8 sofar tests
+          command: git submodule sync --recursive && git submodule update --recursive --init && ruff check
 
   test_documentation_build:
     parameters:
@@ -132,7 +132,7 @@ workflows:
                 - "3.10"
                 - "3.11"
                 - "3.12"
-      - flake:
+      - ruff:
           matrix:
             parameters:
               version:
@@ -168,7 +168,7 @@ workflows:
             tags:
               only: /^v[0-9]+(\.[0-9]+)*$/
 
-      - flake:
+      - ruff:
           matrix:
             parameters:
               version:
@@ -203,7 +203,7 @@ workflows:
                 - "3.12"
           requires:
             - build_and_test
-            - flake
+            - ruff
             - test_documentation_build
           filters:
             branches:

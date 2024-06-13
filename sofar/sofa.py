@@ -184,7 +184,7 @@ class Sofa():
         M
             number of measurements
         N
-            number of samles, frequencies, SOS coefficients
+            number of samples, frequencies, SOS coefficients
             (depending on self.GLOBAL_DataType)
         R
             Number of receivers or SH coefficients
@@ -204,7 +204,7 @@ class Sofa():
         # Check if the dimensions can be updated
         self._update_dimensions()
 
-        # get verbose description for dimesion N
+        # get verbose description for dimension N
         if self.GLOBAL_DataType.startswith("FIR"):
             N_verbose = "samples"
         elif self.GLOBAL_DataType.startswith("TF"):
@@ -419,7 +419,7 @@ class Sofa():
             ``'ignore'``
                 Issues are ignored, i.e., not raised, printed, or returned.
 
-            The default is ``print'``.
+            The default is ``'print'``.
         """
 
         # update the private attribute `_convention` to make sure the required
@@ -554,7 +554,7 @@ class Sofa():
             # add numeric data
             sofa.add_variable("Temperature", 25.1, "double", "MI")
 
-            # add GLOBAL and Variable attribtue
+            # add GLOBAL and Variable attribute
             sofa.add_entry(
                 "GLOBAL_DateMeasured", "8.08.2021", "attribute", None)
             sofa.add_entry(
@@ -585,7 +585,7 @@ class Sofa():
             import sofar as sf
             sofa = sf.Sofa("GeneralTF")
 
-            # add GLOBAL and Variable attribtue
+            # add GLOBAL and Variable attribute
             sofa.add_attribute("GLOBAL_DateMeasured", "8.08.2021")
             sofa.add_attribute("Data_Real_Units", "Pascal")
 
@@ -922,7 +922,7 @@ class Sofa():
         Parameters
         ----------
         issue_handling : str, optional
-            Defines how detected issues are handeled
+            Defines how detected issues are handled
 
             ``'raise'``
                 Warnings and errors are raised if issues are detected
@@ -1010,7 +1010,7 @@ class Sofa():
 
             elif dtype == "double":
                 # multiple checks needed because sofar does not force the user
-                # to initally pass data as numpy arrays
+                # to initially pass data as numpy arrays
                 if not isinstance(value,
                                   (np.int_, np.float_, np.double, np.ndarray)):
                     current_error += (f"- {key} must be int, float or numpy "
@@ -1024,7 +1024,7 @@ class Sofa():
 
             elif dtype == "string":
                 # multiple checks needed because sofar does not force the user
-                # to initally pass data as numpy arrays
+                # to initially pass data as numpy arrays
                 if not isinstance(value, (str, np.ndarray)):
                     current_error += (f"- {key} must be string or numpy array "
                                       f"but is {type(value)}\n")
@@ -1232,7 +1232,7 @@ class Sofa():
                     [self._api[d.upper()] if d != "S" else 1 for d in dim])
 
                 # get shape for comparison to correct length by cropping and
-                # appending singelton dimensions if required
+                # appending singleton dimensions if required
                 shape_compare = shape_act[:len(shape_ref)]
                 for _ in range(len(shape_ref) - len(shape_compare)):
                     shape_compare += (1, )
@@ -1311,7 +1311,7 @@ class Sofa():
             for key_dep, ref_dep in items:
 
                 if key_dep == "_dimensions":
-                    # requires specific dimension(s) to have a vertain size
+                    # requires specific dimension(s) to have a certain size
                     for dim in rules[key]["specific"][test]["_dimensions"]:
                         # possible sizes
                         dim_ref = \
@@ -1408,7 +1408,7 @@ class Sofa():
     @staticmethod
     def _verify_value(test, ref, unit_aliases, key):
         """
-        Check a value agains the SOFA standard for Sofa.verify()
+        Check a value against the SOFA standard for Sofa.verify()
 
         Parameters
         ----------
