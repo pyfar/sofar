@@ -1,50 +1,37 @@
-Getting Started
-===============
+sofar
+=====
 
 .. toctree::
-   :maxdepth: 2
+   :caption: Getting Started
+   :maxdepth: 1
 
    readme
 
 
-Documentation
-=============
-
 .. toctree::
+   :caption: Documentation
    :maxdepth: 2
 
    sofar.Sofa
    sofar.functions
-
-
-SOFA conventions
-================
+   
 
 .. toctree::
+   :caption: SOFA conventions
    :maxdepth: 1
 
    resources/conventions
 
-Contributing
-===============
 
 .. toctree::
-   :maxdepth: 2
+   :caption: Contributing
+   :maxdepth: 1
 
    contributing
 
-Other
-=====
+
 .. toctree::
+   :caption: Other
    :maxdepth: 1
 
-   authors
    history
-
-..
-   (removed because it is contained in the new spinx style)
-   Indices and tables
-   ==================
-   * :ref:`genindex`
-   * :ref:`modindex`
-   * :ref:`search`

@@ -49,7 +49,7 @@ docs = (
     '  * **M:** Number of measurements\n'
     '  * **N:** Number of samples or frequency bins of the data\n'
     '  * **C:** Number of coordinates (always 3)\n'
-    '  * **I:** Unity dimentions (always 1)\n'
+    '  * **I:** Unity dimensions (always 1)\n'
     '  * **S:** Lengths of the longest string contained in the data '
     '(detected automatically)\n\n'
     '* **Flags:**\n\n'
