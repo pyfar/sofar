@@ -992,18 +992,17 @@ class Sofa():
                         f"- {key} must be string but is {type(value)}\n"
 
             elif dtype == "double":
-                # multiple checks needed because sofar does not force the user
-                # to initally pass data as numpy arrays
-                if not isinstance(value,
-                                  (np.int_, np.float_, np.double, np.ndarray)):
-                    current_error += (f"- {key} must be int, float or numpy "
-                                      f"array but is {type(value)}\n")
-
-                if isinstance(value, np.ndarray) and not (
-                        str(value.dtype).startswith('int') or
-                        str(value.dtype).startswith('float')):
+                # All variables can be of type float or int, and are converted
+                # to float when writing.
+                # sofar does not force the user to pass data as numpy arrays.
+                # We thus check for allowed instances (int, float, numpy) and
+                # specifically for the type of numpy arrays.
+                if not isinstance(
+                        value, (int, float, np.ndarray, np.number)) or \
+                        (isinstance(value, (np.ndarray, np.number)) and
+                         value.dtype.kind not in ['i', 'f']):
                     current_error += (f"- {key} must be int or float "
-                                      f"but is {type(value.dtype)}\n")
+                                      f"but is {type(value)}\n")
 
             elif dtype == "string":
                 # multiple checks needed because sofar does not force the user
