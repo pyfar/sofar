@@ -116,8 +116,8 @@ class SofaStream():
         M
             number of measurements
         N
-            number of samles, frequencies, SOS coefficients
-            (depending on self.GLOBAL_DataType)
+            number of samples, frequencies, SOS coefficients
+            (depending on GLOBAL_DataType)
         R
             Number of receivers or SH coefficients
             (depending on ReceiverPosition_Type)
@@ -179,8 +179,10 @@ class SofaStream():
         """
         Get size of a SOFA dimension
 
-        SOFA dimensions specify the shape of the data contained in a SOFA-file
-        object. For a list of all dimensions see :py:func:`~list_dimensions`.
+        SOFA dimensions specify the shape of the data contained in a SOFA-file.
+        For a list of all dimensions see :py:func:`~list_dimensions`, for more
+        information about the data contained in a SOFA-file use
+        :py:func:`~inspect`.
 
         Parameters
         ----------
