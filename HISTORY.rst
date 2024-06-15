@@ -1,6 +1,10 @@
 History
 =======
 
+1.1.4 (2024-06-15)
+------------------
+* Update for numpy 2.0 (PR #100)
+
 1.1.3 (2024-3-15)
 -----------------
 * Update documentation to pydata theme (PR #78)
