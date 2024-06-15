@@ -4,7 +4,7 @@
 
 __author__ = """The pyfar developers"""
 __email__ = 'info@pyfar.org'
-__version__ = '1.1.3'
+__version__ = '1.1.4'
 
 from .sofa import Sofa
 
