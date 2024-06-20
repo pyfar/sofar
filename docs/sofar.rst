@@ -14,8 +14,7 @@ sofar
    :maxdepth: 2
    :hidden:
 
-   sofar.Sofa
-   sofar.functions
+   documentation
 
 
 .. toctree::
@@ -55,10 +54,10 @@ files.
         :link: readme.html
         :text-align: center
 
-        Getting Started
+        **Getting Started**
         ^^^^
 
-        .. image:: resources/logos/pyfar_logos_fixed_size_sofar.png
+        .. image:: resources/icons/getting_started.png
             :width: 200 px
 
     .. grid-item-card::
@@ -66,10 +65,10 @@ files.
         :link-type: ref
         :text-align: center
 
-        Documentation
+        **Documentation**
         ^^^^
 
-        .. image:: resources/logos/pyfar_logos_fixed_size_sofar.png
+        .. image:: resources/icons/documentation.png
             :width: 200 px
 
     .. grid-item-card::
@@ -77,28 +76,28 @@ files.
         :link-type: ref
         :text-align: center
 
-        SOFA conventions
+        **SOFA conventions**
         ^^^^
 
-        .. image:: resources/logos/pyfar_logos_fixed_size_sofar.png
+        .. image:: resources/icons/conventions.png
             :width: 200 px
 
     .. grid-item-card::
         :link: contributing.html
         :text-align: center
 
-        Contributing
+        **Contributing**
         ^^^^
 
-        .. image:: resources/logos/pyfar_logos_fixed_size_sofar.png
+        .. image:: resources/icons/contribute.png
             :width: 200 px
 
     .. grid-item-card::
         :link: history.html
         :text-align: center
 
-        Other
+        **History**
         ^^^^
 
-        .. image:: resources/logos/pyfar_logos_fixed_size_sofar.png
+        .. image:: resources/icons/history.png
             :width: 200 px
