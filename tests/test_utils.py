@@ -98,22 +98,32 @@ def test_update_conventions(capfd):
     # first run to test if conventions were updated
     sf.update_conventions(conventions_path=work_dir, assume_yes=True)
     out, _ = capfd.readouterr()
-    assert "added convention: GeneralTF_2.0" in out
-    assert "updated convention: GeneralFIR_1.0" in out
-    assert "deprecated convention: MultiSpeakerBRIR_0.3" in out
+    assert "add convention: GeneralTF_2.0" in out
+    assert os.path.isfile(os.path.join(work_dir, "GeneralTF_2.0.csv"))
+    assert "update convention: GeneralFIR_1.0" in out
+    assert "deprecate convention: MultiSpeakerBRIR_0.3" in out
     assert not os.path.isfile(
         os.path.join(work_dir, "MultiSpeakerBRIR_0.3.csv"))
     assert not os.path.isfile(
         os.path.join(work_dir, "MultiSpeakerBRIR_0.3.json"))
-    assert "updated deprecated convention: SimpleFreeFieldHRIR_0.4" in out
-    assert "added deprecated convention: SimpleFreeFieldTF_0.4" in out
+    assert os.path.isfile(
+        os.path.join(work_dir, "deprecated", "MultiSpeakerBRIR_0.3.csv"))
+    assert os.path.isfile(
+        os.path.join(work_dir, "deprecated", "MultiSpeakerBRIR_0.3.json"))
+    assert "update deprecated convention: SimpleFreeFieldHRIR_0.4" in out
+    assert "add deprecated convention: SimpleFreeFieldTF_0.4" in out
+    assert os.path.isfile(
+        os.path.join(work_dir, "deprecated", "SimpleFreeFieldTF_0.4.csv"))
+    assert os.path.isfile(
+        os.path.join(work_dir, "deprecated", "SimpleFreeFieldTF_0.4.json"))
 
     # second run to make sure that up to date conventions are not overwritten
     sf.update_conventions(conventions_path=work_dir, assume_yes=True)
     out, _ = capfd.readouterr()
-    assert "added" not in out
-    assert "updated" not in out
-    assert "deprecated" not in out
+    assert "add" not in out
+    assert "update" not in out
+    assert "deprecate" not in out
+    assert "already up to date" in out
 
 
 def test__compile_conventions():
