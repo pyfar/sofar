@@ -61,16 +61,28 @@ class SofaStream():
     """
 
     def __init__(self, filename):
+        """Initialize a new SofaStream object (see documentation above)"""
         self._filename = filename
 
     def __enter__(self):
+        """
+        Executed when entering a ``with`` statement
+        (see documentation above).
+        """
         self._file = Dataset(self._filename, mode="r")
         return self
 
     def __exit__(self, *args):
+        """
+        Executed when exiting a ``with`` statement
+        (see documentation above).
+        """
         self._file.close()
 
     def __getattr__(self, name):
+        """
+        Executed when accessing data within a with statement
+        (see documentation above)."""
         # get netCDF4-attributes and -variable-keys from SOFA-file
         dset_variables = np.array([key for key in self._file.variables.keys()])
         dset_attributes = np.asarray(self._file.ncattrs())
