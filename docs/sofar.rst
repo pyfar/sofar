@@ -57,8 +57,11 @@ files.
         **Getting Started**
         ^^^^
 
-        .. image:: resources/icons/getting_started.png
-            :width: 200 px
+        .. raw:: html
+
+            <i class="fa-solid fa-rocket"
+            style="color: #18609d; font-size: 70; margin: 20"></i>
+
 
     .. grid-item-card::
         :link: documentation
@@ -68,8 +71,10 @@ files.
         **Documentation**
         ^^^^
 
-        .. image:: resources/icons/documentation.png
-            :width: 200 px
+        .. raw:: html
+
+            <i class="fa-solid fa-file-lines"
+            style="color: #18609d; font-size: 70; margin: 20"></i>
 
     .. grid-item-card::
         :link: conventions_introduction
@@ -79,8 +84,11 @@ files.
         **SOFA conventions**
         ^^^^
 
-        .. image:: resources/icons/conventions.png
-            :width: 200 px
+        .. raw:: html
+
+            <i class="fa-solid fa-book-open"
+            style="color: #18609d; font-size: 70; margin: 20"></i>
+
 
     .. grid-item-card::
         :link: contributing.html
@@ -89,8 +97,10 @@ files.
         **Contributing**
         ^^^^
 
-        .. image:: resources/icons/contribute.png
-            :width: 200 px
+        .. raw:: html
+
+            <i class="fa-solid fa-pen"
+            style="color: #18609d; font-size: 70; margin: 20"></i>
 
     .. grid-item-card::
         :link: history.html
@@ -99,5 +109,7 @@ files.
         **History**
         ^^^^
 
-        .. image:: resources/icons/history.png
-            :width: 200 px
+        .. raw:: html
+
+            <i class="fa-solid fa-clock-rotate-left"
+            style="color: #18609d; font-size: 70; margin: 20"></i>
