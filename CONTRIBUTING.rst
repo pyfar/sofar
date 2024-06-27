@@ -41,11 +41,12 @@ Ready to contribute? Here's how to set up `sofar` for local development using th
 
     $ git clone --recursive https://github.com/YOUR_USERNAME/sofar.git
     $ cd sofar
-    Note that some graphical Git interfaces can not do the recursive clone. If the folder sofar/sofa_conventions is empty try::
+
+3. Note that some graphical Git interfaces can not do the recursive clone. If the folder sofar/sofa_conventions is empty try::
 
     $ git submodule update --init
 
-3. Install your local copy into a virtualenv. Assuming you have Anaconda or Miniconda installed, this is how you set up your fork for local development::
+4. Install your local copy into a virtualenv. Assuming you have Anaconda or Miniconda installed, this is how you set up your fork for local development::
 
     $ conda create --name sofar python
     $ conda activate sofar
@@ -53,13 +54,13 @@ Ready to contribute? Here's how to set up `sofar` for local development using th
     $ pip install -e .
     $ pip install -r requirements_dev.txt
 
-4. Create a branch for local development. Indicate the intention of your branch in its respective name (i.e. `feature/branch-name` or `bugfix/branch-name`)::
+5. Create a branch for local development. Indicate the intention of your branch in its respective name (i.e. `feature/branch-name` or `bugfix/branch-name`)::
 
     $ git checkout -b name-of-your-bugfix-or-feature
 
    Now you can make your changes locally.
 
-5. When you're done making changes, check that your changes pass ruff and the
+6. When you're done making changes, check that your changes pass ruff and the
    tests::
 
     $ ruff check
@@ -67,13 +68,13 @@ Ready to contribute? Here's how to set up `sofar` for local development using th
 
    ruff must pass without any warnings for `./sofar` and `./tests` using the default or a stricter configuration. Ruff ignores a couple of PEP Errors (see `./pyproject.toml`). If necessary, adjust your linting configuration in your IDE accordingly.
 
-6. Commit your changes and push your branch to GitHub::
+7. Commit your changes and push your branch to GitHub::
 
     $ git add .
     $ git commit -m "Your detailed description of your changes."
     $ git push origin name-of-your-bugfix-or-feature
 
-7. Submit a pull request on the develop branch through the GitHub website.
+8. Submit a pull request on the develop branch through the GitHub website.
 
 
 Submodules
