@@ -59,8 +59,7 @@ files.
 
         .. raw:: html
 
-            <i class="fa-solid fa-rocket"
-            style="color: #18609d; font-size: 70; margin: 20"></i>
+            <i class="fa-solid fa-rocket icon-style"></i>
 
 
     .. grid-item-card::
@@ -73,8 +72,7 @@ files.
 
         .. raw:: html
 
-            <i class="fa-solid fa-file-lines"
-            style="color: #18609d; font-size: 70; margin: 20"></i>
+            <i class="fa-solid fa-file-lines icon-style"></i>
 
     .. grid-item-card::
         :link: conventions_introduction
@@ -86,8 +84,7 @@ files.
 
         .. raw:: html
 
-            <i class="fa-solid fa-book-open"
-            style="color: #18609d; font-size: 70; margin: 20"></i>
+            <i class="fa-solid fa-book-open icon-style"></i>
 
 
     .. grid-item-card::
@@ -99,8 +96,7 @@ files.
 
         .. raw:: html
 
-            <i class="fa-solid fa-pen"
-            style="color: #18609d; font-size: 70; margin: 20"></i>
+            <i class="fa-solid fa-pen icon-style"></i>
 
     .. grid-item-card::
         :link: history.html
@@ -111,5 +107,5 @@ files.
 
         .. raw:: html
 
-            <i class="fa-solid fa-clock-rotate-left"
-            style="color: #18609d; font-size: 70; margin: 20"></i>
+            <i class="fa-solid fa-clock-rotate-left icon-style">
+            </i>

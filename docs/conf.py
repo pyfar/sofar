@@ -97,7 +97,8 @@ intersphinx_mapping = {
 
 html_theme = 'pydata_sphinx_theme'
 html_static_path = ['_static']
-html_css_files = ['css/custom.css']
+html_css_files = ['css/custom.css',
+                  'css/fa_icon_style_draft.css'] # to be removed
 html_logo = 'resources/logos/pyfar_logos_fixed_size_sofar.png'
 html_title = "sofar"
 html_favicon = '_static/favicon.ico'
