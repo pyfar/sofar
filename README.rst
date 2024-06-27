@@ -26,7 +26,7 @@ responses or transfer functions. They are defined by the AES69-2022 standard
 Getting Started
 ===============
 
-The `sofa and SOFA notebook`_ gives an overview of the most important sofar
+The `sofar and SOFA notebook`_ gives an overview of the most important sofar
 functionality and is a good starting point. For processing and visualizing data
 inside SOFA files, we recommend the `pyfar package`_ that can read SOFA files
 through `pyfar.io.read_sofa` and the in-depth examples contained in the
@@ -54,7 +54,7 @@ Contributing
 Refer to the `contribution guidelines`_ for more information.
 
 .. _sofa_conventions : https://github.com/pyfar/sofa_conventions
-.. _sofa and SOFA notebook:  https://pyfar-gallery.readthedocs.io/en/latest/gallery/interactive/sofar_introduction.html
+.. _sofar and SOFA notebook:  https://pyfar-gallery.readthedocs.io/en/latest/gallery/interactive/sofar_introduction.html
 .. _pyfar package: https://pyfar.readthedocs.io
 .. _pyfar example gallery: https://pyfar-gallery.readthedocs.io/en/latest/examples_gallery.html
 .. _pyfar.org: https://pyfar.org
