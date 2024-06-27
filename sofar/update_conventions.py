@@ -1,10 +1,12 @@
 import contextlib
 import os
+import shutil
 import re
 import glob
 import json
 import requests
 from bs4 import BeautifulSoup
+from tempfile import TemporaryDirectory
 
 
 def update_conventions(conventions_path=None, assume_yes=False):
@@ -20,9 +22,9 @@ def update_conventions(conventions_path=None, assume_yes=False):
         https://www.sofaconventions.org/conventions/ and
         https://www.sofaconventions.org/conventions/deprecated/.
     2.
-        Convert csv files to json files to be read by sofar.
+        Notify which conventions would be added or updated.
     3.
-        Notify which conventions were newly added or updated.
+        Convert csv files to json files to be read by sofar.
 
     The csv and json files are stored at sofar/conventions. Sofar works only on
     the json files. To get a list of all currently available SOFA conventions
@@ -41,27 +43,15 @@ def update_conventions(conventions_path=None, assume_yes=False):
         ``None``, which saves the conventions inside the sofar package.
         Conventions saved under a different path can not be used by sofar. This
         parameter was added mostly for testing and debugging.
-    response : bool, optional
+    assume_yes : bool, optional
 
-        ``True``
-            Updating the conventions must be confirmed by typing "y".
         ``False``
+            Updating the conventions must be confirmed by typing "y".
+        ``True``
             The conventions are updated without confirmation.
 
-        The default is ``True``
+        The default is ``False``
     """
-
-    if not assume_yes:
-        # these lines were only tested manually. I was too lazy to write a test
-        # coping with keyboard input
-        print(("Are you sure that you want to update the conventions? "
-               "Read the documentation before continuing. "
-               "If updating breaks sofar it has to be re-installed"
-               "(y/n)"))
-        response = input()
-        if response != "y":
-            print("Updating the conventions was canceled.")
-            return
 
     # url for parsing and downloading the convention files
     urls = ("https://www.sofaconventions.org/conventions/",
@@ -93,80 +83,113 @@ def update_conventions(conventions_path=None, assume_yes=False):
     if not os.path.isdir(os.path.join(conventions_path, "deprecated")):
         os.mkdir(os.path.join(conventions_path, "deprecated"))
 
-    # Loop and download conventions if they changed
+    # Loop and download conventions to temporary directory if they changed
     updated = False
-    for convention in conventions:
 
-        # exclude these conventions
-        if convention.startswith(("General_", "GeneralString_")):
-            continue
+    update = []
+    deprecate = []
 
-        # get filename and url
-        is_standardized = convention in standardized
-        standardized_csv = os.path.join(conventions_path, convention)
-        deprecated_csv = os.path.join(
-                conventions_path, "deprecated", convention)
-        url = (
-            f"{urls[0]}/{convention}"
-            if is_standardized
-            else f"{urls[1]}/{convention}"
-        )
+    with TemporaryDirectory() as temp:
+        os.mkdir(os.path.join(temp, 'deprecated'))
+        for convention in conventions:
 
-        # download SOFA convention definitions to package directory
-        data = requests.get(url)
-        # remove windows style line breaks and trailing tabs
-        data = data.content.replace(b"\r\n", b"\n").replace(b"\t\n", b"\n")
+            # exclude these conventions
+            if convention.startswith(("General_", "GeneralString_")):
+                continue
 
-        # check if convention needs to be added or updated
-        if is_standardized and not os.path.isfile(standardized_csv):
-            # add new standardized convention
-            updated = True
-            with open(standardized_csv, "wb") as file:
-                file.write(data)
-            print(f"- added convention: {convention[:-4]}")
-        if is_standardized and os.path.isfile(standardized_csv):
-            # check for update of a standardized convention
-            with open(standardized_csv, "rb") as file:
-                data_current = b"".join(file.readlines())
-                data_current = data_current.replace(
-                    b"\r\n", b"\n").replace(b"\t\n", b"\n")
-            if data_current != data:
+            # get filename and url
+            is_standardized = convention in standardized
+            standardized_csv = os.path.join(conventions_path, convention)
+            deprecated_csv = os.path.join(
+                    conventions_path, "deprecated", convention)
+            url = (
+                f"{urls[0]}/{convention}"
+                if is_standardized
+                else f"{urls[1]}/{convention}"
+            )
+
+            # download SOFA convention definitions to package directory
+            data = requests.get(url)
+            # remove windows style line breaks and trailing tabs
+            data = data.content.replace(b"\r\n", b"\n").replace(b"\t\n", b"\n")
+
+            # check if convention needs to be added or updated
+            if is_standardized and not os.path.isfile(standardized_csv):
+                # add new standardized convention
                 updated = True
-                with open(standardized_csv, "wb") as file:
+                with open(os.path.join(temp, convention), "wb") as file:
                     file.write(data)
-                print(f"- updated convention: {convention[:-4]}")
-        elif not is_standardized and os.path.isfile(standardized_csv):
-            # deprecate standardized convention
-            updated = True
-            with open(deprecated_csv, "wb") as file:
-                file.write(data)
-            os.remove(standardized_csv)
-            os.remove(f"{standardized_csv[:-3]}json")
-            print(f"- deprecated convention: {convention[:-4]}")
-        elif not is_standardized and os.path.isfile(deprecated_csv):
-            # check for update of a deprecated convention
-            with open(deprecated_csv, "rb") as file:
-                data_current = b"".join(file.readlines())
-                data_current = data_current.replace(
-                    b"\r\n", b"\n").replace(b"\t\n", b"\n")
-            if data_current != data:
+                print(f"- add convention: {convention[:-4]}")
+                update.append(convention)
+            if is_standardized and os.path.isfile(standardized_csv):
+                # check for update of a standardized convention
+                with open(standardized_csv, "rb") as file:
+                    data_current = b"".join(file.readlines())
+                    data_current = data_current.replace(
+                        b"\r\n", b"\n").replace(b"\t\n", b"\n")
+                if data_current != data:
+                    updated = True
+                    with open(os.path.join(temp, convention), "wb") as file:
+                        file.write(data)
+                    print(f"- update convention: {convention[:-4]}")
+                    update.append(convention)
+            elif not is_standardized and os.path.isfile(standardized_csv):
+                # deprecate standardized convention
                 updated = True
-                with open(deprecated_csv, "wb") as file:
+                with open(os.path.join(temp, 'deprecated', convention), "wb") \
+                        as file:
                     file.write(data)
-                print(f"- updated deprecated convention: {convention[:-4]}")
-        elif not is_standardized and not os.path.isfile(deprecated_csv):
-            # add new deprecation
-            updated = True
-            with open(deprecated_csv, "wb") as file:
-                file.write(data)
-            print(f"- added deprecated convention: {convention[:-4]}")
+                print(f"- deprecate convention: {convention[:-4]}")
+                deprecate.append(convention)
+            elif not is_standardized and os.path.isfile(deprecated_csv):
+                # check for update of a deprecated convention
+                with open(deprecated_csv, "rb") as file:
+                    data_current = b"".join(file.readlines())
+                    data_current = data_current.replace(
+                        b"\r\n", b"\n").replace(b"\t\n", b"\n")
+                if data_current != data:
+                    updated = True
+                    with open(os.path.join(temp, 'deprecated', convention),
+                              "wb") as file:
+                        file.write(data)
+                    print(f"- update deprecated convention: {convention[:-4]}")
+                    update.append(os.path.join('deprecated', convention))
+            elif not is_standardized and not os.path.isfile(deprecated_csv):
+                # add new deprecation
+                updated = True
+                with open(os.path.join(temp, 'deprecated', convention), "wb") \
+                        as file:
+                    file.write(data)
+                print(f"- add deprecated convention: {convention[:-4]}")
+                update.append(os.path.join('deprecated', convention))
 
-    if updated:
-        # compile json files from csv file
-        _compile_conventions(conventions_path)
-        print("... done.")
-    else:
-        print("... conventions already up to date.")
+        if updated and not assume_yes:
+            # these lines were only tested manually. I was too lazy to write a
+            # test coping with keyboard input
+            print(("\nDo you want to update the conventions above? (y/n)\n"
+                   "Read the documentation before continuing. "
+                   "If updating breaks sofar it has to be re-installed"))
+            response = input()
+            if response != "y":
+                print("\nUpdating the conventions was canceled.")
+                return
+
+        if updated:
+            for convention in update:
+                shutil.copy(os.path.join(temp, convention),
+                            os.path.join(conventions_path, convention))
+            for convention in deprecate:
+                os.remove(os.path.join(conventions_path, convention))
+                os.remove(
+                    os.path.join(conventions_path, f"{convention[:-3]}json"))
+                shutil.copy(
+                    os.path.join(temp, 'deprecated', convention),
+                    os.path.join(conventions_path, 'deprecated', convention))
+            # compile json files from csv file
+            _compile_conventions(conventions_path)
+            print("... done.")
+        else:
+            print("... conventions already up to date.")
 
 
 def _compile_conventions(conventions_path=None):

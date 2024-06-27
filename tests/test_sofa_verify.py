@@ -192,11 +192,11 @@ def test_data_types(capfd):
         sofa.verify()
 
     sofa.Data_IR = "1"
-    with raises(ValueError, match="- Data_IR must be int, float"):
+    with raises(ValueError, match="- Data_IR must be int or float"):
         sofa.verify()
 
     sofa.Data_IR = 1+1j
-    with raises(ValueError, match="- Data_IR must be int, float"):
+    with raises(ValueError, match="- Data_IR must be int or float"):
         sofa.verify()
 
     # test invalid data with issue_handling "print" and "return"
