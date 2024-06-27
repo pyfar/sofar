@@ -16,6 +16,9 @@ def read_sofa(filename, verify='auto', verbose=True):
     Numeric data is returned as floats or numpy float arrays unless they have
     missing data, in which case they are returned as numpy masked arrays.
 
+    If you want to read only parts of the data of a large sofa file use
+    :class:`SofaStream` instead.
+
     Parameters
     ----------
     filename : str

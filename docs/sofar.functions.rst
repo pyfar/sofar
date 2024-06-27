@@ -13,4 +13,4 @@ examples.
    :members:
    :undoc-members:
    :show-inheritance:
-   :exclude-members: Sofa
+   :exclude-members: Sofa, SofaStream
