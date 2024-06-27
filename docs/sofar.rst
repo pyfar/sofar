@@ -2,42 +2,13 @@ sofar
 =====
 
 .. toctree::
-   :caption: Getting Started
-   :maxdepth: 1
-   :hidden:
-
-   readme
-
-
-.. toctree::
-   :caption: Documentation
    :maxdepth: 2
    :hidden:
 
+   readme
    documentation
-
-
-.. toctree::
-   :caption: SOFA conventions
-   :maxdepth: 1
-   :hidden:
-
    resources/conventions
-
-
-.. toctree::
-   :caption: Contributing
-   :maxdepth: 1
-   :hidden:
-
    contributing
-
-
-.. toctree::
-   :caption: Other
-   :maxdepth: 1
-   :hidden:
-
    history
 
 
