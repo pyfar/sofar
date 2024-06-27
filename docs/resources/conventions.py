@@ -25,7 +25,8 @@ with open(deprecation_rules) as file:
 # write general information ---------------------------------------------------
 docs = (
     '.. _conventions_introduction:\n\n'
-    'Introduction\n============\n\n'
+    'SOFA Conventions\n'
+    '================\n\n'
     'SOFA conventions specify what data and metadata must be stored in a SOFA '
     'file. Different conventions can be used to store different types of data,'
     'e.g., head-related impulse responses or musical instrument directivities.'
