@@ -6,7 +6,7 @@ sofar
    :hidden:
 
    readme
-   documentation
+   api_reference
    resources/conventions
    contributing
    history
@@ -34,11 +34,11 @@ files.
 
 
     .. grid-item-card::
-        :link: documentation
+        :link: api_reference
         :link-type: ref
         :text-align: center
 
-        **Documentation**
+        **API Reference**
         ^^^^
 
         .. raw:: html
