@@ -50,7 +50,7 @@ files.
         :link-type: ref
         :text-align: center
 
-        **SOFA conventions**
+        **SOFA Conventions**
         ^^^^
 
         .. raw:: html
