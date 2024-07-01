@@ -1,6 +1,8 @@
-======
-Readme
-======
+.. raw:: html
+
+    <h1 align="center">
+    <img src="https://github.com/pyfar/gallery/raw/main/docs/resources/logos/pyfar_logos_fixed_size_sofar.png" width="300">
+    </h1><br>
 
 .. image:: https://badge.fury.io/py/sofar.svg
     :target: https://badge.fury.io/py/sofar

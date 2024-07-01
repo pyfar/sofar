@@ -25,7 +25,8 @@ with open(deprecation_rules) as file:
 # write general information ---------------------------------------------------
 docs = (
     '.. _conventions_introduction:\n\n'
-    'Introduction\n============\n\n'
+    'SOFA Conventions\n'
+    '================\n\n'
     'SOFA conventions specify what data and metadata must be stored in a SOFA '
     'file. Different conventions can be used to store different types of data,'
     'e.g., head-related impulse responses or musical instrument directivities.'
@@ -57,7 +58,7 @@ docs = (
     '  * **m:** mandatory data. Data is optional if flag is missing\n\n')
 
 # write table of content ------------------------------------------------------
-docs += '.. _conventions:\n\nConventions\n===========\n\n'
+docs += '.. _conventions:\n\nConventions\n-----------\n\n'
 for path, name_version in zip(paths, names_versions):
     name, version = name_version
 
@@ -69,7 +70,7 @@ for path, name_version in zip(paths, names_versions):
     docs += f'* :ref:`{label} <{reference}>`\n'
 
 # write conventions -----------------------------------------------------------
-docs += '\nCurrent\n=======\n\n'
+docs += '\nCurrent\n-------\n\n'
 
 # loop conventions
 deprecated = False
@@ -82,7 +83,7 @@ for path, name_version in zip(paths, names_versions):
 
     # write section title
     if 'deprecated' in path and not deprecated:
-        docs += 'Deprecated\n==========\n\n'
+        docs += 'Deprecated\n----------\n\n'
         deprecated = True
 
     # write convention name, version
