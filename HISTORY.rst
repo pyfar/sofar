@@ -2,6 +2,12 @@
 History
 =======
 
+1.2.0 (2024-08-29)
+------------------
+* Feature: Introduce `SofaStream` class for reading parts of large Sofa files without reading the entire file (PR #90, 97)
+* Documentation: Add improved landing page for documentation on readthedocs.io and harmonize documentation (PR #80, 87, 88, 89, 92, 95, 96, 98, 101, 103, 105, 106, 107)
+* Enhancement: When manually updateing the conventions with `sofar.update_conventions`, the conventions are first downloaded to a temporary folder and compared to the existing conventions without overriding them (they were directly overridden before). The user is then informed about the changes and can continue or abort updating the conventions (PR #94)
+
 1.1.4 (2024-06-15)
 ------------------
 * Update for numpy 2.0 (PR #100)
