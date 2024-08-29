@@ -252,7 +252,7 @@ def test_add_entry():
     # variable without dimensions
     with raises(ValueError, match="dimensions must be provided"):
         sofa.add_variable("TemperatureCelsius", 25.1, "double", None)
-    # invalid dimensins
+    # invalid dimensions
     with pytest.warns(UserWarning, match="Added custom dimension T"):
         sofa.add_variable("TemperatureCelsius", [25.1, 25.2], "double", "T")
     # attribute with missing variable

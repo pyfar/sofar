@@ -5,6 +5,7 @@ from datetime import datetime
 import platform
 import numpy as np
 import warnings
+from packaging.version import parse
 from copy import deepcopy
 import sofar as sf
 from .utils import (_nd_newaxis, _atleast_nd, _get_conventions,
@@ -30,7 +31,9 @@ class Sofa():
         Verify the SOFA object by calling :py:func:`~Sofa.verify`. This helps
         to find potential errors in the default values and is thus recommended
         If creating a file does not work, try to call `Sofa` with
-        ``verify=False``. The default is ``True``.
+        ``verify=False``. The default ``'auto'`` defaults to ``True`` for
+        stable conventions with versions of 1.0 or higher and to ``False``
+        otherwise.
 
     Returns
     -------
@@ -60,7 +63,7 @@ class Sofa():
        ``sofa.Data_IR`` is converted to a numpy array of shape (1, 2)
     2. Missing dimensions are appended when writing the SOFA object to disk,
        i.e., ``sofa.Data_IR`` is written as an array of shape (1, 2, 1) because
-       the SOFA standard AES69-2020 defines it as a three dimensional array
+       the SOFA standard AES69 defines it as a three dimensional array
        with the dimensions (`M: measurements`, `R: receivers`, `N: samples`)
     3. When reading data from a SOFA file, array data is always returned as
        numpy arrays and singleton trailing dimensions are discarded (numpy
@@ -68,7 +71,7 @@ class Sofa():
        after writing and reading to and from disk.
     4. One dimensional arrays with only one element will be converted to scalar
        values. E.g. ``sofa.Data_SamplingRate`` is stored as an array of shape
-       (1, ) inside SOFA files (according to the SOFA standard AES69-2020) but
+       (1, ) inside SOFA files (according to the SOFA standard AES69) but
        will be a scalar inside SOFA objects after reading from disk.
 
 
@@ -85,7 +88,7 @@ class Sofa():
     _read_only_attr = []
 
     def __init__(self, convention, mandatory=False, version="latest",
-                 verify=True):
+                 verify='auto'):
         """See class docstring"""
 
         # get convention
@@ -100,11 +103,24 @@ class Sofa():
             # add attributes with default values
             self._convention_to_sofa(mandatory)
 
+            # set default for verify
+            version = \
+                self._convention['GLOBAL_SOFAConventionsVersion']['default']
+            if verify == 'auto':
+                verify = True if parse(version) >= parse('1.0') else False
+
             # add and update the API
             # (mandatory=False can not be verified because some conventions
             # have default values that have optional variables as dependencies)
             if verify and not mandatory:
                 self.verify(mode="read")
+            # warning for preliminary conventions if verification is bypassed
+            elif parse(version) < parse('1.0'):
+                warnings.warn(UserWarning((
+                    f"Detected preliminary conventions version {version}. "
+                    "Upgrade data to version >= 1.0 if possible. Preliminary "
+                    "conventions might change in the future, which could "
+                    "invalidate data that was written before the changes.")))
 
             self.protected = True
         else:
@@ -168,7 +184,7 @@ class Sofa():
         M
             number of measurements
         N
-            number of samles, frequencies, SOS coefficients
+            number of samples, frequencies, SOS coefficients
             (depending on self.GLOBAL_DataType)
         R
             Number of receivers or SH coefficients
@@ -188,7 +204,7 @@ class Sofa():
         # Check if the dimensions can be updated
         self._update_dimensions()
 
-        # get verbose description for dimesion N
+        # get verbose description for dimension N
         if self.GLOBAL_DataType.startswith("FIR"):
             N_verbose = "samples"
         elif self.GLOBAL_DataType.startswith("TF"):
@@ -392,7 +408,7 @@ class Sofa():
             console.
         issue_handling : str, optional
             Defines how issues detected during verification of the SOFA object
-            are handeled (see :py:func:`~sofar.sofar.Sofa.verify`)
+            are handled (see :py:func:`~sofar.sofar.Sofa.verify`)
 
             ``'raise'``
                 Warnings and errors are raised if issues are detected
@@ -403,7 +419,7 @@ class Sofa():
             ``'ignore'``
                 Issues are ignored, i.e., not raised, printed, or returned.
 
-            The default is ``print'``.
+            The default is ``'print'``.
         """
 
         # update the private attribute `_convention` to make sure the required
@@ -538,7 +554,7 @@ class Sofa():
             # add numeric data
             sofa.add_variable("Temperature", 25.1, "double", "MI")
 
-            # add GLOBAL and Variable attribtue
+            # add GLOBAL and Variable attribute
             sofa.add_entry(
                 "GLOBAL_DateMeasured", "8.08.2021", "attribute", None)
             sofa.add_entry(
@@ -569,7 +585,7 @@ class Sofa():
             import sofar as sf
             sofa = sf.Sofa("GeneralTF")
 
-            # add GLOBAL and Variable attribtue
+            # add GLOBAL and Variable attribute
             sofa.add_attribute("GLOBAL_DateMeasured", "8.08.2021")
             sofa.add_attribute("Data_Real_Units", "Pascal")
 
@@ -695,7 +711,7 @@ class Sofa():
         setattr(self, key, value)
         self.protected = True
 
-    def upgrade_convention(self, target=None, verify=True):
+    def upgrade_convention(self, target=None, verify='auto'):
         """
         Upgrade Sofa data to newer conventions.
 
@@ -713,7 +729,9 @@ class Sofa():
             conventions to which the data can be updated.
         verify : bool, optional
             Flag to specify if the data should be verified after the upgrade
-            using :py:func:`~Sofa.verify`. The default is ``True``.
+            using :py:func:`~Sofa.verify`. The default ``'auto'`` defaults to
+            ``True`` for stable conventions with versions of 1.0 or higher and
+            to ``False`` otherwise.
 
         Returns
         -------
@@ -745,7 +763,6 @@ class Sofa():
 
         # check for upgrades --------------------------------------------------
         if is_deprecated:
-            version_matched = False
             # check if upgrade is available for this convention
             if convention_current not in upgrade:
                 print((f"Convention {convention_current} v{version_current} is"
@@ -755,7 +772,6 @@ class Sofa():
             # check if upgrade is available for this version
             for from_to in upgrade[convention_current]["from_to"]:
                 if version_current in from_to[0]:
-                    version_matched = True
                     targets = from_to[1]
 
                     if target in targets:
@@ -773,9 +789,6 @@ class Sofa():
                         print(upgrades)
                         return targets
                     break
-            if not version_matched:
-                print((f"Convention {convention_current} v{version_current} is"
-                       " outdated but is missing upgrade rules"))
         else:
             print((f"Convention {convention_current} v{version_current} "
                    "is up to date"))
@@ -856,6 +869,10 @@ class Sofa():
         if upgrade["message"] is not None:
             print(upgrade["message"])
 
+        # set default for verify
+        if verify == 'auto':
+            version = self.GLOBAL_SOFAConventionsVersion
+            verify = True if parse(version) >= parse('1.0') else False
         if verify:
             self.verify()
 
@@ -905,7 +922,7 @@ class Sofa():
         Parameters
         ----------
         issue_handling : str, optional
-            Defines how detected issues are handeled
+            Defines how detected issues are handled
 
             ``'raise'``
                 Warnings and errors are raised if issues are detected
@@ -1006,7 +1023,7 @@ class Sofa():
 
             elif dtype == "string":
                 # multiple checks needed because sofar does not force the user
-                # to initally pass data as numpy arrays
+                # to initially pass data as numpy arrays
                 if not isinstance(value, (str, np.ndarray)):
                     current_error += (f"- {key} must be string or numpy array "
                                       f"but is {type(value)}\n")
@@ -1099,7 +1116,7 @@ class Sofa():
         current_error = ""
         for key in keys:
 
-            # AES69-2020 Sec. 4.7.1
+            # AES69 Sec. 4.7.1
             if key.startswith("PRIVATE") or key.startswith("API"):
                 current_error += "- " + key + "\n"
             if (key.startswith("GLOBAL") and not key.startswith("GLOBAL_")) or\
@@ -1214,7 +1231,7 @@ class Sofa():
                     [self._api[d.upper()] if d != "S" else 1 for d in dim])
 
                 # get shape for comparison to correct length by cropping and
-                # appending singelton dimensions if required
+                # appending singleton dimensions if required
                 shape_compare = shape_act[:len(shape_ref)]
                 for _ in range(len(shape_ref) - len(shape_compare)):
                     shape_compare += (1, )
@@ -1293,7 +1310,7 @@ class Sofa():
             for key_dep, ref_dep in items:
 
                 if key_dep == "_dimensions":
-                    # requires specific dimension(s) to have a vertain size
+                    # requires specific dimension(s) to have a certain size
                     for dim in rules[key]["specific"][test]["_dimensions"]:
                         # possible sizes
                         dim_ref = \
@@ -1390,7 +1407,7 @@ class Sofa():
     @staticmethod
     def _verify_value(test, ref, unit_aliases, key):
         """
-        Check a value agains the SOFA standard for Sofa.verify()
+        Check a value against the SOFA standard for Sofa.verify()
 
         Parameters
         ----------
@@ -1462,7 +1479,7 @@ class Sofa():
                 or not isinstance(ref[0], str):
             raise TypeError("ref must be a list of length 1 containing a str")
 
-        # Following the SOFA standard AES69-2020, units may be separated by
+        # Following the SOFA standard AES69, units may be separated by
         # `, ` (comma and space), `,` (comma only), and ` ` (space only).
         # (regexp ', ?' matches ', ' and ',')
         units_ref = re.split(', ?', ref[0])
@@ -1500,7 +1517,7 @@ class Sofa():
         -------
         reference_units : str
         """
-        # Following the SOFA standard AES69-2020, units may be separated by
+        # Following the SOFA standard AES69, units may be separated by
         # `, ` (comma and space), `,` (comma only), and ` ` (space only).
         # (regexp ', ?' matches ', ' and ',')
         units_test = re.split(', ?| ', test.lower())

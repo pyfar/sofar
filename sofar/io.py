@@ -9,12 +9,15 @@ import sofar as sf
 from .utils import _verify_convention_and_version, _atleast_nd
 
 
-def read_sofa(filename, verify=True, verbose=True):
+def read_sofa(filename, verify='auto', verbose=True):
     """
     Read SOFA file from disk and convert it to SOFA object.
 
     Numeric data is returned as floats or numpy float arrays unless they have
     missing data, in which case they are returned as numpy masked arrays.
+
+    If you want to read only parts of the data of a large sofa file use
+    :class:`SofaStream` instead.
 
     Parameters
     ----------
@@ -24,7 +27,9 @@ def read_sofa(filename, verify=True, verbose=True):
         Verify and update the SOFA object by calling :py:func:`~Sofa.verify`.
         This helps to find potential errors in the default values and is thus
         recommended. If reading a file does not work, try to call `Sofa` with
-        ``verify=False``. The default is ``True``.
+        ``verify=False``. The default is ``'auto'`` defaults to ``True`` for
+        stable conventions with versions of 1.0 or higher and to ``False``
+        otherwise.
     verbose : bool, optional
         Print the names of detected custom variables and attributes. The
         default is ``True``
@@ -39,7 +44,7 @@ def read_sofa(filename, verify=True, verbose=True):
 
     1. Missing dimensions are appended when writing the SOFA object to disk.
        E.g., if ``sofa.Data_IR`` is of shape (1, 2) it is written as an array
-       of shape (1, 2, 1) because the SOFA standard AES69-2020 defines it as a
+       of shape (1, 2, 1) because the SOFA standard AES69 defines it as a
        three dimensional array with the dimensions (`M: measurements`,
        `R: receivers`, `N: samples`)
     2. When reading data from a SOFA file, array data is always returned as
@@ -48,7 +53,7 @@ def read_sofa(filename, verify=True, verbose=True):
        after writing and reading to and from disk.
     3. One dimensional arrays with only one element will be converted to scalar
        values. E.g. ``sofa.Data_SamplingRate`` is stored as an array of shape
-       (1, ) inside SOFA files (according to the SOFA standard AES69-2020) but
+       (1, ) inside SOFA files (according to the SOFA standard AES69) but
        will be a scalar inside SOFA objects after reading from disk.
     """
 
@@ -90,7 +95,7 @@ def read_sofa_as_netcdf(filename):
 
     1. Missing dimensions are appended when writing the SOFA object to disk.
        E.g., if ``sofa.Data_IR`` is of shape (1, 2) it is written as an array
-       of shape (1, 2, 1) because the SOFA standard AES69-2020 defines it as a
+       of shape (1, 2, 1) because the SOFA standard AES69 defines it as a
        three dimensional array with the dimensions (`M: measurements`,
        `R: receivers`, `N: samples`)
     2. When reading data from a SOFA file, array data is always returned as
@@ -99,7 +104,7 @@ def read_sofa_as_netcdf(filename):
        after writing and reading to and from disk.
     3. One dimensional arrays with only one element will be converted to scalar
        values. E.g. ``sofa.Data_SamplingRate`` is stored as an array of shape
-       (1, ) inside SOFA files (according to the SOFA standard AES69-2020) but
+       (1, ) inside SOFA files (according to the SOFA standard AES69) but
        will be a scalar inside SOFA objects after reading from disk.
     """
     return _read_netcdf(filename, False, False, mode="netcdf")
@@ -200,6 +205,10 @@ def _read_netcdf(filename, verify, verbose, mode):
                "----------------------------------\n"
                f"{', '.join(custom)}"))
 
+    # set default for verify
+    if verify == 'auto':
+        verify = True if parse(version) >= parse('1.0') else False
+
     # update api
     if verify:
         try:
@@ -234,7 +243,7 @@ def write_sofa(filename: str, sofa: sf.Sofa, compression=4):
 
     1. Missing dimensions are appended when writing the SOFA object to disk.
        E.g., if ``sofa.Data_IR`` is of shape (1, 2) it is written as an array
-       of shape (1, 2, 1) because the SOFA standard AES69-2020 defines it as a
+       of shape (1, 2, 1) because the SOFA standard AES69 defines it as a
        three dimensional array with the dimensions (`M: measurements`,
        `R: receivers`, `N: samples`)
     2. When reading data from a SOFA file, array data is always returned as
@@ -243,7 +252,7 @@ def write_sofa(filename: str, sofa: sf.Sofa, compression=4):
        after writing and reading to and from disk.
     3. One dimensional arrays with only one element will be converted to scalar
        values. E.g. ``sofa.Data_SamplingRate`` is stored as an array of shape
-       (1, ) inside SOFA files (according to the SOFA standard AES69-2020) but
+       (1, ) inside SOFA files (according to the SOFA standard AES69) but
        will be a scalar inside SOFA objects after reading from disk.
     """
     _write_sofa(filename, sofa, compression, verify=True)

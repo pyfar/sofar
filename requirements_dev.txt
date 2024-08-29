@@ -2,8 +2,7 @@ pip
 bump2version
 wheel
 watchdog
-flake8
-tox
+ruff==0.4.1
 coverage
 Sphinx
 twine
@@ -13,10 +12,10 @@ pytest-cov
 numpy>=1.14.0
 scipy>=1.5.0
 deepdiff
-tox-wheel
 autodocsumm
 netCDF4
 beautifulsoup4
 pydata-sphinx-theme
 sphinx-design
 sphinx-favicon
+sphinx-reredirects

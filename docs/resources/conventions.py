@@ -17,10 +17,16 @@ upgrade_rules = os.path.join(
 with open(upgrade_rules) as file:
     upgrade_rules = json.load(file)
 
+deprecation_rules = os.path.join(
+    os.path.dirname(paths[0]), '..', 'rules', 'deprecations.json')
+with open(deprecation_rules) as file:
+    deprecation_rules = json.load(file)
+
 # write general information ---------------------------------------------------
 docs = (
     '.. _conventions_introduction:\n\n'
-    'Introduction\n============\n\n'
+    'SOFA Conventions\n'
+    '================\n\n'
     'SOFA conventions specify what data and metadata must be stored in a SOFA '
     'file. Different conventions can be used to store different types of data,'
     'e.g., head-related impulse responses or musical instrument directivities.'
@@ -44,7 +50,7 @@ docs = (
     '  * **M:** Number of measurements\n'
     '  * **N:** Number of samples or frequency bins of the data\n'
     '  * **C:** Number of coordinates (always 3)\n'
-    '  * **I:** Unity dimentions (always 1)\n'
+    '  * **I:** Unity dimensions (always 1)\n'
     '  * **S:** Lengths of the longest string contained in the data '
     '(detected automatically)\n\n'
     '* **Flags:**\n\n'
@@ -52,7 +58,7 @@ docs = (
     '  * **m:** mandatory data. Data is optional if flag is missing\n\n')
 
 # write table of content ------------------------------------------------------
-docs += '.. _conventions:\n\nConventions\n===========\n\n'
+docs += '.. _conventions:\n\nConventions\n-----------\n\n'
 for path, name_version in zip(paths, names_versions):
     name, version = name_version
 
@@ -64,7 +70,7 @@ for path, name_version in zip(paths, names_versions):
     docs += f'* :ref:`{label} <{reference}>`\n'
 
 # write conventions -----------------------------------------------------------
-docs += '\nCurrent\n=======\n\n'
+docs += '\nCurrent\n-------\n\n'
 
 # loop conventions
 deprecated = False
@@ -77,7 +83,7 @@ for path, name_version in zip(paths, names_versions):
 
     # write section title
     if 'deprecated' in path and not deprecated:
-        docs += 'Deprecated\n==========\n\n'
+        docs += 'Deprecated\n----------\n\n'
         deprecated = True
 
     # write convention name, version
@@ -86,15 +92,20 @@ for path, name_version in zip(paths, names_versions):
 
     # name new convention if current convention is deprecated
     if deprecated:
-        if name not in upgrade_rules:
-            upgrade_to = None
-        for upgrade in upgrade_rules[name]['from_to']:
-            if version in upgrade[0]:
-                upgrade_to = upgrade[1]
-                references = [f':ref:`{u} <{u}>`' for u in upgrade_to]
-                ':ref:`{label} <{reference}>`'
-                docs += ('This convention is deprecated. '
-                         f'Use {", ".join(references)} instead.\n\n')
+        # upgrade rules give best feedback
+        if name in upgrade_rules:
+            for upgrade in upgrade_rules[name]['from_to']:
+                if version in upgrade[0]:
+                    upgrade_to = upgrade[1]
+                    references = [f':ref:`{u} <{u}>`' for u in upgrade_to]
+                    ':ref:`{label} <{reference}>`'
+                    docs += ('This convention is deprecated. '
+                             f'Use {", ".join(references)} instead.\n\n')
+        # deprecations are used if no upgrade rules are available
+        elif name in deprecation_rules['GLOBAL:SOFAConventions']:
+            docs += ("This convention is deprecated. Use "
+                     f"{deprecation_rules['GLOBAL:SOFAConventions'][name]} "
+                     "instead.\n\n")
 
     # name purpose of the convention
     docs += f'{convention["GLOBAL:SOFAConventions"]["comment"]}\n\n'

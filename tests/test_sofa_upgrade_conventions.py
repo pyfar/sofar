@@ -85,10 +85,15 @@ def test_upgrade_conventions(path, capfd):
     out, _ = capfd.readouterr()
 
     # don't verify conventions that might require user action after
-    if os.path.basename(path) in ["FreeFieldDirectivityTF_1.0.json"]:
+    if os.path.basename(path) in [
+            "FreeFieldDirectivityTF_1.0.json",
+            "SingleTrackedAudio_0.1.json",
+            "SingleTrackedAudio_0.2.json"]:
         # FreeFieldDirectivityTF_1.0
         # - optional dependency GLOBAL_EmitterDescription
         #   might need to be added
+        # SingleTrackedAudio_0.x
+        # - can be updated to multiple conventions depending on the content
         verify = False
     else:
         verify = True
@@ -98,5 +103,9 @@ def test_upgrade_conventions(path, capfd):
             sofa.upgrade_convention(target, verify=verify)
             out, _ = capfd.readouterr()
             assert "Upgrading" in out
+    elif deprecated:
+        sofa.upgrade_convention()
+        out, _ = capfd.readouterr()
+        assert "is missing upgrade rules" in out
     else:
         assert not deprecated

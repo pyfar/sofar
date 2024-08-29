@@ -13,6 +13,7 @@ from pytest import raises
 import numpy as np
 import numpy.testing as npt
 from netCDF4 import Dataset
+from packaging.version import parse
 
 
 def test_read_write_sofa(capfd):
@@ -165,11 +166,14 @@ def test_roundtrip(mandatory):
     for name, version in names_versions:
         print(f"Testing: {name} {version}")
 
-        if name in deprecations["GLOBAL:SOFAConventions"]:
-            # deprecated conventions can not be written
+        # writing deprecated and proposed conventions is not tested
+        if name in deprecations["GLOBAL:SOFAConventions"] or \
+                parse(version) < parse('1.0'):
             sofa = sf.Sofa(name, mandatory, version, verify=False)
-            with pytest.warns(UserWarning, match="deprecations"):
-                sofa.verify(mode="read")
+            # non stable conventions are not verified
+            if parse(version) >= parse('1.0'):
+                with pytest.warns(UserWarning, match="deprecations"):
+                    sofa.verify(mode="read")
         else:
             # test full round-trip for other conventions
             file = os.path.join(temp_dir.name, name + ".sofa")
@@ -182,7 +186,7 @@ def test_roundtrip(mandatory):
 
 def test_roundtrip_multidimensional_string_variable():
     """
-    Test writing and reading multidimensional string variables (Wringting
+    Test writing and reading multidimensional string variables (Writing
     string variables with one dimension is done in the other roundtrip test).
     """
 
