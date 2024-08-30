@@ -4,7 +4,7 @@ wheel
 watchdog
 ruff==0.4.1
 coverage
-Sphinx
+Sphinx<8
 twine
 pytest
 pytest-runner
@@ -19,3 +19,4 @@ pydata-sphinx-theme
 sphinx-design
 sphinx-favicon
 sphinx-reredirects
+myst_parser

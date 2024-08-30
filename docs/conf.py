@@ -10,7 +10,6 @@ import os
 import sys
 import urllib3
 import shutil
-from recommonmark.parser import CommonMarkParser
 sys.path.insert(0, os.path.abspath('..'))
 
 import sofar  # noqa
@@ -31,7 +30,7 @@ extensions = [
     'sphinx_design',
     'sphinx_favicon',
     'sphinx_reredirects',
-    'recommonmark',
+    'myst_parser',
 ]
 
 # show tocs for classes and functions of modules using the autodocsumm
@@ -52,9 +51,6 @@ source_suffix = {
     '.md': 'markdown',
 }
 
-source_parsers = {
-    '.md': CommonMarkParser,
-}
 
 # The master toctree document.
 master_doc = 'index'
