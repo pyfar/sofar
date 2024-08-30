@@ -10,6 +10,7 @@ import os
 import sys
 import urllib3
 import shutil
+from recommonmark.parser import CommonMarkParser
 sys.path.insert(0, os.path.abspath('..'))
 
 import sofar  # noqa
@@ -30,6 +31,7 @@ extensions = [
     'sphinx_design',
     'sphinx_favicon',
     'sphinx_reredirects',
+    'recommonmark',
 ]
 
 # show tocs for classes and functions of modules using the autodocsumm
@@ -45,7 +47,14 @@ templates_path = ['_templates']
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
-source_suffix = '.rst'
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.md': 'markdown',
+}
+
+source_parsers = {
+    '.md': CommonMarkParser,
+}
 
 # The master toctree document.
 master_doc = 'index'
