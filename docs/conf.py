@@ -30,7 +30,7 @@ extensions = [
     'sphinx_design',
     'sphinx_favicon',
     'sphinx_reredirects',
-    'myst_parser',
+    'sphinx_mdinclude',
 ]
 
 # show tocs for classes and functions of modules using the autodocsumm

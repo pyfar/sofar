@@ -33,6 +33,7 @@ test_requirements = [
     'Sphinx',
     'twine',
     'pydata-sphinx-theme',
+    'sphinx_mdinclude',
 ]
 
 setup(
@@ -53,6 +54,7 @@ setup(
     description="Maybe the most complete python package for SOFA files so far",
     install_requires=requirements,
     license="MIT license",
+    long_description_content_type='text/markdown',
     long_description=readme,
     include_package_data=True,
     keywords='sofar',

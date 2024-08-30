@@ -19,4 +19,4 @@ pydata-sphinx-theme
 sphinx-design
 sphinx-favicon
 sphinx-reredirects
-myst_parser
+sphinx_mdinclude
