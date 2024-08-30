@@ -1,7 +1,7 @@
 include CONTRIBUTING.rst
 include HISTORY.rst
 include LICENSE
-include README.rst
+include README.md
 
 include sofar/sofa_conventions/VERSION
 recursive-include sofar/sofa_conventions/conventions *.csv
