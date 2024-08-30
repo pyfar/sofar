@@ -335,7 +335,6 @@ def _write_sofa(filename: str, sofa: sf.Sofa, compression=4, verify=True):
                 tmp_var[:] = value
             else:
                 tmp_var[:] = stringtochar(value)
-                tmp_var._Encoding = "ascii"
 
             # write variable attributes
             sub_keys = [k for k in all_keys if k.startswith(f"{key}_")]
