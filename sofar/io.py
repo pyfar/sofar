@@ -334,7 +334,7 @@ def _write_sofa(filename: str, sofa: sf.Sofa, compression=4, verify=True):
             if dtype == "f8":
                 tmp_var[:] = value
             else:
-                tmp_var[:] = stringtochar(value)
+                tmp_var[:] = stringtochar(value, encoding='utf-8')
 
             # write variable attributes
             sub_keys = [k for k in all_keys if k.startswith(f"{key}_")]
