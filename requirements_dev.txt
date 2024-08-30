@@ -4,7 +4,7 @@ wheel
 watchdog
 ruff==0.4.1
 coverage
-Sphinx<8
+Sphinx
 twine
 pytest
 pytest-runner
