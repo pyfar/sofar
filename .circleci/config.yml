@@ -93,6 +93,21 @@ jobs:
             cd docs/
             make html SPHINXOPTS="-W"
 
+  test_deprecation_warnings:
+    docker:
+      - image: cimg/python:3.12
+
+    steps:
+      - checkout
+      - python/install-packages:
+          pkg-manager: pip
+          # app-dir: ~/project/package-directory/  # If you're requirements.txt isn't in the root directory.
+          pip-dependency-file: requirements_dev.txt
+      - run:
+          name: Run tests
+          command: git submodule sync --recursive && git submodule update --recursive --init && pytest tests -W error::DeprecationWarning
+
+
   test_pypi_publish:
     parameters:
       version:
@@ -148,6 +163,11 @@ workflows:
           requires:
             - build_and_test
 
+      - test_deprecation_warnings:
+          requires:
+            - build_and_test
+
+
   test_and_publish:
     # Test and publish on new git version tags
     # This requires its own workflow to successfully trigger the test and build
@@ -187,6 +207,16 @@ workflows:
             parameters:
               version:
                 - "3.12"
+          requires:
+            - build_and_test
+          filters:
+            branches:
+              ignore: /.*/
+            # only act on version tags
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*$/
+
+      - test_deprecation_warnings:
           requires:
             - build_and_test
           filters:
