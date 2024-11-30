@@ -34,13 +34,14 @@ jobs:
     executor:
       name: python-docker
       version: <<parameters.version>>
-
     steps:
       - checkout
-      - python/install-packages:
-          pkg-manager: pip
-          # app-dir: ~/project/package-directory/  # If you're requirements.txt isn't in the root directory.
-          pip-dependency-file: requirements_dev.txt
+      - run:
+          name: Install System Dependencies
+          command: sudo apt-get update && sudo apt-get install -y libsndfile1
+      - run:
+          name: install dependencies
+          command: pip install ".[tests]"
       - run:
           name: Run tests
           command: git submodule sync --recursive && git submodule update --recursive --init && pytest
@@ -57,12 +58,11 @@ jobs:
 
     steps:
       - checkout
-      - python/install-packages:
-          pkg-manager: pip
-          # app-dir: ~/project/package-directory/  # If you're requirements.txt isn't in the root directory.
-          pip-dependency-file: requirements_dev.txt
       - run:
-          name: Flake8
+          name: install dependencies
+          command: pip install ".[tests]"
+      - run:
+          name: Ruff
           command: git submodule sync --recursive && git submodule update --recursive --init && ruff check
 
   test_documentation_build:
@@ -80,33 +80,37 @@ jobs:
       - run:
           name: Install System Dependencies
           command: sudo apt-get update && sudo apt-get install -y texlive-latex-extra dvipng
-      - python/install-packages:
-          pkg-manager: pip
-          # app-dir: ~/project/package-directory/  # If you're requirements.txt isn't in the root directory.
-          pip-dependency-file: requirements_dev.txt
       - run:
           name: Sphinx
           command: |
             git submodule sync --recursive
             git submodule update --recursive --init
-            pip install -e .
+            pip install ".[docs]"
             cd docs/
             make html SPHINXOPTS="-W"
 
   test_deprecation_warnings:
-    docker:
-      - image: cimg/python:3.12
-
+    parameters:
+      version:
+        description: "version tag"
+        default: "latest"
+        type: string
+    executor:
+      name: python-docker
+      version: <<parameters.version>>
     steps:
       - checkout
-      - python/install-packages:
-          pkg-manager: pip
-          # app-dir: ~/project/package-directory/  # If you're requirements.txt isn't in the root directory.
-          pip-dependency-file: requirements_dev.txt
+      - run:
+          name: Install System Dependencies
+          command: sudo apt-get update && sudo apt-get install -y libsndfile1 texlive-latex-extra dvipng
+      - run:
+          name: install dependencies
+          command: pip install ".[tests]"
+      - run: |
+          python --version
       - run:
           name: Run tests
           command: git submodule sync --recursive && git submodule update --recursive --init && pytest tests -W error::DeprecationWarning
-
 
   test_pypi_publish:
     parameters:
@@ -117,19 +121,41 @@ jobs:
     executor:
       name: python-docker
       version: <<parameters.version>>
-
     steps:
       - checkout
-      - python/install-packages:
-          pkg-manager: pip
-          # app-dir: ~/project/package-directory/  # If you're requirements.txt isn't in the root directory.
-          pip-dependency-file: requirements_dev.txt
+    #  - run:
+    #      name: Install System Dependencies
+    #      command: sudo apt-get update && sudo apt-get install -y libsndfile1
+      - run:
+          name: install dependencies
+          command: pip install ".[deploy]"
+      - run:
+          name: deploy
+          command: |  # create whl, install twine and publish to Test PyPI
+            python -m build
+            twine check dist/*
+
+  run_pypi_publish:
+    parameters:
+      version:
+        description: "version tag"
+        default: "latest"
+        type: string
+    executor:
+      name: python-docker
+      version: <<parameters.version>>
+    steps:
+      - checkout
+      - run:
+          name: install dependencies
+          command: pip install ".[deploy]"
       - run:
           name: deploy
           command: |  # create whl, install twine and publish to Test PyPI
             git submodule sync --recursive
             git submodule update --recursive --init
-            python setup.py sdist bdist_wheel
+            python -m build
+            twine check dist/*
             twine upload dist/*
 
 # Invoke jobs via workflows
@@ -159,14 +185,25 @@ workflows:
           matrix:
             parameters:
               version:
-                - "3.12"
+                - "3.9"
           requires:
             - build_and_test
 
       - test_deprecation_warnings:
+          matrix:
+            parameters:
+              version:
+                - "3.9"
           requires:
             - build_and_test
 
+      - test_pypi_publish:
+          matrix:
+            parameters:
+              version:
+                - "3.9"
+          requires:
+            - build_and_test
 
   test_and_publish:
     # Test and publish on new git version tags
@@ -217,6 +254,10 @@ workflows:
               only: /^v[0-9]+(\.[0-9]+)*$/
 
       - test_deprecation_warnings:
+          matrix:
+            parameters:
+              version:
+                - "3.9"
           requires:
             - build_and_test
           filters:
@@ -226,15 +267,16 @@ workflows:
             tags:
               only: /^v[0-9]+(\.[0-9]+)*$/
 
-      - test_pypi_publish:
+      - run_pypi_publish:
           matrix:
             parameters:
               version:
-                - "3.12"
+                - "3.9"
           requires:
             - build_and_test
             - ruff
             - test_documentation_build
+            - test_deprecation_warnings
           filters:
             branches:
               ignore: /.*/
