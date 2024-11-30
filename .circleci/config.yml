@@ -37,9 +37,6 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install System Dependencies
-          command: sudo apt-get update && sudo apt-get install -y libsndfile1
-      - run:
           name: install dependencies
           command: pip install ".[tests]"
       - run:
@@ -78,9 +75,6 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install System Dependencies
-          command: sudo apt-get update && sudo apt-get install -y texlive-latex-extra dvipng
-      - run:
           name: Sphinx
           command: |
             git submodule sync --recursive
@@ -101,9 +95,6 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Install System Dependencies
-          command: sudo apt-get update && sudo apt-get install -y libsndfile1 texlive-latex-extra dvipng
-      - run:
           name: install dependencies
           command: pip install ".[tests]"
       - run: |
@@ -123,9 +114,6 @@ jobs:
       version: <<parameters.version>>
     steps:
       - checkout
-    #  - run:
-    #      name: Install System Dependencies
-    #      command: sudo apt-get update && sudo apt-get install -y libsndfile1
       - run:
           name: install dependencies
           command: pip install ".[deploy]"
