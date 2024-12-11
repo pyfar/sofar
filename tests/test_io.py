@@ -9,14 +9,13 @@ import os
 import pathlib
 from tempfile import TemporaryDirectory
 import pytest
-from pytest import raises
 import numpy as np
 import numpy.testing as npt
 from netCDF4 import Dataset
 from packaging.version import parse
 
 
-def test_read_write_sofa(capfd):
+def test_read_write_sofa():
 
     temp_dir = TemporaryDirectory()
     filename = os.path.join(temp_dir.name, "test.sofa")
@@ -37,24 +36,25 @@ def test_read_write_sofa(capfd):
     assert not hasattr(sofa, "_api")
 
     # read non-existing file
-    with raises(ValueError, match="test.sofa does not exist"):
+    with pytest.raises(ValueError, match="test.sofa does not exist"):
         sf.read_sofa("test.sofa")
 
     # read file of unknown convention
     sofa = sf.Sofa("SimpleFreeFieldHRIR")
     sf.write_sofa(filename, sofa)
     with Dataset(filename, "r+", format="NETCDF4") as file:
-        setattr(file, "SOFAConventions", "Funky")
-    with raises(ValueError, match="Convention 'Funky' does not exist"):
+        file.SOFAConventions = "Funky"
+    with pytest.raises(ValueError, match="Convention 'Funky' does not exist"):
         sf.read_sofa(filename)
 
     # read file of unknown version (stored in file)
     sofa = sf.Sofa("SimpleFreeFieldHRIR")
     sf.write_sofa(filename, sofa)
     with Dataset(filename, "r+", format="NETCDF4") as file:
-        setattr(file, "SOFAConventionsVersion", "0.1")
+        file.SOFAConventionsVersion = "0.1"
     # ValueError when version should be matched
-    with raises(ValueError, match="v0.1 is not a valid SOFA Convention"):
+    with pytest.raises(ValueError,
+                       match="v0.1 is not a valid SOFA Convention"):
         sf.read_sofa(filename)
 
     # read file containing a variable with wrong shape
@@ -66,14 +66,14 @@ def test_read_write_sofa(capfd):
         var = file.createVariable("Data_IR", "f8", ('I', 'A'))
         var[:] = np.zeros((1, 10)).astype("double")
     # reading data with update API generates an error
-    with raises(ValueError, match="The SOFA object could not be"):
+    with pytest.raises(ValueError, match="The SOFA object could not be"):
         sf.read_sofa(filename)
     # data can be read without updating API
     sf.read_sofa(filename, verify=False)
 
 
 def test_read_sofa_custom_data():
-    """Test if sofa files with custom data are loaded correctly"""
+    """Test if sofa files with custom data are loaded correctly."""
 
     temp_dir = TemporaryDirectory()
     filename = os.path.join(temp_dir.name, "test.sofa")
@@ -102,14 +102,14 @@ def test_read_netcdf():
         # write data
         sf.io._write_sofa(file, sofa, verify=False)
         # can not be read with read_sofa
-        with raises(ValueError):
+        with pytest.raises(ValueError, match="Convention 'MadeUp' does not"):
             sf.read_sofa(file)
         sofa_read = sf.read_sofa_as_netcdf(file)
         sf.equals(sofa, sofa_read)
 
 
 def test_write_sofa_outdated_version():
-    """Test the warning for writing SOFA files with outdated versions"""
+    """Test the warning for writing SOFA files with outdated versions."""
 
     # generate test data and directory
     tmp = TemporaryDirectory()
@@ -121,7 +121,7 @@ def test_write_sofa_outdated_version():
 
 
 def test_write_sofa_compression():
-    """Test writing SOFA files with compression"""
+    """Test writing SOFA files with compression."""
 
     # create temporary directory
     temp_dir = TemporaryDirectory()
@@ -150,7 +150,7 @@ def test_write_sofa_compression():
 @pytest.mark.parametrize("mandatory", [(False)])
 def test_roundtrip(mandatory):
     """"
-    Cyclic test of create, write, read functions
+    Cyclic test of create, write, read functions.
 
     1. create_sofa
     2. write_sofa
@@ -268,7 +268,7 @@ def test_format_value_for_netcdf():
     assert value.ndim == 2
 
     # unknown data type
-    with raises(ValueError, match="Unknown type int for TestVar"):
+    with pytest.raises(ValueError, match="Unknown type int for TestVar"):
         value, dtype = _format_value_for_netcdf(1, "TestVar", "int", "MR", 12)
 
 
@@ -312,7 +312,7 @@ def test_format_value_from_netcdf():
     npt.assert_allclose(value, array)
 
     # test with invalid data dtype
-    with raises(TypeError, match="Data_IR: value.dtype is complex"):
+    with pytest.raises(TypeError, match="Data_IR: value.dtype is complex"):
         _format_value_from_netcdf(
             np.array([44100], dtype="complex"), "Data_IR")
 
@@ -324,9 +324,10 @@ def test_verify_convention_and_version():
     assert out is None
 
     # test assertions
-    with raises(ValueError, match="Convention 'Funky' does not exist"):
+    with pytest.raises(ValueError, match="Convention 'Funky' does not exist"):
         _verify_convention_and_version("1.0", "Funky")
-    with raises(ValueError, match="v1.1 is not a valid SOFA Convention"):
+    with pytest.raises(ValueError,
+                       match="v1.1 is not a valid SOFA Convention"):
         _verify_convention_and_version("1.1", "GeneralTF")
 
 

@@ -1,3 +1,4 @@
+"""Main init that determines how the sofar package is structured."""
 # -*- coding: utf-8 -*-
 __author__ = """The pyfar developers"""
 __email__ = 'info@pyfar.org'

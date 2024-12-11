@@ -6,7 +6,6 @@ import os
 import json
 from tempfile import TemporaryDirectory
 import pytest
-from pytest import raises
 import numpy as np
 from copy import deepcopy
 import warnings
@@ -45,7 +44,7 @@ def test__get_conventions(capfd):
     assert isinstance(names_versions, list)
     assert isinstance(names_versions[0], tuple)
 
-    with raises(ValueError, match="return_type None is invalid"):
+    with pytest.raises(ValueError, match="return_type None is invalid"):
         _get_conventions(return_type="None")
 
 
@@ -59,7 +58,7 @@ def test__congruency(capfd, branch):
     _check_congruency(branch=branch)
     out, _ = capfd.readouterr()
     if out != "":
-        warnings.warn(out, Warning)
+        warnings.warn(out, Warning, stacklevel=1)
 
 
 def test_update_conventions(capfd):
@@ -162,7 +161,7 @@ def test_equals_global_parameters():
     sofa_a = sf.Sofa("SimpleFreeFieldHRIR")
 
     # check invalid
-    with raises(ValueError, match="exclude is"):
+    with pytest.raises(ValueError, match="exclude is"):
         sf.equals(sofa_a, sofa_a, exclude="wrong")
 
     # check identical objects
@@ -221,14 +220,14 @@ def test_equals_global_parameters():
     assert is_identical
 
 
-@pytest.mark.parametrize("value_a, value_b, attribute, fails", [
+@pytest.mark.parametrize(("value_a", "value_b", "attribute", "fails"), [
     ("1", "2", "GLOBAL_SOFAConventionsVersion", True),
     ([[1, 2]], [1, 2], "Data_IR", False),
     ([[1, 2]], [1, 3], "Data_IR", True),
     ("HD 650", ["HD 650"], "SourceModel", False),
     ("HD 650", np.array(["HD 650"], dtype="U"), "SourceModel", False),
     ("HD 650", np.array(["HD 650"], dtype="S"), "SourceModel", False),
-    ("HD 650", "HD-650", "SourceModel", True)
+    ("HD 650", "HD-650", "SourceModel", True),
 ])
 def test_equals_attribute_values(value_a, value_b, attribute, fails):
 

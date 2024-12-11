@@ -1,3 +1,4 @@
+"""Module for reading and writing Sofa files with sofar."""
 import contextlib
 import os
 import numpy as np
@@ -41,7 +42,6 @@ def read_sofa(filename, verify='auto', verbose=True):
 
     Notes
     -----
-
     1. Missing dimensions are appended when writing the SOFA object to disk.
        E.g., if ``sofa.Data_IR`` is of shape (1, 2) it is written as an array
        of shape (1, 2, 1) because the SOFA standard AES69 defines it as a
@@ -92,7 +92,6 @@ def read_sofa_as_netcdf(filename):
 
     Notes
     -----
-
     1. Missing dimensions are appended when writing the SOFA object to disk.
        E.g., if ``sofa.Data_IR`` is of shape (1, 2) it is written as an array
        of shape (1, 2, 1) because the SOFA standard AES69 defines it as a
@@ -129,8 +128,8 @@ def _read_netcdf(filename, verify, verbose, mode):
 
         if mode == "sofa":
             # get convention name and version
-            convention = getattr(file, "SOFAConventions")
-            version = getattr(file, "SOFAConventionsVersion")
+            convention = file.SOFAConventions
+            version = file.SOFAConventionsVersion
 
             # check if convention and version exist
             _verify_convention_and_version(version, convention)
@@ -217,7 +216,7 @@ def _read_netcdf(filename, verify, verbose, mode):
             raise ValueError((
                 "The SOFA object could not be verified, maybe due to erroneous"
                 " data. Call sofa=sofar.read_sofa(filename, verify=False) and "
-                "then sofa.verify() to get more information"))
+                "then sofa.verify() to get more information")) from None
 
     return sofa
 
@@ -240,7 +239,6 @@ def write_sofa(filename: str, sofa: sf.Sofa, compression=4):
 
     Notes
     -----
-
     1. Missing dimensions are appended when writing the SOFA object to disk.
        E.g., if ``sofa.Data_IR`` is of shape (1, 2) it is written as an array
        of shape (1, 2, 1) because the SOFA standard AES69 defines it as a
@@ -281,7 +279,7 @@ def _write_sofa(filename: str, sofa: sf.Sofa, compression=4, verify=True):
                     "Writing SOFA object with outdated Convention "
                     f"version {current}. It is recommend to upgrade "
                     " data with Sofa.upgrade_convention() before "
-                    "writing to disk if possible."))
+                    "writing to disk if possible."), stacklevel=2)
 
     # setting the netCDF compression parameter
     use_zlib = compression != 0
@@ -309,12 +307,10 @@ def _write_sofa(filename: str, sofa: sf.Sofa, compression=4, verify=True):
         for key in all_keys:
 
             # skip attributes
-            # Note: This definition of attribute is blurry:
-            # lax definition:
-            #   sofa._convention[key]["type"] == "attribute":
-            # strict definition:
-            #   ("_" in key and not key.startswith("Data_")) or \
-            #       key.count("_") > 1
+            # Note: The used definition of attributes is lax. The strict
+            # definition would parse `key` and assume an attribute if
+            # 1. "_" is in key and key does not start with "DATA_", or
+            # 2. key contains more than one "_"
             #
             # The strict definition is implicitly included in the SOFA standard
             # since underscores only occur for variables starting with Data_
@@ -327,7 +323,7 @@ def _write_sofa(filename: str, sofa: sf.Sofa, compression=4, verify=True):
                 sofa._dimensions[key], sofa._api["S"])
 
             # create variable and write data
-            shape = tuple(list(sofa._dimensions[key]))
+            shape = list(sofa._dimensions[key])
             tmp_var = file.createVariable(
                 key.replace("Data_", "Data."), dtype, shape,
                 zlib=use_zlib, complevel=compression)
@@ -391,7 +387,7 @@ def _format_value_for_netcdf(value, key, dtype, dimensions, S):
 
 def _format_value_from_netcdf(value, key):
     """
-    Format value from NETCDF4 file for saving in a SOFA object
+    Format value from NETCDF4 file for saving in a SOFA object.
 
     Parameters
     ----------
@@ -408,7 +404,7 @@ def _format_value_from_netcdf(value, key):
 
     if "float" in str(value.dtype) or "int" in str(value.dtype):
         if np.ma.is_masked(value):
-            warnings.warn(f"Entry {key} contains missing data")
+            warnings.warn(f"Entry {key} contains missing data", stacklevel=3)
         else:
             # Convert to numpy array or scalar
             value = np.asarray(value)

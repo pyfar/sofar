@@ -1,3 +1,7 @@
+"""
+Read desired data from SOFA-file directly from disk without loading entire
+file into memory.
+"""
 from netCDF4 import Dataset
 import numpy as np
 
@@ -19,7 +23,7 @@ class SofaStream():
         Full path to a SOFA-file
 
     Returns
-    --------
+    -------
     sofa_stream : SofaStream
         A SofaStream object which reads directly from the file.
 
@@ -61,7 +65,7 @@ class SofaStream():
     """
 
     def __init__(self, filename):
-        """Initialize a new SofaStream object (see documentation above)"""
+        """Initialize a new SofaStream object (see documentation above)."""
         self._filename = filename
 
     def __enter__(self):
@@ -82,9 +86,10 @@ class SofaStream():
     def __getattr__(self, name):
         """
         Executed when accessing data within a with statement
-        (see documentation above)."""
+        (see documentation above).
+        """
         # get netCDF4-attributes and -variable-keys from SOFA-file
-        dset_variables = np.array([key for key in self._file.variables.keys()])
+        dset_variables = np.array(list(self._file.variables.keys()))
         dset_attributes = np.asarray(self._file.ncattrs())
 
         # remove delimiter from passed sofar-attribute
@@ -116,7 +121,7 @@ class SofaStream():
     @property
     def list_dimensions(self):
         """
-        Print the dimensions of the SOFA-file
+        Print the dimensions of the SOFA-file.
 
         See :py:func:`~SofaStream.inspect` to see the shapes of the data inside
         the SOFA-file and :py:func:`~SofaStream.get_dimension` to get the
@@ -189,7 +194,7 @@ class SofaStream():
 
     def get_dimension(self, dimension):
         """
-        Get size of a SOFA dimension
+        Get size of a SOFA dimension.
 
         SOFA dimensions specify the shape of the data contained in a SOFA-file.
         For a list of all dimensions see :py:func:`~list_dimensions`, for more
@@ -219,7 +224,7 @@ class SofaStream():
 
     def inspect(self, file=None):
         """
-        Get information about the data inside a SOFA-file
+        Get information about the data inside a SOFA-file.
 
         Prints the values of all attributes and variables with six or less
         entries and the shapes and type of all numeric and string variables.
@@ -283,7 +288,7 @@ class SofaStream():
                         str(np.squeeze(data[:])).replace("\n", "\n  ") + "\n"
 
             # Add variable-attributes to info string (e.g. 'Type' or 'Units)
-            for att_ in [a for a in self._file[key].ncattrs()]:
+            for att_ in list(self._file[key].ncattrs()):
                 info_str += (key.replace('.', '_') + f'_{att_} : '
                              + getattr(data, att_) + '\n')
 

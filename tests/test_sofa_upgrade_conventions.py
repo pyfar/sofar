@@ -17,7 +17,7 @@ paths = _get_conventions("paths")
 
 def test_printouts(capfd):
     """
-    Test console print for calling upgrade with up to data and deprecated data
+    Test console print for calling upgrade with up to data and deprecated data.
     """
 
     # test printouts with up to data convention -------------------------------
