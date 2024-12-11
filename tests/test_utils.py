@@ -228,7 +228,7 @@ def test_equals_global_parameters():
     ("HD 650", ["HD 650"], "SourceModel", False),
     ("HD 650", np.array(["HD 650"], dtype="U"), "SourceModel", False),
     ("HD 650", np.array(["HD 650"], dtype="S"), "SourceModel", False),
-    ("HD 650", "HD-650", "SourceModel", True)
+    ("HD 650", "HD-650", "SourceModel", True),
 ])
 def test_equals_attribute_values(value_a, value_b, attribute, fails):
 
