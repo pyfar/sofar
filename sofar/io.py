@@ -309,12 +309,10 @@ def _write_sofa(filename: str, sofa: sf.Sofa, compression=4, verify=True):
         for key in all_keys:
 
             # skip attributes
-            # Note: This definition of attribute is blurry:
-            # lax definition:
-            #   sofa._convention[key]["type"] == "attribute":
-            # strict definition:
-            #   ("_" in key and not key.startswith("Data_")) or \
-            #       key.count("_") > 1
+            # Note: The used definition of attributes is lax. The strict
+            # definition would parse `key` and assume an attribute if
+            # 1. "_" is in key and key does not start with "DATA_", or
+            # 2. key contains more than one "_"
             #
             # The strict definition is implicitly included in the SOFA standard
             # since underscores only occur for variables starting with Data_
