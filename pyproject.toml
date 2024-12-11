@@ -1,8 +1,82 @@
+[project]
+name = "sofar"
+version = "1.2.0"
+description = "Maybe the most complete python package for SOFA files so far."
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.8"
+authors = [
+    { name = "The pyfar developers", email = "info@pyfar.org" },
+]
+keywords = [
+    "acoustics",
+    "pyfar",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    'netCDF4',
+    'numpy>=1.14.0',
+    'beautifulsoup4',
+    'requests',
+]
+
+[project.optional-dependencies]
+deploy = [
+    "twine",
+    "wheel",
+    "build",
+    "setuptools",
+    "bump-my-version",
+    ]
+tests = [
+    "pytest",
+    "pytest-cov",
+    "watchdog",
+    "ruff==0.4.1",
+    "coverage",
+]
+docs = [
+    "sphinx",
+    "autodocsumm>=0.2.14",
+    "pydata-sphinx-theme",
+    "sphinx_mdinclude",
+    "sphinx-design",
+    "sphinx-favicon",
+    "sphinx-reredirects",
+]
+dev = ["sofar[deploy,tests,docs]"]
+
+[project.urls]
+Tracker = "https://github.com/pyfar/sofar/issues"
+Documentation = "https://sofar.readthedocs.io/"
+Download = "https://pypi.org/project/sofar/"
+Homepage = "https://pyfar.org/"
+Source = "https://github.com/pyfar/sofar"
+Changelog = "https://github.com/pyfar/sofar/blob/main/HISTORY.rst"
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages]
+find = {}  # Scan the project directory with the default parameters
+
+
 [tool.ruff]
 exclude = [
     ".git",
     "docs",
-    "setup.py",
 ]
 line-length = 79
 lint.ignore = []
@@ -11,3 +85,34 @@ lint.select = [
     "F",
     "W",
 ]
+
+[tool.bumpversion]
+current_version = "1.2.0"
+parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
+serialize = ["{major}.{minor}.{patch}"]
+search = "{current_version}"
+replace = "{new_version}"
+regex = true
+ignore_missing_version = false
+ignore_missing_files = false
+tag = true
+sign_tags = false
+tag_name = "v{new_version}"
+tag_message = "Bump version: {current_version} → {new_version}"
+allow_dirty = false
+commit = true
+message = "Bump version: {current_version} → {new_version}"
+commit_args = ""
+setup_hooks = []
+pre_commit_hooks = []
+post_commit_hooks = []
+
+[[tool.bumpversion.files]]
+filename = "pyproject.toml"
+search = '\nversion = "{current_version}"'
+replace = '\nversion = "{new_version}"'
+
+[[tool.bumpversion.files]]
+filename = "sofar/__init__.py"
+search = "__version__ = '{current_version}'"
+replace = "__version__ = '{new_version}'"

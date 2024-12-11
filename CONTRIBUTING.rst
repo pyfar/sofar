@@ -45,14 +45,12 @@ Ready to contribute? Here's how to set up `sofar` for local development using th
 3. Note that some graphical Git interfaces can not do the recursive clone. If the folder sofar/sofa_conventions is empty try::
 
     $ git submodule update --init
-
+    
 4. Install your local copy into a virtualenv. Assuming you have Anaconda or Miniconda installed, this is how you set up your fork for local development::
 
     $ conda create --name sofar python
     $ conda activate sofar
-    $ conda install pip
-    $ pip install -e .
-    $ pip install -r requirements_dev.txt
+    $ pip install -e ".[dev]"
 
 5. Create a branch for local development. Indicate the intention of your branch in its respective name (i.e. `feature/branch-name` or `bugfix/branch-name`)::
 
