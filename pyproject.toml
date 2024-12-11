@@ -77,7 +77,6 @@ find = {}  # Scan the project directory with the default parameters
 exclude = [
     ".git",
     "docs",
-    "sofar/sofa_conventions",
 ]
 line-length = 79
 lint.ignore = [
