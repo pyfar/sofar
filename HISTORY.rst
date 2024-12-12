@@ -2,6 +2,10 @@
 History
 =======
 
+1.2.1 (2024-12-12)
+------------------
+* Deployment: Move from setup.py to pyproject.toml (PR #114, #115)
+
 1.2.0 (2024-08-29)
 ------------------
 * Feature: Introduce `SofaStream` class for reading parts of large Sofa files without reading the entire file (PR #90, 97)
