@@ -1391,12 +1391,12 @@ class Sofa():
         # (so far there are only deprecations for the convention)
         if self.GLOBAL_SOFAConventions in \
                 deprecations["GLOBAL:SOFAConventions"]:
+            convention = self.GLOBAL_SOFAConventions
             msg = ("Detected deprecations:\n"
                    f"- GLOBAL_SOFAConventions is "
                    f"{self.GLOBAL_SOFAConventions}, which is deprecated. Use "
                    "Sofa.upgrade_convention() to upgrade to "
-                   f"{deprecations['GLOBAL:SOFAConventions'][
-                       self.GLOBAL_SOFAConventions]}")
+                   f"{deprecations['GLOBAL:SOFAConventions'][convention]}")
             if mode == "write":
                 error_msg += msg
             else:
