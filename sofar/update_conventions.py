@@ -337,9 +337,9 @@ def _convention_csv2dict(file: str):
             for ff, field in enumerate(fields):
                 convention[line[0]][field.lower()] = line[ff + 1]
 
-        except: # noqa
+        except ValueError as e:
             raise ValueError((f"Failed to parse line {idl}, entry {idc} in: "
-                              f"{file}: \n{line}\n")) from None
+                              f"{file}: \n{line}\n")) from e
 
     # reorder the fields to be nicer to read and understand
     # 1. Move everything to the end that is not GLOBAL

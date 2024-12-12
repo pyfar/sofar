@@ -4,7 +4,7 @@ import sofar as sf
 
 
 # Temporary SOFA-file
-@pytest.fixture()
+@pytest.fixture
 def temp_sofa_file(tmp_path_factory):
     """
     Temporary small SOFA file.

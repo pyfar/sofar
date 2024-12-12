@@ -12,8 +12,8 @@ import urllib3
 import shutil
 sys.path.insert(0, os.path.abspath('..'))
 
-import sofar  # noqa
-import resources.conventions  # noqa: build conventions for documentation
+import sofar
+import resources.conventions
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

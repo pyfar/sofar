@@ -36,7 +36,7 @@ def test_sofastream_attribute_error(temp_sofa_file):
         with pytest.raises(
                 AttributeError,
                 match="Wrong_Attribute is not contained in SOFA-file"):
-            file.Wrong_Attribute    # noqa: B018
+            _ = file.Wrong_Attribute
 
 
 def test_sofastream_inspect(capfd, temp_sofa_file):
@@ -68,7 +68,7 @@ def test_list_dimensions(capfd, tmp_path_factory):
     sofa = sf.Sofa("GeneralFIR")
     sf.write_sofa(filename, sofa)
     with SofaStream(filename) as file:
-        file.list_dimensions    # noqa: B018
+        _ = file.list_dimensions
         out, _ = capfd.readouterr()
         assert "N = 1 samples" in out
 
@@ -76,7 +76,7 @@ def test_list_dimensions(capfd, tmp_path_factory):
     sofa = sf.Sofa("GeneralTF")
     sf.write_sofa(filename, sofa)
     with SofaStream(filename) as file:
-        file.list_dimensions    # noqa: B018
+        _ = file.list_dimensions
         out, _ = capfd.readouterr()
         assert "N = 1 frequencies" in out
 
@@ -84,7 +84,7 @@ def test_list_dimensions(capfd, tmp_path_factory):
     sofa = sf.Sofa("SimpleFreeFieldHRSOS")
     sf.write_sofa(filename, sofa)
     with SofaStream(filename) as file:
-        file.list_dimensions    # noqa: B018
+        _ = file.list_dimensions
         out, _ = capfd.readouterr()
         assert "N = 6 SOS coefficients" in out
 
@@ -92,7 +92,7 @@ def test_list_dimensions(capfd, tmp_path_factory):
     sofa = sf.Sofa("GeneralFIR")
     sf.write_sofa(filename, sofa)
     with SofaStream(filename) as file:
-        file.list_dimensions    # noqa: B018
+        _ = file.list_dimensions
         out, _ = capfd.readouterr()
         assert "E = 1 emitter" in out
         assert "R = 1 receiver" in out
@@ -104,7 +104,7 @@ def test_list_dimensions(capfd, tmp_path_factory):
     sofa.ReceiverPosition_Units = "degree, degree, metre"
     sf.write_sofa(filename, sofa)
     with SofaStream(filename) as file:
-        file.list_dimensions  # noqa: B018
+        _ = file.list_dimensions
         out, _ = capfd.readouterr()
     assert "E = 1 emitter spherical harmonics coefficients" in out
     assert "R = 1 receiver spherical harmonics coefficients" in out
