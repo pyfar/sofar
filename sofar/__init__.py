@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 __author__ = """The pyfar developers"""
 __email__ = 'info@pyfar.org'
-__version__ = '1.2.0'
+__version__ = '1.2.1'
 
 from .sofa import Sofa
 
