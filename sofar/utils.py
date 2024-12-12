@@ -1,3 +1,4 @@
+"""Contains util functions to work with sofar and Sofa objects."""
 import os
 import glob
 import numpy as np
@@ -7,7 +8,7 @@ import sofar as sf
 
 
 def version():
-    """Return version of sofar and SOFA conventions"""
+    """Return version of sofar and SOFA conventions."""
 
     sofa_conventions = os.path.join(
         os.path.dirname(__file__), "sofa_conventions", 'VERSION')
@@ -234,7 +235,7 @@ def equals(sofa_a, sofa_b, verbose=True, exclude=None):
 
 def _equals_raise_warning(message, verbose):
     if verbose:
-        warnings.warn(message)
+        warnings.warn(message, stacklevel=2)
     return False
 
 
@@ -260,7 +261,7 @@ def _atleast_nd(array, ndim):
 
 
 def _nd_newaxis(array, ndim):
-    """Append dimensions to the end of an array until array.ndim == ndim"""
+    """Append dimensions to the end of an array until array.ndim == ndim."""
     array = np.array(array)
 
     for _ in range(ndim - array.ndim):

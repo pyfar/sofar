@@ -3,7 +3,7 @@ import sys
 import json
 sys.path.insert(0, os.path.abspath(os.path.join('..', '..')))
 
-import sofar as sf  # noqa
+import sofar as sf
 
 base_dir = os.path.dirname(__file__)
 

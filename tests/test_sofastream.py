@@ -1,6 +1,6 @@
 from sofar import SofaStream
 from tempfile import TemporaryDirectory
-from pytest import raises
+import pytest
 import netCDF4
 import numpy as np
 import os
@@ -33,9 +33,10 @@ def test_sofastream_output(temp_sofa_file):
 def test_sofastream_attribute_error(temp_sofa_file):
 
     with SofaStream(temp_sofa_file) as file:
-        with raises(AttributeError,
-                    match="Wrong_Attribute is not contained in SOFA-file"):
-            file.Wrong_Attribute
+        with pytest.raises(
+                AttributeError,
+                match="Wrong_Attribute is not contained in SOFA-file"):
+            _ = file.Wrong_Attribute
 
 
 def test_sofastream_inspect(capfd, temp_sofa_file):
@@ -67,7 +68,7 @@ def test_list_dimensions(capfd, tmp_path_factory):
     sofa = sf.Sofa("GeneralFIR")
     sf.write_sofa(filename, sofa)
     with SofaStream(filename) as file:
-        file.list_dimensions
+        _ = file.list_dimensions
         out, _ = capfd.readouterr()
         assert "N = 1 samples" in out
 
@@ -75,7 +76,7 @@ def test_list_dimensions(capfd, tmp_path_factory):
     sofa = sf.Sofa("GeneralTF")
     sf.write_sofa(filename, sofa)
     with SofaStream(filename) as file:
-        file.list_dimensions
+        _ = file.list_dimensions
         out, _ = capfd.readouterr()
         assert "N = 1 frequencies" in out
 
@@ -83,7 +84,7 @@ def test_list_dimensions(capfd, tmp_path_factory):
     sofa = sf.Sofa("SimpleFreeFieldHRSOS")
     sf.write_sofa(filename, sofa)
     with SofaStream(filename) as file:
-        file.list_dimensions
+        _ = file.list_dimensions
         out, _ = capfd.readouterr()
         assert "N = 6 SOS coefficients" in out
 
@@ -91,7 +92,7 @@ def test_list_dimensions(capfd, tmp_path_factory):
     sofa = sf.Sofa("GeneralFIR")
     sf.write_sofa(filename, sofa)
     with SofaStream(filename) as file:
-        file.list_dimensions
+        _ = file.list_dimensions
         out, _ = capfd.readouterr()
         assert "E = 1 emitter" in out
         assert "R = 1 receiver" in out
@@ -103,14 +104,14 @@ def test_list_dimensions(capfd, tmp_path_factory):
     sofa.ReceiverPosition_Units = "degree, degree, metre"
     sf.write_sofa(filename, sofa)
     with SofaStream(filename) as file:
-        file.list_dimensions
+        _ = file.list_dimensions
         out, _ = capfd.readouterr()
     assert "E = 1 emitter spherical harmonics coefficients" in out
     assert "R = 1 receiver spherical harmonics coefficients" in out
 
 
 def test_get_dimensions(tmp_path_factory):
-    """Test getting the size of dimensions"""
+    """Test getting the size of dimensions."""
     filename = tmp_path_factory.mktemp("data") / "test_sofastream_dim.sofa"
 
     # test FIR Data
@@ -122,5 +123,5 @@ def test_get_dimensions(tmp_path_factory):
         assert size == 1
 
         # test wrong dimension error
-        with raises(ValueError, match="Q is not a valid dimension"):
+        with pytest.raises(ValueError, match="Q is not a valid dimension"):
             file.get_dimension("Q")

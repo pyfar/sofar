@@ -1,3 +1,4 @@
+"""Module defines the sofar Sofa class."""
 import os
 import re
 import json
@@ -89,7 +90,7 @@ class Sofa():
 
     def __init__(self, convention, mandatory=False, version="latest",
                  verify='auto'):
-        """See class docstring"""
+        """See class docstring."""
 
         # get convention
         if convention is not None:
@@ -120,7 +121,8 @@ class Sofa():
                     f"Detected preliminary conventions version {version}. "
                     "Upgrade data to version >= 1.0 if possible. Preliminary "
                     "conventions might change in the future, which could "
-                    "invalidate data that was written before the changes.")))
+                    "invalidate data that was written before the changes.")),
+                    stacklevel=2)
 
             self.protected = True
         else:
@@ -128,6 +130,12 @@ class Sofa():
             self._convention = {}
 
     def __setattr__(self, name: str, value):
+        """
+        Set attribute in Sofa object.
+
+        Overloads the default ``__setattr__`` method to block setting
+        read-only data.
+        """
         # don't allow new attributes to be added outside the class
         if self.protected and not hasattr(self, name):
             raise TypeError(f"{name} is an invalid attribute")
@@ -149,6 +157,12 @@ class Sofa():
         super.__setattr__(self, name, value)
 
     def __delattr__(self, name: str):
+        """
+        Delete attribute from Sofa object.
+
+        Overloads the default ``__delattr__`` method to block deleting
+        mandatory data.
+        """
         # can't delete non existing attributes
         if not hasattr(self, name):
             raise TypeError(f"{name} is not an attribute")
@@ -166,13 +180,14 @@ class Sofa():
                 f"{name} is a mandatory attribute that can not be deleted")
 
     def __repr__(self):
+        """String representation of Sofa object."""
         return (f"sofar.SOFA object: {self.GLOBAL_SOFAConventions} "
                 f"{self.GLOBAL_SOFAConventionsVersion}")
 
     @property
     def list_dimensions(self):
         """
-        Print the dimensions of the SOFA object
+        Print the dimensions of the SOFA object.
 
         See :py:func:`~Sofa.inspect` to see the shapes of the data inside the
         SOFA object and :py:func:`~Sofa.get_dimension` to get the size/value
@@ -248,7 +263,7 @@ class Sofa():
 
     def get_dimension(self, dimension):
         """
-        Get size of a SOFA dimension
+        Get size of a SOFA dimension.
 
         SOFA dimensions specify the shape of the data contained in a SOFA
         object. For a list of all dimensions see :py:func:`~list_dimensions`.
@@ -315,8 +330,8 @@ class Sofa():
         warnings.warn((
             'Sofa.info() will be deprecated in sofar 1.3.0 The conventions are'
             ' now documented at '
-            'https://sofar.readthedocs.io/en/stable/resources/conventions.html'),  # noqa
-            UserWarning)
+            'https://sofar.readthedocs.io/en/stable/resources/conventions.html'),
+            UserWarning, stacklevel=1)
 
         # update the private attribute `_convention` to make sure the required
         # meta data is in place
@@ -662,7 +677,8 @@ class Sofa():
             for dimension in dimensions:
                 if dimension not in "ERMNCIS":
                     warnings.warn(
-                        f"Added custom dimension {dimensions} to SOFA object")
+                        f"Added custom dimension {dimensions} to SOFA object",
+                        stacklevel=2)
 
         # add attribute to class
         self._add_custom_api_entry(name, value, None, dimensions, dtype)
@@ -670,7 +686,7 @@ class Sofa():
     def _add_custom_api_entry(self, key, value, flags, dimensions, dtype):
         """
         Add custom entry to the sofa._convention and permanently save it in
-        sofa._custom
+        sofa._custom.
 
         Parameters
         ----------
@@ -1180,11 +1196,11 @@ class Sofa():
 
             # - dimensions are given as string, e.g., 'mRN', or 'IC, MC'
             # - defined by lower case letters in `dimensions`
-            for id, dim in enumerate(dimensions.split(", ")[0]):
+            for idx, dim in enumerate(dimensions.split(", ")[0]):
                 if dim not in "ICS" and dim.islower():
                     # numeric data
                     self._api[dim.upper()] = \
-                        _nd_newaxis(value, 4).shape[id]
+                        _nd_newaxis(value, 4).shape[idx]
                 if dim == "S":
                     # string data
                     S = max(S, np.max(self._get_size_and_shape_of_string_var(
@@ -1314,12 +1330,14 @@ class Sofa():
                     for dim in rules[key]["specific"][test]["_dimensions"]:
                         # possible sizes
                         dim_ref = \
-                            rules[key]["specific"][test]["_dimensions"][dim]["value"]  # noqa
+                            rules[key]["specific"][test][
+                                "_dimensions"][dim]["value"]
                         # current size
                         dim_act = self._api[dim]
                         # verbose error string for possible sizes
                         dim_str = \
-                            rules[key]["specific"][test]["_dimensions"][dim]["value_str"]  # noqa
+                            rules[key]["specific"][test][
+                                "_dimensions"][dim]["value_str"]
                         # perform the check
                         if dim_act not in dim_ref:
                             current_error += \
@@ -1373,11 +1391,12 @@ class Sofa():
         # (so far there are only deprecations for the convention)
         if self.GLOBAL_SOFAConventions in \
                 deprecations["GLOBAL:SOFAConventions"]:
+            convention = self.GLOBAL_SOFAConventions
             msg = ("Detected deprecations:\n"
                    f"- GLOBAL_SOFAConventions is "
                    f"{self.GLOBAL_SOFAConventions}, which is deprecated. Use "
                    "Sofa.upgrade_convention() to upgrade to "
-                   f"{deprecations['GLOBAL:SOFAConventions'][self.GLOBAL_SOFAConventions]}")  # noqa
+                   f"{deprecations['GLOBAL:SOFAConventions'][convention]}")
             if mode == "write":
                 error_msg += msg
             else:
@@ -1407,7 +1426,7 @@ class Sofa():
     @staticmethod
     def _verify_value(test, ref, unit_aliases, key):
         """
-        Check a value against the SOFA standard for Sofa.verify()
+        Check a value against the SOFA standard for Sofa.verify().
 
         Parameters
         ----------
@@ -1456,10 +1475,10 @@ class Sofa():
     @staticmethod
     def _verify_unit(test, ref, unit_aliases):
         """
-        Verify if a unit string agrees with AES69
+        Verify if a unit string agrees with AES69.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         test : string
             Current unit string (single units or multiple units separated by
             commas, commas plus spaces, or spaces).
@@ -1500,12 +1519,14 @@ class Sofa():
     @staticmethod
     def _get_reference_unit(test, unit_aliases):
         """
-        Return units in reference for, .e.g.,
-        "meter" is converted to "metre" and
-        "degrees degrees,meter" is converted to "degree, degree, metre"
+        Get reference unit string from arbitrary valid unit string.
 
-        Parameters:
-        -----------
+        For example, "meter" is converted to "metre" and
+        "degrees degrees,meter" is converted to "degree, degree, metre" as
+        specified in AES69.
+
+        Parameters
+        ----------
         test : string
             Current unit string MUST be valid, i.e., tested with
             Sofa._verify_unit (single units or multiple units separated by
@@ -1531,12 +1552,12 @@ class Sofa():
 
     @staticmethod
     def _verify_handle_issues(warning_msg, error_msg, issue_handling):
-        """Handle warnings and errors from Sofa.verify"""
+        """Handle warnings and errors from Sofa.verify."""
 
         # handle warnings
         if warning_msg != "\nWARNINGS\n--------\n":
             if issue_handling == "raise":
-                warnings.warn(UserWarning(warning_msg))
+                warnings.warn(UserWarning(warning_msg), stacklevel=2)
             elif issue_handling == "print":
                 print(warning_msg)
         else:
@@ -1572,7 +1593,8 @@ class Sofa():
         Return dictionaries to verify SOFA objects in Sofa.verify(). For
         detailed information see folder 'sofa_conventions'.
 
-        Returns:
+        Returns
+        -------
         rules : dict
             All general and specific verification rules
         unit_aliases : dict
@@ -1603,12 +1625,14 @@ class Sofa():
 
     def _reset_convention(self):
         """
+        Reset convention in SOFA object in three steps.
+
         - Add SOFA convention to SOFA object in private attribute
           `_convention`. If The object already contains a convention, it will
           be overwritten.
         - If the SOFA object contains custom entries, check if any of the
-          custom entries part of the convention. If yes, delete the entry from
-          self._custom
+          custom entries are part of the convention. If yes, delete the entry
+          from self._custom
         - If the SOFA objects contains custom entries, add entries from
           self._custom to self._convention
         """
@@ -1765,7 +1789,7 @@ class Sofa():
     @staticmethod
     def _mandatory(flags):
         """
-        Check if a field is mandatory
+        Check if a field is mandatory.
 
         Parameters
         ----------
@@ -1789,7 +1813,7 @@ class Sofa():
     @staticmethod
     def _read_only(flags):
         """
-        Check if a field is read only
+        Check if a field is read only.
 
         Parameters
         ----------

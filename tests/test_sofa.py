@@ -1,18 +1,17 @@
-"""Tests for sofar.Sofa (test for Sofa.verifycontained in test_sofa_verify)"""
+"""Tests for sofar.Sofa (test for Sofa.verifycontained in test_sofa_verify)."""
 import sofar as sf
 import os
 from tempfile import TemporaryDirectory
 import pytest
-from pytest import raises
 import numpy as np
 
 
 def test_create_sofa_object(capfd):
     # test assertion for type of convention parameter
-    with raises(TypeError, match="Convention must be a string"):
+    with pytest.raises(TypeError, match="Convention must be a string"):
         sf.Sofa(1)
     # test assertion for invalid conventions
-    with raises(ValueError, match="Convention 'invalid' not found"):
+    with pytest.raises(ValueError, match="Convention 'invalid' not found"):
         sf.Sofa("invalid")
 
     # test creation with defaults
@@ -38,7 +37,7 @@ def test_create_sofa_object(capfd):
     assert str(sofa.GLOBAL_SOFAConventionsVersion) == "1.0"
 
     # test invalid version
-    with raises(ValueError, match="Version 0.25 not found. Available"):
+    with pytest.raises(ValueError, match="Version 0.25 not found. Available"):
         sf.Sofa("GeneralTF", version="0.25")
 
     # test without updating the api
@@ -57,11 +56,11 @@ def test_set_attributes_of_sofa_object():
     assert (sofa.ListenerPosition == [1, 1, 1]).all()
 
     # set read only attribute
-    with raises(TypeError, match="GLOBAL_Version is a read only"):
+    with pytest.raises(TypeError, match="GLOBAL_Version is a read only"):
         sofa.GLOBAL_Version = 1
 
     # set non-existing attribute
-    with raises(TypeError, match="new is an invalid attribute"):
+    with pytest.raises(TypeError, match="new is an invalid attribute"):
         sofa.new = 1
 
 
@@ -72,11 +71,11 @@ def test_delete_attribute_from_sofa_object():
     delattr(sofa, "GLOBAL_ApplicationName")
 
     # delete mandatory attribute
-    with raises(TypeError, match="GLOBAL_Version is a mandatory"):
+    with pytest.raises(TypeError, match="GLOBAL_Version is a mandatory"):
         delattr(sofa, "GLOBAL_Version")
 
     # delete not existing attribute
-    with raises(TypeError, match="new is not an attribute"):
+    with pytest.raises(TypeError, match="new is not an attribute"):
         delattr(sofa, "new")
 
 
@@ -92,25 +91,25 @@ def test_list_dimensions(capfd):
 
     # test FIR Data
     sofa = sf.Sofa("GeneralFIR")
-    sofa.list_dimensions
+    _ = sofa.list_dimensions
     out, _ = capfd.readouterr()
     assert "N = 1 samples (set by Data_IR of dimension MRN)" in out
 
     # test TF Data
     sofa = sf.Sofa("GeneralTF")
-    sofa.list_dimensions
+    _ = sofa.list_dimensions
     out, _ = capfd.readouterr()
     assert "N = 1 frequencies (set by Data_Real of dimension MRN)" in out
 
     # test SOS Data
     sofa = sf.Sofa("SimpleFreeFieldHRSOS")
-    sofa.list_dimensions
+    _ = sofa.list_dimensions
     out, _ = capfd.readouterr()
     assert "N = 6 SOS coefficients (set by Data_SOS of dimension MRN)" in out
 
     # test non spherical harmonics data
     sofa = sf.Sofa("GeneralFIR")
-    sofa.list_dimensions
+    _ = sofa.list_dimensions
     out, _ = capfd.readouterr()
     assert "E = 1 emitter" in out
     assert "R = 1 receiver" in out
@@ -119,7 +118,7 @@ def test_list_dimensions(capfd):
     sofa.ReceiverPosition_Type = "spherical harmonics"
     sofa.EmitterPosition_Units = "degree, degree, metre"
     sofa.ReceiverPosition_Units = "degree, degree, metre"
-    sofa.list_dimensions
+    _ = sofa.list_dimensions
     out, _ = capfd.readouterr()
     assert "E = 1 emitter spherical harmonics coefficients" in out
     assert "R = 1 receiver spherical harmonics coefficients" in out
@@ -127,15 +126,15 @@ def test_list_dimensions(capfd):
     # test assertion in case of variables with wrong type or shape
     sofa = sf.Sofa("GeneralFIR")
     sofa.Data_IR = "test"
-    with raises(ValueError, match="Dimensions can not be shown"):
-        sofa.list_dimensions
+    with pytest.raises(ValueError, match="Dimensions can not be shown"):
+        _ = sofa.list_dimensions
     sofa.Data_IR = [1, 2, 3, 4]
-    with raises(ValueError, match="Dimensions can not be shown"):
-        sofa.list_dimensions
+    with pytest.raises(ValueError, match="Dimensions can not be shown"):
+        _ = sofa.list_dimensions
 
 
 def test_get_dimension():
-    """Test getting the size of dimensions"""
+    """Test getting the size of dimensions."""
 
     # test FIR Data
     sofa = sf.Sofa("GeneralFIR")
@@ -143,7 +142,7 @@ def test_get_dimension():
     assert size == 1
 
     # test with wrong dimension
-    with raises(ValueError, match="Q is not a valid dimension"):
+    with pytest.raises(ValueError, match="Q is not a valid dimension"):
         size = sofa.get_dimension("Q")
 
 
@@ -152,7 +151,7 @@ def test_info(capfd):
     sofa = sf.Sofa("SimpleFreeFieldHRIR")
 
     # test with wrong info string
-    with raises(
+    with pytest.raises(
             ValueError, match="info='invalid' is invalid"):
         sofa.info("invalid")
 
@@ -239,29 +238,29 @@ def test_add_entry():
 
     # test assertions
     # add existing entry
-    with raises(ValueError, match="Entry Temperature already exists"):
+    with pytest.raises(ValueError, match="Entry Temperature already exists"):
         sofa.add_variable("Temperature", 25.1, "double", "MI")
     # entry violating the naming convention
-    with raises(ValueError, match="underscores '_' in the name"):
+    with pytest.raises(ValueError, match="underscores '_' in the name"):
         sofa.add_variable("Temperature_Celsius", 25.1, "double", "MI")
-    with raises(ValueError, match="The name of Data"):
+    with pytest.raises(ValueError, match="The name of Data"):
         sofa.add_attribute("Data_Time_measured", "midnight")
     # entry with wrong type
-    with raises(ValueError, match="dtype is float but must be"):
+    with pytest.raises(ValueError, match="dtype is float but must be"):
         sofa.add_variable("TemperatureCelsius", 25.1, "float", "MI")
     # variable without dimensions
-    with raises(ValueError, match="dimensions must be provided"):
+    with pytest.raises(ValueError, match="dimensions must be provided"):
         sofa.add_variable("TemperatureCelsius", 25.1, "double", None)
     # invalid dimensions
     with pytest.warns(UserWarning, match="Added custom dimension T"):
         sofa.add_variable("TemperatureCelsius", [25.1, 25.2], "double", "T")
     # attribute with missing variable
-    with raises(ValueError, match="Adding Attribute Variable"):
+    with pytest.raises(ValueError, match="Adding Attribute Variable"):
         sofa.add_attribute("Variable_Unit", "celsius")
 
 
-@pytest.mark.parametrize("mandatory,optional",
-                         [(True, False), (False, True), [True, True]])
+@pytest.mark.parametrize(("mandatory", "optional"),
+                         [(True, False), (False, True), (True, True)])
 @pytest.mark.parametrize("verbose", [True, False])
 def test_add_missing(
         mandatory, optional, verbose, capfd):
@@ -338,7 +337,7 @@ def test__get_size_and_shape_of_string_var():
     assert shape == (2, )
 
     # test with wrong type
-    with raises(TypeError, match="key must be a string"):
+    with pytest.raises(TypeError, match="key must be a string"):
         sf.Sofa._get_size_and_shape_of_string_var(1, "key")
 
 

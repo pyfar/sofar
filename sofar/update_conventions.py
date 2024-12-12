@@ -1,3 +1,4 @@
+"""Module for updating the SOFA conventions used in sofar."""
 import contextlib
 import os
 import shutil
@@ -44,12 +45,8 @@ def update_conventions(conventions_path=None, assume_yes=False):
         Conventions saved under a different path can not be used by sofar. This
         parameter was added mostly for testing and debugging.
     assume_yes : bool, optional
-
-        ``False``
-            Updating the conventions must be confirmed by typing "y".
-        ``True``
-            The conventions are updated without confirmation.
-
+        Updating the conventions must be confirmed by typing "y" if this is
+        ``False``. Otherwise, the conventions are updated without confirmation.
         The default is ``False``
     """
 
@@ -226,9 +223,11 @@ def _compile_conventions(conventions_path=None):
 
 def _convention_csv2dict(file: str):
     """
-    Read a SOFA convention as csv file from the official Matlab/Octave API for
-    SOFA (SOFAtoolbox) and convert them to a Python dictionary. The dictionary
-    can be written for example to a json file using
+    Read a SOFA convention from csv.
+
+    File are taken from from https://www.sofaconventions.org/conventions/
+    and convert them to a Python dictionary. The dictionary can be written for
+    example to a json file using
 
     import json
 
@@ -249,9 +248,8 @@ def _convention_csv2dict(file: str):
     """
 
     # read the file
-    # (encoding should be changed to utf-8 after the SOFA conventions repo is
+    # (encoding could be changed to utf-8 after the SOFA conventions repo is
     # clean.)
-    # TODO: add explicit test for this function that checks the output
     with open(file, 'r', encoding="windows-1252") as fid:
         lines = fid.readlines()
 
@@ -339,9 +337,9 @@ def _convention_csv2dict(file: str):
             for ff, field in enumerate(fields):
                 convention[line[0]][field.lower()] = line[ff + 1]
 
-        except: # noqa
+        except:  # noqa: E722
             raise ValueError((f"Failed to parse line {idl}, entry {idc} in: "
-                              f"{file}: \n{line}\n"))
+                            f"{file}: \n{line}\n")) from None
 
     # reorder the fields to be nicer to read and understand
     # 1. Move everything to the end that is not GLOBAL
@@ -359,15 +357,19 @@ def _convention_csv2dict(file: str):
 
 def _check_congruency(save_dir=None, branch="master"):
     """
-    SOFA conventions are stored in two different places - is this a good idea?
-    They should be identical, but let's find out.
+    SOFA conventions are stored in two different places.
+
+    They should be identical, but let's find out. Compares conventions on
+    sofaconventions.org to github.com/sofacoustics/SOFAtoolbox
 
     Prints warnings about incongruent conventions
 
     Parameters
     ----------
-    save : str
-        directory to save diverging conventions for further inspections
+    save_dir : str
+        directory to save diverging conventions for further inspections.
+    branch : str
+        branch which is used to load conventions from github.
     """
 
     # urls for checking which conventions exist

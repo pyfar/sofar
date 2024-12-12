@@ -13,7 +13,7 @@ def test_pad_zero_modi():
         sofa.info()
 
     if version.parse(sf.__version__) >= version.parse('1.3.0'):
-        with pytest.raises(ValueError):
+        sofa = sf.Sofa('GeneralTF')
+        with pytest.raises(AttributeError, match='has no attribute'):
             # remove Sofa.info() from pyfar 1.3.0!
-            sofa = sf.Sofa('GeneralTF')
             sofa.info()
