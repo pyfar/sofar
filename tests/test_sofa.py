@@ -91,25 +91,25 @@ def test_list_dimensions(capfd):
 
     # test FIR Data
     sofa = sf.Sofa("GeneralFIR")
-    sofa.list_dimensions    # noqa: B018
+    _ = sofa.list_dimensions
     out, _ = capfd.readouterr()
     assert "N = 1 samples (set by Data_IR of dimension MRN)" in out
 
     # test TF Data
     sofa = sf.Sofa("GeneralTF")
-    sofa.list_dimensions    # noqa: B018
+    _ = sofa.list_dimensions
     out, _ = capfd.readouterr()
     assert "N = 1 frequencies (set by Data_Real of dimension MRN)" in out
 
     # test SOS Data
     sofa = sf.Sofa("SimpleFreeFieldHRSOS")
-    sofa.list_dimensions    # noqa: B018
+    _ = sofa.list_dimensions
     out, _ = capfd.readouterr()
     assert "N = 6 SOS coefficients (set by Data_SOS of dimension MRN)" in out
 
     # test non spherical harmonics data
     sofa = sf.Sofa("GeneralFIR")
-    sofa.list_dimensions    # noqa: B018
+    _ = sofa.list_dimensions
     out, _ = capfd.readouterr()
     assert "E = 1 emitter" in out
     assert "R = 1 receiver" in out
@@ -118,7 +118,7 @@ def test_list_dimensions(capfd):
     sofa.ReceiverPosition_Type = "spherical harmonics"
     sofa.EmitterPosition_Units = "degree, degree, metre"
     sofa.ReceiverPosition_Units = "degree, degree, metre"
-    sofa.list_dimensions    # noqa: B018
+    _ = sofa.list_dimensions
     out, _ = capfd.readouterr()
     assert "E = 1 emitter spherical harmonics coefficients" in out
     assert "R = 1 receiver spherical harmonics coefficients" in out
@@ -127,10 +127,10 @@ def test_list_dimensions(capfd):
     sofa = sf.Sofa("GeneralFIR")
     sofa.Data_IR = "test"
     with pytest.raises(ValueError, match="Dimensions can not be shown"):
-        sofa.list_dimensions    # noqa: B018
+        _ = sofa.list_dimensions
     sofa.Data_IR = [1, 2, 3, 4]
     with pytest.raises(ValueError, match="Dimensions can not be shown"):
-        sofa.list_dimensions    # noqa: B018
+        _ = sofa.list_dimensions
 
 
 def test_get_dimension():

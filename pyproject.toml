@@ -43,7 +43,7 @@ tests = [
     "pytest",
     "pytest-cov",
     "watchdog",
-    "ruff==0.4.1",
+    "ruff==0.8.2",
     "coverage",
 ]
 docs = [

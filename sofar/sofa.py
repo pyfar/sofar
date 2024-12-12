@@ -330,7 +330,7 @@ class Sofa():
         warnings.warn((
             'Sofa.info() will be deprecated in sofar 1.3.0 The conventions are'
             ' now documented at '
-            'https://sofar.readthedocs.io/en/stable/resources/conventions.html'),  # noqa
+            'https://sofar.readthedocs.io/en/stable/resources/conventions.html'),
             UserWarning, stacklevel=1)
 
         # update the private attribute `_convention` to make sure the required
@@ -1330,12 +1330,14 @@ class Sofa():
                     for dim in rules[key]["specific"][test]["_dimensions"]:
                         # possible sizes
                         dim_ref = \
-                            rules[key]["specific"][test]["_dimensions"][dim]["value"]  # noqa
+                            rules[key]["specific"][test][
+                                "_dimensions"][dim]["value"]
                         # current size
                         dim_act = self._api[dim]
                         # verbose error string for possible sizes
                         dim_str = \
-                            rules[key]["specific"][test]["_dimensions"][dim]["value_str"]  # noqa
+                            rules[key]["specific"][test][
+                                "_dimensions"][dim]["value_str"]
                         # perform the check
                         if dim_act not in dim_ref:
                             current_error += \
@@ -1389,11 +1391,12 @@ class Sofa():
         # (so far there are only deprecations for the convention)
         if self.GLOBAL_SOFAConventions in \
                 deprecations["GLOBAL:SOFAConventions"]:
+            convention = self.GLOBAL_SOFAConventions
             msg = ("Detected deprecations:\n"
                    f"- GLOBAL_SOFAConventions is "
                    f"{self.GLOBAL_SOFAConventions}, which is deprecated. Use "
                    "Sofa.upgrade_convention() to upgrade to "
-                   f"{deprecations['GLOBAL:SOFAConventions'][self.GLOBAL_SOFAConventions]}")  # noqa
+                   f"{deprecations['GLOBAL:SOFAConventions'][convention]}")
             if mode == "write":
                 error_msg += msg
             else:

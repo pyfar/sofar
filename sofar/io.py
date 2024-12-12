@@ -212,7 +212,7 @@ def _read_netcdf(filename, verify, verbose, mode):
     if verify:
         try:
             sofa.verify(mode="read")
-        except: # noqa (No error handling - just improved verbosity)
+        except:  # noqa: E722
             raise ValueError((
                 "The SOFA object could not be verified, maybe due to erroneous"
                 " data. Call sofa=sofar.read_sofa(filename, verify=False) and "
