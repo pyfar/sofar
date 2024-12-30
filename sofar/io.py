@@ -221,7 +221,7 @@ def _read_netcdf(filename, verify, verbose, mode):
     return sofa
 
 
-def write_sofa(filename: str, sofa: sf.Sofa, compression=4):
+def write_sofa(filename: str, sofa: sf.Sofa, compression=9):
     """
     Write a SOFA object to disk as a SOFA file.
 
