@@ -221,7 +221,7 @@ def _read_netcdf(filename, verify, verbose, mode):
     return sofa
 
 
-def write_sofa(filename: str, sofa: sf.Sofa, compression=9):
+def write_sofa(filename: str, sofa: sf.Sofa, compression=4):
     """
     Write a SOFA object to disk as a SOFA file.
 
@@ -234,8 +234,8 @@ def write_sofa(filename: str, sofa: sf.Sofa, compression=9):
         The SOFA object that is written to disk
     compression : int
         The level of compression with ``0`` being no compression and ``9``
-        being the best compression. The default of ``9`` optimizes the file
-        size but increases the time for writing files to disk.
+        being the best compression. The default ``4`` is a tradeoff between
+        file size and the time required for reading and writing the file.
 
     Notes
     -----
