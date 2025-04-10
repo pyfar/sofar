@@ -197,12 +197,13 @@ def test_roundtrip_multidimensional_string_variable():
     # add dummy matrix that contains 4 measurements
     sofa.Data_IR = np.zeros((4, 2, 10))
     # add (4, 1) string variable
-    sofa.SourceManufacturer = [["someone"], ["else"], ["did"], ["this"]]
+    sofa.SourceManufacturers = [["someone"], ["else"], ["did"], ["this"]]
     # remove other string variables for simplicity
-    delattr(sofa, "SourceModel")
+    delattr(sofa, "SourceModels")
     delattr(sofa, "ReceiverDescriptions")
     delattr(sofa, "EmitterDescriptions")
     delattr(sofa, "MeasurementDate")
+    delattr(sofa, "SourceURIs")
 
     # read write and assert
     sf.write_sofa(file, sofa)
