@@ -2,7 +2,7 @@
 This tests for consistent dimensions in the convention files.
 
 All dimensions must be of the same length. E.g., the set of dimensions 'M, ME'
-is invalud and should be 'MI, 'ME'.
+is invalid and should be 'MI, 'ME'.
 
 This cannot be done as part of Sofa.verify, because it would make it impossible
 to read SOFA files written with deprecated conventions that are containing
