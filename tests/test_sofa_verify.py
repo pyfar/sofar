@@ -463,18 +463,24 @@ def test_deprecations(file):
     # check warnings and errors
     sofa = sf.Sofa(deprecated, verify=False)
 
-    msg = ("Detected deprecations:\n"
-           f"- GLOBAL_SOFAConventions is {deprecated}, which is deprecated. ")
-
-    with pytest.warns(UserWarning, match=msg):
+    with pytest.warns(UserWarning, match="deprecated"):
         sofa.verify(mode="read")
 
-    with pytest.raises(ValueError, match=msg):
+    with pytest.raises(ValueError, match="deprecated"):
         sofa.verify(mode="write")
 
 
-def test_preliminary_conventions_version():
-    """Test if using a convention version < 1.0 issues a warning."""
+def test_deprecated_conventions():
+    """Test warning for deprecated convention."""
 
-    with pytest.warns(UserWarning, match="Detected preliminary"):
+    match = 'SingleRoomDRIR v0.3 is deprecated'
+    with pytest.warns(UserWarning, match=match):
         sf.Sofa("SingleRoomDRIR", version="0.3")
+
+
+def test_preliminary_convention():
+    """Test warning for preliminary convention."""
+
+    match = 'AnnotatedEmitterAudio v0.2 is preliminary'
+    with pytest.warns(UserWarning, match=match):
+        sf.Sofa("AnnotatedEmitterAudio", version="0.2")

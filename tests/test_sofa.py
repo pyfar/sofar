@@ -351,3 +351,25 @@ def test___readonly():
     assert sf.Sofa._read_only("rm")
     assert not sf.Sofa._read_only("m")
     assert not sf.Sofa._read_only(None)
+
+
+@pytest.mark.parametrize(('sofa', 'deprecated'), [
+    # up to date convention
+    (sf.Sofa('SimpleHeadphoneIR'), False),
+    # convention with outdated version
+    (sf.Sofa('FreeFieldDirectivityTF', version='1.0', verify=False), True),
+    # deprecated convention
+    (sf.Sofa('GeneralFIRE', verify=False), True),
+])
+def test_deprecated(sofa, deprecated):
+
+    assert sofa.deprecated() == deprecated
+
+@pytest.mark.parametrize(('sofa', 'preliminary'), [
+    (sf.Sofa('SimpleHeadphoneIR', version='latest'), False),
+    # convention with outdated version
+    (sf.Sofa('AnnotatedEmitterAudio', version='0.2', verify=False), True),
+])
+def test_preliminary(sofa, preliminary):
+
+    assert sofa.preliminary() == preliminary

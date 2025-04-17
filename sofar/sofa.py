@@ -33,8 +33,8 @@ class Sofa():
         to find potential errors in the default values and is thus recommended
         If creating a file does not work, try to call `Sofa` with
         ``verify=False``. The default ``'auto'`` defaults to ``True`` for
-        stable conventions with versions of 1.0 or higher and to ``False``
-        otherwise.
+        stable conventions and to ``False`` for deprecated and preliminary
+        conventions (see :py:func:`~deprecated` and :py:func:`~preliminary`).
 
     Returns
     -------
@@ -108,7 +108,10 @@ class Sofa():
             version = \
                 self._convention['GLOBAL_SOFAConventionsVersion']['default']
             if verify == 'auto':
-                verify = True if parse(version) >= parse('1.0') else False
+                if self.preliminary() or self.deprecated():
+                    verify = False
+                else:
+                    verify = True
 
             # add and update the API
             # (mandatory=False can not be verified because some conventions
@@ -116,12 +119,18 @@ class Sofa():
             if verify and not mandatory:
                 self.verify(mode="read")
             # warning for preliminary conventions if verification is bypassed
-            elif parse(version) < parse('1.0'):
+            if self.preliminary():
                 warnings.warn(UserWarning((
-                    f"Detected preliminary conventions version {version}. "
-                    "Upgrade data to version >= 1.0 if possible. Preliminary "
-                    "conventions might change in the future, which could "
-                    "invalidate data that was written before the changes.")),
+                    f"Convention {convention} v{version} is preliminary. "
+                    "Preliminary conventions might change in the future, "
+                    "which could invalidate data that was written before the "
+                    "changes.")), stacklevel=2)
+            if self.deprecated():
+                warnings.warn(UserWarning((
+                    f" Convention {convention} v{version} is deprecated. "
+                    "Sofa files with deprecated conventions can not be "
+                    "written to disk. Call Sofa.upgrade_convention to check "
+                    "for upgrade possibilities.")),
                     stacklevel=2)
 
             self.protected = True
@@ -760,25 +769,15 @@ class Sofa():
         # check input ---------------------------------------------------------
         self._reset_convention()
 
-        # get deprecations and information about Sofa object
-        _, _, deprecations, upgrade = self._verification_rules()
+        # get upgrade rules information about Sofa object
+        _, _, _, upgrade = self._verification_rules()
         convention_current = self.GLOBAL_SOFAConventions
         version_current = self.GLOBAL_SOFAConventionsVersion
         sofa_version_current = self.GLOBAL_Version
-
-        # check if convention is deprecated -----------------------------------
-        is_deprecated = False
-
-        if convention_current in deprecations["GLOBAL:SOFAConventions"]:
-            is_deprecated = True
-        elif convention_current in upgrade:
-            for from_to in upgrade[convention_current]["from_to"]:
-                if version_current in from_to[0]:
-                    is_deprecated = True
-                    break
+        deprecated = self.deprecated()
 
         # check for upgrades --------------------------------------------------
-        if is_deprecated:
+        if deprecated:
             # check if upgrade is available for this convention
             if convention_current not in upgrade:
                 print((f"Convention {convention_current} v{version_current} is"
@@ -962,8 +961,8 @@ class Sofa():
         Returns
         -------
         issues : str, None
-            Detected issues as a string. None if no issues were detected. Note
-            that this is only returned if ``issue_handling='return'`` (see
+            Detected issues as a string. ``None`` if no issues were detected.
+            Note that this is only returned if ``issue_handling='return'`` (see
             above)
 
         """
@@ -1389,27 +1388,24 @@ class Sofa():
         # ---------------------------------------------------------------------
         # 8. check deprecations
         # (so far there are only deprecations for the convention)
-        if self.GLOBAL_SOFAConventions in \
-                deprecations["GLOBAL:SOFAConventions"]:
-            convention = self.GLOBAL_SOFAConventions
-            msg = ("Detected deprecations:\n"
-                   f"- GLOBAL_SOFAConventions is "
-                   f"{self.GLOBAL_SOFAConventions}, which is deprecated. Use "
-                   "Sofa.upgrade_convention() to upgrade to "
-                   f"{deprecations['GLOBAL:SOFAConventions'][convention]}")
+        if self.deprecated():
+            msg = (f"{self.GLOBAL_SOFAConventions} "
+                   f"v{self.GLOBAL_SOFAConventionsVersion} is deprecated:\n"
+                   "- Sofa files with deprecated conventions can not be "
+                    "written to disk. Call Sofa.upgrade_convention to check "
+                    "for upgrade possibilities.")
             if mode == "write":
                 error_msg += msg
             else:
                 warning_msg += msg
 
         # warn if preliminary conventions versions are used
-        if float(self.GLOBAL_SOFAConventionsVersion) < 1.0:
+        if self.preliminary():
             warning_msg += (
-                "\n\nDetected preliminary conventions version "
-                f"{self.GLOBAL_SOFAConventionsVersion}:\n - Upgrade data to "
-                "version >= 1.0 if possible. Preliminary conventions might "
-                "change in the future, which could invalidate data that was "
-                "written before the changes.")
+                f"\n\n{self.GLOBAL_SOFAConventionsVersion} "
+                f"v{self.GLOBAL_SOFAConventionsVersion} is preliminary:\n "
+                "- Preliminary conventions might change in the future, which "
+                "could invalidate data that was written before the changes.")
 
         # ---------------------------------------------------------------------
         # 9. handle warnings and errors
@@ -1618,6 +1614,71 @@ class Sofa():
             upgrade = json.load(file)
 
         return rules, unit_aliases, deprecations, upgrade
+
+    def deprecated(self):
+        """
+        Check if Sofa object is deprecated.
+
+        Deprecated SOFA objects can not be saved using
+        :py:func:`~write_sofa`. A Sofa object is deprecated if
+
+        - the convention stored in ``sofa.GLOBAL_SOFAConventions`` is
+          deprecated in favor of a newer convention
+        - the convention version store in
+          ``sofa.GLOBAL_SOFAConventionsVersion`` is outdated
+
+        See :py:func:`upgrade_convention` and `SOFA conventions
+        <https://sofar.readthedocs.io/en/stable/resources/conventions.html>`_
+        for upgrade possibilities and additional information.
+
+        Returns
+        -------
+        deprecated : bool
+            ``True`` if the SOFA convention is deprecated, ``False`` otherwise.
+        """
+        # get deprecations and information about Sofa object
+        _, _, deprecations, upgrade = self._verification_rules()
+        convention_current = self.GLOBAL_SOFAConventions
+        version_current = self.GLOBAL_SOFAConventionsVersion
+
+        deprecated = False
+
+        if convention_current in deprecations["GLOBAL:SOFAConventions"]:
+            # convention is deprecated
+            deprecated = True
+        elif convention_current in upgrade:
+            for from_to in upgrade[convention_current]["from_to"]:
+                if version_current in from_to[0]:
+                    # convention can be upgraded
+                    deprecated = True
+                    break
+
+        return deprecated
+
+    def preliminary(self):
+        """
+        Check if Sofa object is preliminary.
+
+        A Sofa object is preliminary of the convention version stored in
+        ``sofa.GLOBAL_SOFAConventionsVersion`` is below 1.0.0 and no later
+        convention is available for upgrading (see
+        :py:func:`~upgrade_convention`).
+
+        Preliminary conventions may change in the future and data written with
+        preliminary conventions might become invalid.
+
+        Returns
+        -------
+        preliminary : bool
+            ``True`` if the SOFA convention is preliminary, ``False``
+            otherwise.
+        """
+        version = self.GLOBAL_SOFAConventionsVersion
+        if parse(version) < parse('1.0') and not self.upgrade_convention():
+            preliminary = True
+        else:
+            preliminary = False
+        return preliminary
 
     def copy(self):
         """Return a copy of the SOFA object."""
