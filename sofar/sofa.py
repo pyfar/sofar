@@ -807,26 +807,17 @@ class Sofa():
 
         # check input ---------------------------------------------------------
         self._reset_convention()
+        status = self.convention_status
 
         # get deprecations and information about Sofa object
-        _, _, deprecations, upgrade = self._verification_rules()
+        _, _, _, upgrade = self._verification_rules()
         convention_current = self.GLOBAL_SOFAConventions
         version_current = self.GLOBAL_SOFAConventionsVersion
         sofa_version_current = self.GLOBAL_Version
 
-        # check if convention is deprecated -----------------------------------
-        is_deprecated = False
-
-        if convention_current in deprecations["GLOBAL:SOFAConventions"]:
-            is_deprecated = True
-        elif convention_current in upgrade:
-            for from_to in upgrade[convention_current]["from_to"]:
-                if version_current in from_to[0]:
-                    is_deprecated = True
-                    break
-
         # check for upgrades --------------------------------------------------
-        if is_deprecated:
+        if status == 'deprecated':
+
             # check if upgrade is available for this convention
             if convention_current not in upgrade:
                 print((f"Convention {convention_current} v{version_current} is"
@@ -1027,6 +1018,7 @@ class Sofa():
         # ---------------------------------------------------------------------
         # 0. update the convention
         self._reset_convention()
+        status = self.convention_status
 
         # ---------------------------------------------------------------------
         # 1. check if the mandatory attributes are contained
@@ -1437,21 +1429,18 @@ class Sofa():
         # ---------------------------------------------------------------------
         # 8. check deprecations
         # (so far there are only deprecations for the convention)
-        if self.GLOBAL_SOFAConventions in \
-                deprecations["GLOBAL:SOFAConventions"]:
-            convention = self.GLOBAL_SOFAConventions
+        if status == 'deprecated':
             msg = ("Detected deprecations:\n"
                    f"- GLOBAL_SOFAConventions is "
-                   f"{self.GLOBAL_SOFAConventions}, which is deprecated. Use "
-                   "Sofa.upgrade_convention() to upgrade to "
-                   f"{deprecations['GLOBAL:SOFAConventions'][convention]}")
+                   f"{self.GLOBAL_SOFAConventions}, which is deprecated. See "
+                   "Sofa.upgrade_convention() for upgrade possibilities.")
             if mode == "write":
                 error_msg += msg
             else:
                 warning_msg += msg
 
         # warn if preliminary conventions versions are used
-        if float(self.GLOBAL_SOFAConventionsVersion) < 1.0:
+        if status == 'preliminary':
             warning_msg += (
                 "\n\nDetected preliminary conventions version "
                 f"{self.GLOBAL_SOFAConventionsVersion}:\n - Upgrade data to "
