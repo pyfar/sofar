@@ -490,6 +490,54 @@ class Sofa():
         # output to console
         print(info_str)
 
+    @property
+    def convention_status(self):
+        """
+        Get the status of the SOFA convention.
+
+        Returns
+        -------
+        status : str
+            The status of the SOFA convention
+
+            - ``'current'`` if the convention is up to date.
+            - ``'deprecated'`` if the convention is outdated. In this case
+              :py:func:`~upgrade_convention` can be used to upgrade the data to
+              the latest version of the convention.
+            - ``'preliminary'`` if the convention is still under development
+              and not contained in the official SOFA standard, which is
+              indicated by a version number smaller than 1.0. Note that
+              preliminary conventions may be subject to change or could be
+              discarded completely. Data written with preliminary conventions
+              might thus become invalid in the future.
+        """
+
+        status = None
+
+        # get deprecations and information about Sofa object
+        _, _, deprecations, upgrade = self._verification_rules()
+        convention = self.GLOBAL_SOFAConventions
+        version = self.GLOBAL_SOFAConventionsVersion
+
+        # conventions can be completely deprecated or upgradable to a later
+        # version of the same convention or to a later convention
+        if convention in deprecations["GLOBAL:SOFAConventions"]:
+            status = 'deprecated'
+        elif convention in upgrade:
+            for from_to in upgrade[convention]["from_to"]:
+                if version in from_to[0]:
+                    status = 'deprecated'
+                    break
+        # conventions are preliminary if they are not deprecated and have a
+        # version number < 1.0
+        if status is None and parse(version) < parse('1.0'):
+            status = 'preliminary'
+        # if both is not the case, the convention is current.
+        if status is None:
+            status = 'current'
+
+        return status
+
     def add_missing(self, mandatory=True, optional=True, verbose=True):
         """
         Add missing data with default values.
