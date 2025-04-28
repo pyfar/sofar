@@ -227,18 +227,18 @@ def test_data_types(capfd):
 
     # test invalid data for netCDF string variable
     sofa = sf.Sofa("SimpleHeadphoneIR")
-    sofa.SourceModel = 1
-    with pytest.raises(ValueError, match="- SourceModel must be string"):
+    sofa.SourceModels = 1
+    with pytest.raises(ValueError, match="- SourceModels must be string"):
         sofa.verify()
 
-    sofa.SourceModel = np.array(1)
-    with pytest.raises(ValueError, match="- SourceModel must be U or S"):
+    sofa.SourceModels = np.array(1)
+    with pytest.raises(ValueError, match="- SourceModels must be U or S"):
         sofa.verify()
 
     # test valid data
-    sofa.SourceModel = ["test"]
+    sofa.SourceModels = ["test"]
     sofa.verify()
-    sofa.SourceModel = np.array(["test"])
+    sofa.SourceModels = np.array(["test"])
     sofa.verify()
 
 
