@@ -2,6 +2,11 @@
 History
 =======
 
+1.2.2 (2025-05-09)
+------------------
+* Docs: Improve layout of header (#125)
+* Deployment: Add missing dependency for `packaging` package and support for Python 3.13  (PR #125, #127)
+
 1.2.1 (2024-12-12)
 ------------------
 * Deployment: Move from setup.py to pyproject.toml (PR #114, #115)

@@ -3,7 +3,7 @@
 * sofar version:
 * Python version:
 * Operating System:
-* Did you install pyfar via pip:
+* Did you install sofar via pip:
 
 ## Description
 
