@@ -1,6 +1,6 @@
 [project]
 name = "sofar"
-version = "1.2.1"
+version = "1.2.2"
 description = "Maybe the most complete python package for SOFA files so far."
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -30,6 +30,7 @@ dependencies = [
     'numpy>=1.14.0',
     'beautifulsoup4',
     'requests',
+    'packaging',
 ]
 
 [project.optional-dependencies]
@@ -125,7 +126,7 @@ convention = "numpy"
 
 
 [tool.bumpversion]
-current_version = "1.2.1"
+current_version = "1.2.2"
 parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
 serialize = ["{major}.{minor}.{patch}"]
 search = "{current_version}"
