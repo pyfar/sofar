@@ -76,8 +76,9 @@ class Sofa():
        will be a scalar inside SOFA objects after reading from disk.
 
 
-    For more examples refer to the `Quick tour of SOFA and sofar` at
-    https://sofar.readthedocs.io/en/stable/
+    For more examples refer to the
+    `sofar and SOFA <https://pyfar-gallery.readthedocs.io/en/latest/gallery/interactive/sofar_introduction.html>`__
+    notebook in the pyfar example gallery.
     """
 
     # these have to be set here, because they are used in __setattr__ and
