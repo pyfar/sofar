@@ -36,12 +36,13 @@ jobs:
       version: <<parameters.version>>
     steps:
       - checkout
+            
       - run:
           name: install dependencies
           command: pip install ".[tests]"
       - run:
           name: Run tests
-          command: git submodule sync --recursive && git submodule update --recursive --init && pytest
+          command: pytest tests
 
   ruff:
     parameters:
@@ -52,7 +53,6 @@ jobs:
     executor:
       name: python-docker
       version: <<parameters.version>>
-
     steps:
       - checkout
       - run:
@@ -60,7 +60,7 @@ jobs:
           command: pip install ".[tests]"
       - run:
           name: Ruff
-          command: git submodule sync --recursive && git submodule update --recursive --init && ruff check
+          command: ruff check
 
   test_documentation_build:
     parameters:
@@ -71,14 +71,12 @@ jobs:
     executor:
       name: python-docker
       version: <<parameters.version>>
-
     steps:
       - checkout
+      
       - run:
           name: Sphinx
           command: |
-            git submodule sync --recursive
-            git submodule update --recursive --init
             pip install ".[docs]"
             cd docs/
             make html SPHINXOPTS="-W"
@@ -94,6 +92,7 @@ jobs:
       version: <<parameters.version>>
     steps:
       - checkout
+      
       - run:
           name: install dependencies
           command: pip install ".[tests]"
@@ -101,9 +100,9 @@ jobs:
           python --version
       - run:
           name: Run tests
-          command: git submodule sync --recursive && git submodule update --recursive --init && pytest tests -W error::DeprecationWarning
+          command: pytest tests -W error::DeprecationWarning
 
-  test_pypi_publish:
+  test_package_build:
     parameters:
       version:
         description: "version tag"
@@ -114,6 +113,7 @@ jobs:
       version: <<parameters.version>>
     steps:
       - checkout
+      
       - run:
           name: install dependencies
           command: pip install ".[deploy]"
@@ -134,17 +134,17 @@ jobs:
       version: <<parameters.version>>
     steps:
       - checkout
+      
       - run:
           name: install dependencies
           command: pip install ".[deploy]"
       - run:
           name: deploy
           command: |  # create whl, install twine and publish to Test PyPI
-            git submodule sync --recursive
-            git submodule update --recursive --init
             python -m build
             twine check dist/*
             twine upload dist/*
+
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
@@ -156,17 +156,18 @@ workflows:
           matrix:
             parameters:
               version:
-                - "3.8"
                 - "3.9"
                 - "3.10"
                 - "3.11"
                 - "3.12"
                 - "3.13"
+                - "3.14"
+                
       - ruff:
           matrix:
             parameters:
               version:
-                - "3.12"
+                - "3.14"
           requires:
             - build_and_test
 
@@ -174,7 +175,7 @@ workflows:
           matrix:
             parameters:
               version:
-                - "3.12"
+                - "3.14"
           requires:
             - build_and_test
 
@@ -182,17 +183,23 @@ workflows:
           matrix:
             parameters:
               version:
-                - "3.12"
+                - "3.14"
           requires:
             - build_and_test
 
-      - test_pypi_publish:
+      - test_package_build:
           matrix:
             parameters:
               version:
-                - "3.12"
+                - "3.14"
           requires:
             - build_and_test
+          filters:
+            branches:
+              only:
+                - main
+                - develop
+
 
   test_and_publish:
     # Test and publish on new git version tags
@@ -202,12 +209,13 @@ workflows:
           matrix:
             parameters:
               version:
-                - "3.8"
                 - "3.9"
                 - "3.10"
                 - "3.11"
                 - "3.12"
                 - "3.13"
+                - "3.14"
+                
           filters:
             branches:
               ignore: /.*/
@@ -219,7 +227,7 @@ workflows:
           matrix:
             parameters:
               version:
-                - "3.12"
+                - "3.14"
           requires:
             - build_and_test
           filters:
@@ -233,7 +241,7 @@ workflows:
           matrix:
             parameters:
               version:
-                - "3.12"
+                - "3.14"
           requires:
             - build_and_test
           filters:
@@ -247,7 +255,7 @@ workflows:
           matrix:
             parameters:
               version:
-                - "3.12"
+                - "3.14"
           requires:
             - build_and_test
           filters:
@@ -261,7 +269,7 @@ workflows:
           matrix:
             parameters:
               version:
-                - "3.12"
+                - "3.14"
           requires:
             - build_and_test
             - ruff
@@ -273,3 +281,4 @@ workflows:
             # only act on version tags
             tags:
               only: /^v[0-9]+(\.[0-9]+)*$/
+

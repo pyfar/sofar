@@ -5,7 +5,7 @@
 [![PyPI version](https://badge.fury.io/py/sofar.svg)](https://badge.fury.io/py/sofar)
 [![Documentation Status](https://readthedocs.org/projects/sofar/badge/?version=latest)](https://sofar.readthedocs.io/en/latest/?badge=latest)
 [![CircleCI](https://circleci.com/gh/pyfar/sofar.svg?style=shield)](https://circleci.com/gh/pyfar/sofar)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pyfar/gallery/main?labpath=docs/gallery/interactive/sofar_introduction.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pyfar/gallery/main?labpath=docs/gallery/interactive/pyfar_introduction.ipynb)
 
 Sofar is maybe the most complete Python package for the SOFA file format so
 far. SOFA files store spatially distributed acoustic data such as impulse
@@ -20,8 +20,7 @@ responses or transfer functions. They are defined by the AES69-2022 standard
 - sofar is tested using continuous integration on
 - Uses a complete definition of the AES69-2022 standard (see references) maintained at [sofa_conventions](https://github.com/pyfar/sofa_conventions)
 
-Getting Started
-===============
+## Getting Started
 
 The [sofar and SOFA notebook](https://pyfar-gallery.readthedocs.io/en/latest/gallery/interactive/sofar_introduction.html)
 gives an overview of the most important sofar functionality and is a good starting point. For processing and visualizing data
@@ -31,31 +30,16 @@ inside SOFA files, we recommend the [pyfar package](https://pyfar.readthedocs.io
 [read the docs](https://sofar.readthedocs.io) for a complete documentation of sofar. A more detailed introduction to the SOFA
 file format is given by Majdak et. al. 2022 (see references below). All information is also bundled at [pyfar.org](https://pyfar.org).
 
-Installation
-============
+## Installation
 
 Use pip to install sofar
 
     pip install sofar
 
-
-(Requires Python >= 3.8)
+(Requires Python 3.9 or higher)
 
 If the installation fails, please check out the [help section](https://pyfar-gallery.readthedocs.io/en/latest/help).
 
-Contributing
-============
+## Contributing
 
-Refer to the [contribution guidelines](https://sofar.readthedocs.io/en/stable/contributing.html) for more information.
-
-References
-==========
-
-AES69-2022: *AES standard for file exchange - Spatial acoustic data file
-format*, Audio Engineering Society, Inc., New York, NY, USA.
-(https://www.aes.org/publications/standards/search.cfm?docID=99)
-
-P. Majdak, F. Zotter, F. Brinkmann, J. De Muynke, M. Mihocic, and M.
-Noisternig, "Spatially Oriented Format for Acoustics 2.1: Introduction and
-Recent Advances", *J. Audio Eng. Soc.*, vol. 70, no. 7/8, pp. 565-584,
-Jul. 2022. DOI: https://doi.org/10.17743/jaes.2022.0026
+Check out the [contributing guidelines](https://sofar.readthedocs.io/en/stable/contributing.html) if you want to become part of pyfar.
