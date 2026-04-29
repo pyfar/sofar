@@ -1,0 +1,92 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: 15078cd
+_src_path: https://github.com/pyfar/template-pyfar-package
+add_submodules: true
+additional_section_readme: 'References
+
+    ==========
+
+
+    AES69-2022: *AES standard for file exchange - Spatial acoustic data file
+
+    format*, Audio Engineering Society, Inc., New York, NY, USA.
+
+    (https://www.aes.org/publications/standards/search.cfm?docID=99)
+
+
+    P. Majdak, F. Zotter, F. Brinkmann, J. De Muynke, M. Mihocic, and M.
+
+    Noisternig, "Spatially Oriented Format for Acoustics 2.1: Introduction and
+
+    Recent Advances", *J. Audio Eng. Soc.*, vol. 70, no. 7/8, pp. 565-584,
+
+    Jul. 2022. DOI: https://doi.org/10.17743/jaes.2022.0026'
+apt_packages: ''
+author: The pyfar developers
+copyright_statement: 2020, The pyfar developers
+dependencies: netCDF4!=1.7.4,numpy>=1.14.0,beautifulsoup4,requests,packaging
+docs_custom_import: resources.conventions
+git_username: pyfar
+gitignore_custom: docs/resources/conventions.rst
+intersphinx_mapping:
+- numpy
+- gallery
+introduction_path: docs/gallery/interactive/sofar_introduction.ipynb
+keywords: acoustics,pyfar
+license: MIT
+logo_path_gallery: resources/logos/pyfar_logos_fixed_size_sofar.png
+manifest_custom: include sofar/sofa_conventions/VERSION,recursive-include sofar/sofa_conventions/conventions
+    *.csv,recursive-include sofar/sofa_conventions/conventions *.json,recursive-include
+    sofar/sofa_conventions/conventions/deprecated *.csv,recursive-include sofar/sofa_conventions/conventions/deprecated
+    *.json,recursive-include sofar/sofa_conventions/rules *.json
+minimum_python_version: '3.9'
+project_getting_started: 'The [sofar and SOFA notebook](https://pyfar-gallery.readthedocs.io/en/latest/gallery/interactive/sofar_introduction.html)
+
+    gives an overview of the most important sofar functionality and is a good starting
+    point. For processing and visualizing data
+
+    inside SOFA files, we recommend the [pyfar package](https://pyfar.readthedocs.io)
+    that can read SOFA files through
+
+    `pyfar.io.read_sofa` and the in-depth examples contained in the
+
+    [pyfar example gallery](https://pyfar-gallery.readthedocs.io/en/latest/examples_gallery.html).
+    Check out
+
+    [read the docs](https://sofar.readthedocs.io) for a complete documentation of
+    sofar. A more detailed introduction to the SOFA
+
+    file format is given by Majdak et. al. 2022 (see references below). All information
+    is also bundled at [pyfar.org](https://pyfar.org).'
+project_installation_instructions: ''
+project_long_description: 'Sofar is maybe the most complete Python package for the
+    SOFA file format so
+
+    far. SOFA files store spatially distributed acoustic data such as impulse
+
+    responses or transfer functions. They are defined by the AES69-2022 standard
+
+    (see references). These are the key features of sofar
+
+
+    - Read, edit, and write SOFA files
+
+    - Add custom attributes to SOFA files
+
+    - Full Verification of the content of a SOFA files against AES69-2022
+
+    - Upgrade data that uses outdated SOFA conventions
+
+    - Open license allows unrestricted use
+
+    - sofar is tested using continuous integration on
+
+    - Uses a complete definition of the AES69-2022 standard (see references) maintained
+    at [sofa_conventions](https://github.com/pyfar/sofa_conventions)'
+project_short_description: Maybe the most complete python package for SOFA files so
+    far.
+project_slug: sofar
+ruff_ignore: .git,docs
+submodule_path: sofar/sofa_conventions
+use_pypi_deployment_with_ci: true
+version: 1.2.3

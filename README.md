@@ -3,7 +3,7 @@
 </h1><br>
 
 [![PyPI version](https://badge.fury.io/py/sofar.svg)](https://badge.fury.io/py/sofar)
-[![Documentation Status](https://readthedocs.org/projects/sofar/badge/?version=latest)](https://sofar.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/sofar/badge/?version=stable)](https://sofar.readthedocs.io/en/stable/?badge=stable)
 [![CircleCI](https://circleci.com/gh/pyfar/sofar.svg?style=shield)](https://circleci.com/gh/pyfar/sofar)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/pyfar/gallery/main?labpath=docs/gallery/interactive/sofar_introduction.ipynb)
 
@@ -20,8 +20,7 @@ responses or transfer functions. They are defined by the AES69-2022 standard
 - sofar is tested using continuous integration on
 - Uses a complete definition of the AES69-2022 standard (see references) maintained at [sofa_conventions](https://github.com/pyfar/sofa_conventions)
 
-Getting Started
-===============
+## Getting Started
 
 The [sofar and SOFA notebook](https://pyfar-gallery.readthedocs.io/en/latest/gallery/interactive/sofar_introduction.html)
 gives an overview of the most important sofar functionality and is a good starting point. For processing and visualizing data
@@ -31,22 +30,21 @@ inside SOFA files, we recommend the [pyfar package](https://pyfar.readthedocs.io
 [read the docs](https://sofar.readthedocs.io) for a complete documentation of sofar. A more detailed introduction to the SOFA
 file format is given by Majdak et. al. 2022 (see references below). All information is also bundled at [pyfar.org](https://pyfar.org).
 
-Installation
-============
+## Installation
 
 Use pip to install sofar
 
     pip install sofar
 
-
-(Requires Python >= 3.8)
+(Requires Python 3.9 or higher)
 
 If the installation fails, please check out the [help section](https://pyfar-gallery.readthedocs.io/en/latest/help).
 
-Contributing
-============
 
-Refer to the [contribution guidelines](https://sofar.readthedocs.io/en/stable/contributing.html) for more information.
+
+## Contributing
+
+Check out the [contributing guidelines](https://sofar.readthedocs.io/en/stable/contributing.html) if you want to become part of pyfar.
 
 References
 ==========

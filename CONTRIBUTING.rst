@@ -21,7 +21,7 @@ The best place for this is https://github.com/pyfar/sofar/issues.
 Fix Bugs or Implement Features
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Look through https://github.com/pyfar/sofar/issues for bugs or feature request
+Look through https://github.com/pyfar/sofar/issues for bugs or feature requests
 and contact us or comment if you are interested in implementing.
 
 Write Documentation
@@ -34,46 +34,48 @@ articles, and such.
 Get Started!
 ------------
 
-Ready to contribute? Here's how to set up `sofar` for local development using the command-line interface. Note that several alternative user interfaces exist, e.g., the Git GUI, `GitHub Desktop <https://desktop.github.com/>`_, extensions in `Visual Studio Code <https://code.visualstudio.com/>`_ ...
+Ready to contribute? Here's how to set up `sofar` for local development using the command-line interface.
+Note that several alternative user interfaces exist, e.g., the Git GUI, `GitHub Desktop <https://desktop.github.com/>`_,
+extensions in `Visual Studio Code <https://code.visualstudio.com/>`_ ...
 
 1. `Fork <https://docs.github.com/en/get-started/quickstart/fork-a-repo/>`_ the `sofar` repo on GitHub.
 2. Clone your fork locally and cd into the sofar directory::
 
-    $ git clone --recursive https://github.com/YOUR_USERNAME/sofar.git
+    $ git clone https://github.com/YOUR_USERNAME/sofar.git
     $ cd sofar
-
-3. Note that some graphical Git interfaces can not do the recursive clone. If the folder sofar/sofa_conventions is empty try::
+   
+   Note that some graphical Git interfaces can not do the recursive clone. If the folder sofar/sofa_conventions is empty try::
 
     $ git submodule update --init
-    
-4. Install your local copy into a virtualenv. Assuming you have Anaconda or Miniconda installed, this is how you set up your fork for local development::
+
+3. Install your local copy into a virtualenv. Assuming you have Anaconda or Miniconda installed, this is how you set up your fork for local development::
 
     $ conda create --name sofar python
     $ conda activate sofar
     $ pip install -e ".[dev]"
 
-5. Create a branch for local development. Indicate the intention of your branch in its respective name (i.e. `feature/branch-name` or `bugfix/branch-name`)::
+4. Create a branch for local development. Indicate the intention of your branch in its respective name (i.e. `feature/branch-name` or `bugfix/branch-name`)::
 
     $ git checkout -b name-of-your-bugfix-or-feature
 
    Now you can make your changes locally.
 
-6. When you're done making changes, check that your changes pass ruff and the
+5. When you're done making changes, check that your changes pass ruff and the
    tests::
 
     $ ruff check
     $ pytest
 
-   ruff must pass without any warnings for `./sofar` and `./tests` using the default or a stricter configuration. Ruff ignores a couple of PEP Errors (see `./pyproject.toml`). If necessary, adjust your linting configuration in your IDE accordingly.
+   ruff must pass without any warnings for `./sofar` and `./tests` using the default or a stricter
+   configuration. Ruff ignores a couple of PEP Errors (see `./pyproject.toml`). If necessary, adjust your linting configuration in your IDE accordingly.
 
-7. Commit your changes and push your branch to GitHub::
+6. Commit your changes and push your branch to GitHub::
 
     $ git add .
     $ git commit -m "Your detailed description of your changes."
     $ git push origin name-of-your-bugfix-or-feature
 
-8. Submit a pull request on the develop branch through the GitHub website.
-
+7. Submit a pull request on the develop branch through the GitHub website.
 
 Submodules
 ~~~~~~~~~~
