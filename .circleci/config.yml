@@ -25,7 +25,30 @@ executors:
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
-  build_and_test:
+  build_distribution:
+    parameters:
+      version:
+        description: "version tag"
+        default: "latest"
+        type: string
+    executor:
+      name: python-docker
+      version: <<parameters.version>>
+    steps:
+      - checkout
+      - run:
+          name: install build dependencies
+          command: pip install ".[deploy]"
+      - run:
+          name: Build distribution artifacts
+          command: |
+            python -m build
+      - persist_to_workspace:
+          root: .
+          paths:
+            - dist
+
+  test_source:
     parameters:
       version:
         description: "version tag"
@@ -41,8 +64,44 @@ jobs:
           name: install dependencies
           command: pip install ".[tests]"
       - run:
+          name: synchronize submodules
+          command: git submodule sync --recursive && git submodule update --recursive --init
+      - run:
           name: Run tests
           command: pytest tests
+
+  test_wheel:
+    parameters:
+      version:
+        description: "version tag"
+        default: "latest"
+        type: string
+    executor:
+      name: python-docker
+      version: <<parameters.version>>
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Install wheel from workspace in isolated venv
+          command: |
+            rm -rf /tmp/wheeltest
+            python -m venv /tmp/wheeltest
+            # Find the wheel file in the workspace and save it to an environment variable
+            WHEEL=$(ls -1 /tmp/workspace/dist/*.whl | head -n 1)
+            /tmp/wheeltest/bin/python -m pip install "${WHEEL}[tests]"
+      - run:
+          name: Move test files to isolated location
+          command: |
+            rm -rf /tmp/spharpy-wheel-tests
+            mkdir -p /tmp/spharpy-wheel-tests
+            cp -r tests /tmp/spharpy-wheel-tests/
+      - run:
+          name: Run tests against wheel installation (i.e. in isolated environment)
+          command: |
+            cd /tmp/spharpy-wheel-tests
+            /tmp/wheeltest/bin/python -m pytest tests
 
   ruff:
     parameters:
@@ -59,6 +118,9 @@ jobs:
           name: install dependencies
           command: pip install ".[tests]"
       - run:
+          name: synchronize submodules
+          command: git submodule sync --recursive && git submodule update --recursive --init
+      - run:
           name: Ruff
           command: ruff check
 
@@ -74,6 +136,9 @@ jobs:
     steps:
       - checkout
       
+      - run:
+          name: synchronize submodules
+          command: git submodule sync --recursive && git submodule update --recursive --init
       - run:
           name: Sphinx
           command: |
@@ -99,6 +164,9 @@ jobs:
       - run: |
           python --version
       - run:
+          name: synchronize submodules
+          command: git submodule sync --recursive && git submodule update --recursive --init
+      - run:
           name: Run tests
           command: pytest tests -W error::DeprecationWarning
 
@@ -113,15 +181,16 @@ jobs:
       version: <<parameters.version>>
     steps:
       - checkout
+      - attach_workspace:
+          at: /tmp/workspace
       
       - run:
           name: install dependencies
           command: pip install ".[deploy]"
       - run:
           name: deploy
-          command: |  # create whl, install twine and publish to Test PyPI
-            python -m build
-            twine check dist/*
+          command: |
+            twine check /tmp/workspace/dist/*
 
   run_pypi_publish:
     parameters:
@@ -134,16 +203,20 @@ jobs:
       version: <<parameters.version>>
     steps:
       - checkout
+      - attach_workspace:
+          at: /tmp/workspace
       
       - run:
           name: install dependencies
           command: pip install ".[deploy]"
       - run:
+          name: synchronize submodules
+          command: git submodule sync --recursive && git submodule update --recursive --init
+      - run:
           name: deploy
-          command: |  # create whl, install twine and publish to Test PyPI
-            python -m build
-            twine check dist/*
-            twine upload dist/*
+          command: |
+            twine check /tmp/workspace/dist/*
+            twine upload /tmp/workspace/dist/*
 
 
 # Invoke jobs via workflows
@@ -152,7 +225,7 @@ workflows:
   test: # Test workflow
     jobs:
       # Run tests for all python versions
-      - build_and_test:
+      - test_source:
           matrix:
             parameters:
               version:
@@ -162,14 +235,35 @@ workflows:
                 - "3.12"
                 - "3.13"
                 - "3.14"
-                
+
+      - build_distribution:
+          matrix:
+            parameters:
+              version:
+                - "3.14"
+            requires:
+              - test_source
+
       - ruff:
           matrix:
             parameters:
               version:
                 - "3.14"
           requires:
-            - build_and_test
+            - test_source
+
+      - test_wheel:
+          matrix:
+            parameters:
+              version:
+                - "3.9"
+                - "3.10"
+                - "3.11"
+                - "3.12"
+                - "3.13"
+                - "3.14"
+          requires:
+            - build_distribution
 
       - test_documentation_build:
           matrix:
@@ -177,7 +271,7 @@ workflows:
               version:
                 - "3.14"
           requires:
-            - build_and_test
+            - test_source
 
       - test_deprecation_warnings:
           matrix:
@@ -185,7 +279,7 @@ workflows:
               version:
                 - "3.14"
           requires:
-            - build_and_test
+            - test_source
 
       - test_package_build:
           matrix:
@@ -193,7 +287,8 @@ workflows:
               version:
                 - "3.14"
           requires:
-            - build_and_test
+            - test_source
+            - build_distribution
           filters:
             branches:
               only:
@@ -205,7 +300,7 @@ workflows:
     # Test and publish on new git version tags
     # This requires its own workflow to successfully trigger the test and build
     jobs:
-      - build_and_test:
+      - test_source:
           matrix:
             parameters:
               version:
@@ -215,7 +310,20 @@ workflows:
                 - "3.12"
                 - "3.13"
                 - "3.14"
-                
+          filters:
+            branches:
+              ignore: /.*/
+            # only act on version tags
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*$/
+
+      - build_distribution:
+          matrix:
+            parameters:
+              version:
+                - "3.14"
+          requires:
+            - test_source
           filters:
             branches:
               ignore: /.*/
@@ -229,7 +337,27 @@ workflows:
               version:
                 - "3.14"
           requires:
-            - build_and_test
+            - test_source
+          filters:
+            branches:
+              ignore: /.*/
+            # only act on version tags
+            tags:
+              only: /^v[0-9]+(\.[0-9]+)*$/
+
+      - test_wheel:
+          matrix:
+            parameters:
+              version:
+                - "3.9"
+                - "3.10"
+                - "3.11"
+                - "3.12"
+                - "3.13"
+                - "3.14"
+          requires:
+            - test_source
+            - build_distribution
           filters:
             branches:
               ignore: /.*/
@@ -243,7 +371,7 @@ workflows:
               version:
                 - "3.14"
           requires:
-            - build_and_test
+            - test_source
           filters:
             branches:
               ignore: /.*/
@@ -257,7 +385,7 @@ workflows:
               version:
                 - "3.14"
           requires:
-            - build_and_test
+            - test_source
           filters:
             branches:
               ignore: /.*/
@@ -271,7 +399,9 @@ workflows:
               version:
                 - "3.14"
           requires:
-            - build_and_test
+            - test_source
+            - test_wheel
+            - build_distribution
             - ruff
             - test_documentation_build
             - test_deprecation_warnings

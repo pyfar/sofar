@@ -1,15 +1,37 @@
 # Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
-_commit: 2e0862f
+_commit: 15078cd
 _src_path: https://github.com/pyfar/template-pyfar-package
+add_submodules: true
+additional_section_readme: 'References
+
+    ==========
+
+
+    AES69-2022: *AES standard for file exchange - Spatial acoustic data file
+
+    format*, Audio Engineering Society, Inc., New York, NY, USA.
+
+    (https://www.aes.org/publications/standards/search.cfm?docID=99)
+
+
+    P. Majdak, F. Zotter, F. Brinkmann, J. De Muynke, M. Mihocic, and M.
+
+    Noisternig, "Spatially Oriented Format for Acoustics 2.1: Introduction and
+
+    Recent Advances", *J. Audio Eng. Soc.*, vol. 70, no. 7/8, pp. 565-584,
+
+    Jul. 2022. DOI: https://doi.org/10.17743/jaes.2022.0026'
 apt_packages: ''
 author: The pyfar developers
 copyright_statement: 2020, The pyfar developers
 dependencies: netCDF4!=1.7.4,numpy>=1.14.0,beautifulsoup4,requests,packaging
+docs_custom_import: resources.conventions
 git_username: pyfar
 gitignore_custom: docs/resources/conventions.rst
 intersphinx_mapping:
 - numpy
 - gallery
+introduction_path: docs/gallery/interactive/sofar_introduction.ipynb
 keywords: acoustics,pyfar
 license: MIT
 logo_path_gallery: resources/logos/pyfar_logos_fixed_size_sofar.png
@@ -36,6 +58,7 @@ project_getting_started: 'The [sofar and SOFA notebook](https://pyfar-gallery.re
 
     file format is given by Majdak et. al. 2022 (see references below). All information
     is also bundled at [pyfar.org](https://pyfar.org).'
+project_installation_instructions: ''
 project_long_description: 'Sofar is maybe the most complete Python package for the
     SOFA file format so
 
@@ -64,5 +87,6 @@ project_short_description: Maybe the most complete python package for SOFA files
     far.
 project_slug: sofar
 ruff_ignore: .git,docs
+submodule_path: sofar/sofa_conventions
 use_pypi_deployment_with_ci: true
 version: 1.2.3

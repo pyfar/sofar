@@ -1,4 +1,3 @@
-
 .. highlight:: shell
 
 ============
@@ -44,6 +43,10 @@ extensions in `Visual Studio Code <https://code.visualstudio.com/>`_ ...
 
     $ git clone https://github.com/YOUR_USERNAME/sofar.git
     $ cd sofar
+   
+   Note that some graphical Git interfaces can not do the recursive clone. If the folder sofar/sofa_conventions is empty try::
+
+    $ git submodule update --init
 
 3. Install your local copy into a virtualenv. Assuming you have Anaconda or Miniconda installed, this is how you set up your fork for local development::
 
@@ -74,5 +77,16 @@ extensions in `Visual Studio Code <https://code.visualstudio.com/>`_ ...
 
 7. Submit a pull request on the develop branch through the GitHub website.
 
+Submodules
+~~~~~~~~~~
+
+To update the submodule containing the conventions and verification rules run
+
+.. code-block:: bash
+
+    $ git submodule update --init --recursive
+    $ git submodule update --recursive --remote
+
+and then commit the changes
 
 .. _general contributing guidelines: https://pyfar-gallery.readthedocs.io/en/latest/contribute/index.html
