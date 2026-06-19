@@ -5,6 +5,7 @@ import netCDF4
 import numpy as np
 import os
 import sofar as sf
+import sofar.io as sfi
 
 
 def test_sofastream_output(temp_sofa_file):
@@ -37,6 +38,35 @@ def test_sofastream_attribute_error(temp_sofa_file):
                 AttributeError,
                 match="Wrong_Attribute is not contained in SOFA-file"):
             _ = file.Wrong_Attribute
+
+
+def test_sofastream_verify(temp_sofa_file, tmp_path_factory, monkeypatch):
+
+    def fail_read_sofa(*_args, **_kwargs):
+        raise AssertionError("SofaStream.verify must not call read_sofa")
+
+    monkeypatch.setattr(sf, "read_sofa", fail_read_sofa)
+
+    with SofaStream(temp_sofa_file) as file:
+        assert file.verify(issue_handling="return") is None
+
+    monkeypatch.undo()
+
+    filename = tmp_path_factory.mktemp("data") / "test_sofastream_verify.sofa"
+    sofa = sf.Sofa("SimpleFreeFieldHRIR")
+    sofa.ListenerPosition_Units = "Meter"
+    sfi._write_sofa(filename, sofa, verify=False)
+
+    sofa_issues = sf.read_sofa(filename, verify=False).verify(
+        issue_handling="return", mode="write")
+
+    with SofaStream(filename) as file:
+        stream_issues = file.verify(issue_handling="return", mode="write")
+        with pytest.raises(
+                ValueError, match="lower case letters when writing"):
+            file.verify(mode="write")
+
+    assert stream_issues == sofa_issues
 
 
 def test_sofastream_inspect(capfd, temp_sofa_file):
