@@ -52,8 +52,9 @@ References
 ==========
 
 AES69-2022: *AES standard for file exchange - Spatial acoustic data file
-format*, Audio Engineering Society, Inc., New York, NY, USA.
-(https://www.aes.org/publications/standards/search.cfm?docID=99)
+format*, Audio Engineering Society, Inc., New York, NY, USA. Public SOFA and
+AES69 revision information is available at
+<https://www.sofaconventions.org/mediawiki/index.php/SOFA_(Spatially_Oriented_Format_for_Acoustics)>.
 
 P. Majdak, F. Zotter, F. Brinkmann, J. De Muynke, M. Mihocic, and M.
 Noisternig, "Spatially Oriented Format for Acoustics 2.1: Introduction and
