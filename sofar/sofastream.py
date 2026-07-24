@@ -107,6 +107,8 @@ class SofaStream():
         """
         Verify a SOFA file against the SOFA standard.
 
+        See :py:func:`~sofar.Sofa.verify` for details.
+
         This method checks whether mandatory data are present, names, data
         types, and dimensions follow the SOFA standard, and attribute values
         are consistent with the SOFA standard. Missing mandatory data raise an
