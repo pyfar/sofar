@@ -156,7 +156,12 @@ class SofaStream():
         return self._verify_open_file(issue_handling, mode)
 
     def _verify_open_file(self, issue_handling, mode):
-        """Verify currently opened NetCDF file without loading numeric data."""
+        """Verify the currently opened NetCDF file."""
+        return self._read_open_file_for_verification().verify(
+            issue_handling=issue_handling, mode=mode)
+
+    def _read_open_file_for_verification(self):
+        """Read the currently opened file using lazy numeric variables."""
         # get SOFA object with default values and convention metadata
         sofa = sf.Sofa(
             self._file.SOFAConventions,
@@ -224,7 +229,7 @@ class SofaStream():
                 delattr(sofa, attr)
 
         sofa.protected = True
-        return sofa.verify(issue_handling=issue_handling, mode=mode)
+        return sofa
 
     def __getattr__(self, name):
         """
