@@ -5,6 +5,8 @@ file into memory.
 from netCDF4 import Dataset
 import numpy as np
 
+import sofar as sf
+
 from .io import _format_value_from_netcdf
 
 
@@ -130,8 +132,6 @@ class SofaStream():
 
     def _verify_open_file(self, issue_handling, mode):
         """Verify currently opened NetCDF file without loading numeric data."""
-        import sofar as sf
-
         # get SOFA object with default values and convention metadata
         sofa = sf.Sofa(
             self._file.SOFAConventions,
