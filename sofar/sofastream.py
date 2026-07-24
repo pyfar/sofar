@@ -126,15 +126,7 @@ class SofaStream():
             Detected issues as a string. None if no issues were detected. Note
             that this is only returned if ``issue_handling='return'``.
         """
-        if hasattr(self, "_file") and self._file.isopen():
-            return self._verify_open_file(issue_handling, mode)
-
-        with Dataset(self._filename, mode="r") as file:
-            self._file = file
-            try:
-                return self._verify_open_file(issue_handling, mode)
-            finally:
-                del self._file
+        return self._verify_open_file(issue_handling, mode)
 
     def _verify_open_file(self, issue_handling, mode):
         """Verify currently opened NetCDF file without loading numeric data."""
