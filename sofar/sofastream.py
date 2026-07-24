@@ -107,20 +107,43 @@ class SofaStream():
         """
         Verify a SOFA file against the SOFA standard.
 
-        This method uses :py:func:`~sofar.Sofa.verify` internally with lazy
-        placeholders for numeric variables. Thus, numeric data are checked for
-        type and dimensions without loading the variable contents into memory.
-        String variables are loaded because their values and string lengths can
-        be relevant for convention verification.
+        This method checks whether mandatory data are present, names, data
+        types, and dimensions follow the SOFA standard, and attribute values
+        are consistent with the SOFA standard. Missing mandatory data raise an
+        error when ``issue_handling='raise'``; otherwise, they are added with
+        their default value and a warning is given.
+
+        Numeric variables are represented by lazy placeholders, so only their
+        type and dimensions are checked without loading their contents into
+        memory. String variables are loaded because their values and lengths
+        can be relevant for convention verification.
+
+        A detailed set of validation rules can be found at
+        https://github.com/pyfar/sofar/tree/main/sofar/verification_rules
 
         Parameters
         ----------
         issue_handling : str, optional
-            Defines how detected issues are handled. See
-            :py:func:`~sofar.Sofa.verify` for details.
+            Defines how detected issues are handled.
+
+            ``'raise'``
+                Warnings and errors are raised if issues are detected.
+            ``'print'``
+                Issues are printed without raising warnings and errors.
+            ``'return'``
+                Issues are returned as a string but neither raised nor printed.
+
+            The default is ``'raise'``.
         mode : str, optional
             The SOFA standard is more strict for writing data than for reading
-            data. See :py:func:`~sofar.Sofa.verify` for details.
+            data.
+
+            ``'write'``
+                All units (e.g., ``'meter'``) must be lower case.
+            ``'read'``
+                Units can contain upper case letters (e.g., ``'Meter'``).
+
+            The default is ``'write'``.
 
         Returns
         -------
