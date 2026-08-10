@@ -152,6 +152,13 @@ class SofaStream():
         issues : str, None
             Detected issues as a string. None if no issues were detected. Note
             that this is only returned if ``issue_handling='return'``.
+            Examples
+            ----------
+            
+            >>> import sofar
+            >>>
+            >>> with sofar.SofaStream("path/to/your.sofa") as file:
+            >>>     file.verify()
         """
         return self._verify_open_file(issue_handling, mode)
 
@@ -160,7 +167,7 @@ class SofaStream():
         return self._read_open_file_for_verification().verify(
             issue_handling=issue_handling, mode=mode)
 
-    def _read_open_file_for_verification(self):
+    def _lazy_read_open_sofa(self):
         """Read the currently opened file using lazy numeric variables."""
         # get SOFA object with default values and convention metadata
         sofa = sf.Sofa(
