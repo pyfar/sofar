@@ -152,13 +152,13 @@ class SofaStream():
         issues : str, None
             Detected issues as a string. None if no issues were detected. Note
             that this is only returned if ``issue_handling='return'``.
-            Examples
-            ----------
 
-            >>> import sofar
-            >>>
-            >>> with sofar.SofaStream("path/to/your.sofa") as file:
-            >>>     file.verify()
+        Examples
+        --------
+        >>> import sofar
+        >>>
+        >>> with sofar.SofaStream("path/to/your.sofa") as file:
+        >>>     file.verify()
         """
         return self._verify_open_file(issue_handling, mode)
 
