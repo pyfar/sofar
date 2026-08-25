@@ -1,6 +1,6 @@
 [project]
 name = "sofar"
-version = "1.2.2"
+version = "1.2.3"
 description = "Maybe the most complete python package for SOFA files so far."
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -26,7 +26,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    'netCDF4',
+    'netCDF4!=1.7.4',
     'numpy>=1.14.0',
     'beautifulsoup4',
     'requests',
@@ -126,7 +126,7 @@ convention = "numpy"
 
 
 [tool.bumpversion]
-current_version = "1.2.2"
+current_version = "1.2.3"
 parse = "(?P<major>\\d+)\\.(?P<minor>\\d+)\\.(?P<patch>\\d+)"
 serialize = ["{major}.{minor}.{patch}"]
 search = "{current_version}"
