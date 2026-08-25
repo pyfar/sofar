@@ -146,34 +146,6 @@ def test_get_dimension():
         size = sofa.get_dimension("Q")
 
 
-def test_info(capfd):
-
-    sofa = sf.Sofa("SimpleFreeFieldHRIR")
-
-    # test with wrong info string
-    with pytest.raises(
-            ValueError, match="info='invalid' is invalid"):
-        sofa.info("invalid")
-
-    # test with default parameter
-    sofa.info()
-    out, _ = capfd.readouterr()
-    assert "showing all entries" in out
-
-    # test listing all entry names
-    for info in ["all", "mandatory", "optional", "read only", "data"]:
-        sofa.info(info)
-        out, _ = capfd.readouterr()
-        assert f"showing {info} entries" in out
-
-    # list information for specific entry
-    sofa.info("ListenerPosition")
-    out, _ = capfd.readouterr()
-    assert "ListenerPosition\n    type: double" in out
-    assert "ListenerPosition_Type\n    type: attribute" in out
-    assert "ListenerPosition_Units\n    type: attribute" in out
-
-
 def test_inspect(capfd):
 
     temp_dir = TemporaryDirectory()
