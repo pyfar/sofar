@@ -12,7 +12,6 @@ import pytest
 import numpy as np
 import numpy.testing as npt
 from netCDF4 import Dataset
-from packaging.version import parse
 
 
 def test_read_write_sofa():
@@ -166,18 +165,21 @@ def test_roundtrip(mandatory):
     for name, version in names_versions:
         print(f"Testing: {name} {version}")
 
-        # writing deprecated and proposed conventions is not tested
-        if name in deprecations["GLOBAL:SOFAConventions"] or \
-                parse(version) < parse('1.0'):
-            sofa = sf.Sofa(name, mandatory, version, verify=False)
-            # non stable conventions are not verified
-            if parse(version) >= parse('1.0'):
-                with pytest.warns(UserWarning, match="deprecations"):
-                    sofa.verify(mode="read")
-        else:
+        # create Sofa object without verification. Verification will be done
+        # when writing below.
+        sofa = sf.Sofa(name, mandatory, version, verify=False)
+        status = sofa.convention_status
+
+        if status == 'preliminary':
+            # don't test anything for preliminary conventions
+            return
+        elif status == 'deprecated':
+            # don't test writing deprecated conventions
+            with pytest.warns(UserWarning, match="deprecations"):
+                sofa.verify(mode="read")
+        elif status == 'current':
             # test full round-trip for other conventions
             file = os.path.join(temp_dir.name, name + ".sofa")
-            sofa = sf.Sofa(name, mandatory, version)
             sf.write_sofa(file, sofa)
             sofa_r = sf.read_sofa(file)
             identical = sf.equals(sofa, sofa_r, verbose=True, exclude="DATE")
