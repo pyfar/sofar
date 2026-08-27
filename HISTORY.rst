@@ -2,6 +2,9 @@
 History
 =======
 
+unreleased
+-----------
+
 1.2.3 (2026-02-03)
 ------------------
 * Fix: Restrict netCDF4 version to not equal 1.7.4 due to a bug related to strings and string variables (#133)

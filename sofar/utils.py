@@ -262,7 +262,7 @@ def _atleast_nd(array, ndim):
 
 def _nd_newaxis(array, ndim):
     """Append dimensions to the end of an array until array.ndim == ndim."""
-    array = np.array(array)
+    array = np.asarray(array)
 
     for _ in range(ndim - array.ndim):
         array = array[..., np.newaxis]
