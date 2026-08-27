@@ -5,6 +5,25 @@ file into memory.
 from netCDF4 import Dataset
 import numpy as np
 
+import sofar as sf
+
+from .io import _format_value_from_netcdf
+
+
+class _LazyArray(np.ndarray):
+    """Represent a NetCDF numeric variable without reading its data."""
+
+    def __new__(cls, shape, dtype):
+        data = np.array(0, dtype=dtype)
+        strides = (0, ) * len(shape)
+        return np.lib.stride_tricks.as_strided(
+            data, shape=shape, strides=strides).view(cls)
+
+    def copy(self, order='C'):
+        """Return a view instead of materializing the full array."""
+        _ = order
+        return self
+
 
 class SofaStream():
     """
@@ -12,7 +31,8 @@ class SofaStream():
     file into memory.
 
     :class:`SofaStream` opens a SOFA-file and retrieves only the requested
-    data.
+    data. It can also verify the file against the SOFA convention using the
+    same checks as :py:func:`~sofar.Sofa.verify`.
 
     If you want to use all the data from a SOFA-file use :class:`Sofa`
     class and :func:`read_sofa` function instead.
@@ -82,6 +102,141 @@ class SofaStream():
         (see documentation above).
         """
         self._file.close()
+
+    def verify(self, issue_handling="raise", mode="write"):
+        """
+        Verify a SOFA file against the SOFA standard.
+
+        See :py:func:`~sofar.Sofa.verify` for details.
+
+        This method checks whether mandatory data are present, names, data
+        types, and dimensions follow the SOFA standard, and attribute values
+        are consistent with the SOFA standard. Missing mandatory data raise an
+        error when ``issue_handling='raise'``; otherwise, they are added with
+        their default value and a warning is given.
+
+        Numeric variables are represented by lazy placeholders, so only their
+        type and dimensions are checked without loading their contents into
+        memory. String variables are loaded because their values and lengths
+        can be relevant for convention verification.
+
+        A detailed set of validation rules can be found at
+        https://github.com/pyfar/sofar/tree/main/sofar/verification_rules
+
+        Parameters
+        ----------
+        issue_handling : str, optional
+            Defines how detected issues are handled.
+
+            ``'raise'``
+                Warnings and errors are raised if issues are detected.
+            ``'print'``
+                Issues are printed without raising warnings and errors.
+            ``'return'``
+                Issues are returned as a string but neither raised nor printed.
+
+            The default is ``'raise'``.
+        mode : str, optional
+            The SOFA standard is more strict for writing data than for reading
+            data.
+
+            ``'write'``
+                All units (e.g., ``'meter'``) must be lower case.
+            ``'read'``
+                Units can contain upper case letters (e.g., ``'Meter'``).
+
+            The default is ``'write'``.
+
+        Returns
+        -------
+        issues : str, None
+            Detected issues as a string. None if no issues were detected. Note
+            that this is only returned if ``issue_handling='return'``.
+
+        Examples
+        --------
+        >>> import sofar
+        >>>
+        >>> with sofar.SofaStream("path/to/your.sofa") as file:
+        >>>     file.verify()
+        """
+        return self._verify_open_file(issue_handling, mode)
+
+    def _verify_open_file(self, issue_handling, mode):
+        """Verify the currently opened NetCDF file."""
+        return self._read_open_file_for_verification().verify(
+            issue_handling=issue_handling, mode=mode)
+
+    def _read_open_file_for_verification(self):
+        """Read the currently opened file using lazy numeric variables."""
+        # get SOFA object with default values and convention metadata
+        sofa = sf.Sofa(
+            self._file.SOFAConventions,
+            version=self._file.SOFAConventionsVersion,
+            verify=False)
+        sofa.protected = False
+
+        # NetCDF attribute _Encoding is skipped when reading SOFA files
+        skip = ["_Encoding"]
+        all_attr = []
+
+        # load global attributes
+        for attr in self._file.ncattrs():
+            value = getattr(self._file, attr)
+            key = f"GLOBAL_{attr}"
+            all_attr.append(key)
+
+            if not hasattr(sofa, key):
+                sofa._add_custom_api_entry(key, value, None, None, "attribute")
+                sofa.protected = False
+            else:
+                setattr(sofa, key, value)
+
+        # load variable metadata and string values
+        for var in self._file.variables.keys():
+            netcdf_variable = self._file[var]
+            key = var.replace(".", "_")
+            all_attr.append(key)
+
+            if netcdf_variable.datatype == "S1":
+                value = _format_value_from_netcdf(netcdf_variable[:], var)
+                dtype = "string"
+            else:
+                value = _LazyArray(
+                    netcdf_variable.shape, netcdf_variable.dtype)
+                dtype = "double"
+
+            if hasattr(sofa, key):
+                setattr(sofa, key, value)
+            else:
+                dimensions = "".join(list(netcdf_variable.dimensions))
+                sofa._add_custom_api_entry(
+                    key, value, None, dimensions, dtype)
+                sofa.protected = False
+
+            # load variable attributes
+            for attr in [a for a in netcdf_variable.ncattrs()
+                         if a not in skip]:
+                value = getattr(netcdf_variable, attr)
+                attr_key = key + "_" + attr
+                all_attr.append(attr_key)
+
+                if not hasattr(sofa, attr_key):
+                    sofa._add_custom_api_entry(
+                        attr_key, value, None, None, "attribute")
+                    sofa.protected = False
+                else:
+                    setattr(sofa, attr_key, value)
+
+        # remove default entries that were not contained in the file
+        attrs = [attr for attr in sofa.__dict__.keys()
+                 if not attr.startswith("_")]
+        for attr in attrs:
+            if attr not in all_attr:
+                delattr(sofa, attr)
+
+        sofa.protected = True
+        return sofa
 
     def __getattr__(self, name):
         """

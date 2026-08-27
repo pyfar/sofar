@@ -39,6 +39,45 @@ def test_sofastream_attribute_error(temp_sofa_file):
             _ = file.Wrong_Attribute
 
 
+def test_sofastream_verify_does_not_call_read_sofa(
+        temp_sofa_file, monkeypatch):
+    """Verify SofaStream does not load the full SOFA file."""
+
+    def fail_read_sofa(*_args, **_kwargs):
+        raise AssertionError("SofaStream.verify must not call read_sofa")
+
+    monkeypatch.setattr(sf, "read_sofa", fail_read_sofa)
+
+    with SofaStream(temp_sofa_file) as file:
+        file.verify()
+
+
+def test_sofastream_read_open_file_for_verification(temp_sofa_file):
+    """Verify the lazy SOFA object retains file metadata."""
+    expected = sf.read_sofa(temp_sofa_file, verify=False)
+
+    with SofaStream(temp_sofa_file) as file:
+        actual = file._read_open_file_for_verification()
+
+    expected_keys = {key for key in expected.__dict__
+                     if not key.startswith("_")}
+    actual_keys = {key for key in actual.__dict__
+                   if not key.startswith("_")}
+    assert actual_keys == expected_keys
+
+    for key in expected_keys:
+        expected_value = getattr(expected, key)
+        actual_value = getattr(actual, key)
+        if isinstance(actual_value, np.ndarray):
+            expected_array = np.atleast_1d(expected_value)
+            assert actual_value.shape == expected_array.shape
+            assert actual_value.dtype == expected_array.dtype
+            if np.issubdtype(expected_array.dtype, np.str_):
+                np.testing.assert_array_equal(actual_value, expected_array)
+        else:
+            assert actual_value == expected_value
+
+
 def test_sofastream_inspect(capfd, temp_sofa_file):
 
     tempdir = TemporaryDirectory()
