@@ -2,8 +2,26 @@
 History
 =======
 
-unreleased
------------
+1.3.0 (2026-08-27)
+------------------
+
+Added
+^^^^^
+- Add `SofaStream.verify` for verifying large SOFA files without reading the data variables from disk (PR #138)
+
+Removed
+^^^^^^^
+- Removed `Sofa.info` in favor of documenting SOFA conventions on https://sofar.readthedocs.io/en/stable/resources/conventions.html (PR #122)
+
+Fixed
+^^^^^
+- Broken link to SOFA standard in README (PR #142)
+
+Maintenance
+^^^^^^^^^^^
+- Contrain numpy to versions <2.5.0 to avoid a deprecation error in NetCDF4 (PR #145)
+- Constrain Sphinx to versions 8.x.x to avoid errors in building the docs (#136)
+- Update github workflows to check for milestones and labels in pull requests (#120)
 
 1.2.3 (2026-02-03)
 ------------------
