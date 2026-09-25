@@ -169,6 +169,26 @@ def test_inspect(capfd):
     assert out == "".join(text)
 
 
+@pytest.mark.parametrize(('sofa', 'status'), [
+    # up to date convention
+    (sf.Sofa('FreeFieldDirectivityTF'),
+     'current'),
+    # convention with outdated version
+    (sf.Sofa('FreeFieldDirectivityTF', version='1.0', verify=False),
+     'deprecated'),
+    # deprecated convention
+    (sf.Sofa('GeneralFIRE', verify=False),
+     'deprecated'),
+    # preliminary convention. NOTE: This test will fail if the convention
+    # becomes standardized. In this case the status will change to 'deprecated'
+    (sf.Sofa('AnnotatedEmitterAudio', version='0.2', verify=False),
+     'preliminary'),
+])
+def test_deprecated(sofa, status):
+
+    assert sofa.convention_status == status
+
+
 def test_add_entry():
 
     sofa = sf.Sofa("GeneralTF")
