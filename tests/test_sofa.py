@@ -275,13 +275,13 @@ def test_delete_entry():
 
     sofa = sf.Sofa("SimpleHeadphoneIR")
     assert hasattr(sofa, "GLOBAL_History")
-    assert hasattr(sofa, "SourceManufacturer")
+    assert hasattr(sofa, "SourceManufacturers")
     # delete one optional attribute and variable
     sofa.delete("GLOBAL_History")
-    sofa.delete("SourceManufacturer")
+    sofa.delete("SourceManufacturers")
     # check if data were removed
     assert not hasattr(sofa, "GLOBAL_History")
-    assert not hasattr(sofa, "SourceManufacturer")
+    assert not hasattr(sofa, "SourceManufacturers")
 
 
 def test__get_size_and_shape_of_string_var():
