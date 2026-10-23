@@ -3,6 +3,7 @@ from sofar.utils import _get_conventions
 import pytest
 import os
 import json
+from packaging.version import parse
 
 # load deprecation rules
 base = os.path.join(
@@ -56,14 +57,16 @@ def test_printouts(capfd):
     assert "All mandatory data contained" in out
 
     # calling with valid target (including message)
-    sofa = sf.Sofa("SimpleFreeFieldHRIR", version="0.4", verify=False)
+    with pytest.warns(UserWarning, match="Detected preliminary"):
+        sofa = sf.Sofa("SimpleFreeFieldHRIR", version="0.4", verify=False)
     out, _ = capfd.readouterr()
     sofa.upgrade_convention("SimpleFreeFieldHRIR_1.0")
     out, _ = capfd.readouterr()
     assert "Consider to add the optional data 'SourceUp'" in out
 
     # calling with valid target (things to move)
-    sofa = sf.Sofa("MultiSpeakerBRIR", verify=False)
+    with pytest.warns(UserWarning, match="Detected preliminary"):
+        sofa = sf.Sofa("MultiSpeakerBRIR", verify=False)
     out, _ = capfd.readouterr()
     sofa.upgrade_convention("SingleRoomMIMOSRIR_1.0")
     out, _ = capfd.readouterr()
@@ -79,7 +82,12 @@ def test_upgrade_conventions(path, capfd):
     deprecated = "deprecated" in path
 
     # get SOFA object and targets for upgrading
-    sofa = sf.Sofa(convention, version=version, verify=False)
+    # conventions with versions < 1.0 raise a warning
+    if parse(version) >= parse("1.0"):
+        sofa = sf.Sofa(convention, version=version, verify=False)
+    else:
+        with pytest.warns(UserWarning, match="Detected preliminary"):
+            sofa = sf.Sofa(convention, version=version, verify=False)
     out, _ = capfd.readouterr()
     targets = sofa.upgrade_convention()
     out, _ = capfd.readouterr()
@@ -100,7 +108,15 @@ def test_upgrade_conventions(path, capfd):
 
     if targets:
         for target in targets:
-            sofa.upgrade_convention(target, verify=verify)
+            # verifying target conventions with versions < 1.0 raises a
+            # warning
+            target_version = target.split("_")[-1]
+            if verify and parse(target_version) < parse("1.0"):
+                with pytest.warns(
+                        UserWarning, match="Detected preliminary"):
+                    sofa.upgrade_convention(target, verify=verify)
+            else:
+                sofa.upgrade_convention(target, verify=verify)
             out, _ = capfd.readouterr()
             assert "Upgrading" in out
     elif deprecated:
