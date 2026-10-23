@@ -7,6 +7,7 @@ from sofar.io import (_format_value_for_netcdf,
                       _format_value_from_netcdf)
 import os
 import pathlib
+import warnings
 from tempfile import TemporaryDirectory
 import pytest
 import numpy as np
@@ -145,10 +146,12 @@ def test_write_sofa_compression():
         filesize = os.stat(filename).st_size
 
 
+@pytest.mark.parametrize(
+    "convention", _get_conventions(return_type="name_version"))
 # mandatory=True can not be tested because some conventions have default values
 # that have optional variables as dependencies
 @pytest.mark.parametrize("mandatory", [(False)])
-def test_roundtrip(mandatory):
+def test_roundtrip(convention, mandatory):
     """"
     Cyclic test of create, write, read functions.
 
@@ -159,29 +162,43 @@ def test_roundtrip(mandatory):
     """
 
     temp_dir = TemporaryDirectory()
-    names_versions = _get_conventions(return_type="name_version")
-
+    name, version = convention
     _, _, deprecations, _ = sf.Sofa._verification_rules()
 
-    for name, version in names_versions:
-        print(f"Testing: {name} {version}")
+    # this raises a warning in case the latest version is not stable (<1.0) yet
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", UserWarning)
+        latest_version = sf.Sofa(name).GLOBAL_SOFAConventionsVersion
 
-        # writing deprecated and proposed conventions is not tested
-        if name in deprecations["GLOBAL:SOFAConventions"] or \
-                parse(version) < parse('1.0'):
+    # writing deprecated and proposed conventions is not tested
+    if name in deprecations["GLOBAL:SOFAConventions"] or \
+            parse(version) < parse('1.0'):
+
+        # creating Sofa objects with preliminary versions causes a warning
+        if parse(version) >= parse('1.0'):
             sofa = sf.Sofa(name, mandatory, version, verify=False)
-            # non stable conventions are not verified
-            if parse(version) >= parse('1.0'):
-                with pytest.warns(UserWarning, match="deprecations"):
-                    sofa.verify(mode="read")
         else:
-            # test full round-trip for other conventions
-            file = os.path.join(temp_dir.name, name + ".sofa")
-            sofa = sf.Sofa(name, mandatory, version)
+            with pytest.warns(UserWarning, match="Detected preliminary"):
+                sofa = sf.Sofa(name, mandatory, version, verify=False)
+
+        # non stable conventions are not verified
+        if parse(version) >= parse('1.0'):
+            with pytest.warns(UserWarning, match="deprecations"):
+                sofa.verify(mode="read")
+    else:
+        # test full round-trip for other conventions
+        file = os.path.join(temp_dir.name, name + ".sofa")
+        sofa = sf.Sofa(name, mandatory, version)
+        # catch warning for writing outdated conventions
+        if parse(version) == parse(latest_version):
             sf.write_sofa(file, sofa)
-            sofa_r = sf.read_sofa(file)
-            identical = sf.equals(sofa, sofa_r, verbose=True, exclude="DATE")
-            assert identical
+        else:
+            match = "Writing SOFA object with outdated Convention version"
+            with pytest.warns(UserWarning, match=match):
+                sf.write_sofa(file, sofa)
+        sofa_r = sf.read_sofa(file)
+        identical = sf.equals(sofa, sofa_r, verbose=True, exclude="DATE")
+        assert identical
 
 
 def test_roundtrip_multidimensional_string_variable():
