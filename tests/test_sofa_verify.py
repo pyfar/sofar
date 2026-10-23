@@ -404,8 +404,12 @@ def test_general_dependencies(file):
 @pytest.mark.parametrize("file", specific_dependencies)
 def test_specific_dependencies(file):
 
-    # load file without verification
-    sofa = sf.read_sofa(file, verify=False)
+    # load file without verification and ignore warning
+    # (only appears for conventions with versions < 1.0)
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore", message="Detected preliminary", category=UserWarning)
+        sofa = sf.read_sofa(file, verify=False)
 
     # extract match for error message ('invalid-value' or 'missing')
     match = file[file.rfind("=")+1:file.rfind(".")]
@@ -413,8 +417,13 @@ def test_specific_dependencies(file):
     if match == "missing":
         match += "|must be given"
 
-    with pytest.raises(ValueError, match=match):
-        sofa.verify()
+    # ignore warning for conventions with versions < 1.0 issued by verify
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore", message=r"(?s).*Detected preliminary",
+            category=UserWarning)
+        with pytest.raises(ValueError, match=match):
+            sofa.verify()
 
 
 @pytest.mark.parametrize("file", restricted_dimensions)
@@ -450,8 +459,13 @@ def test_deprecations(file):
     Test if deprecations raise warnings in read mode and errors in write mode.
     """
 
-    # read file without verification
-    sofa = sf.read_sofa(file, verify=False)
+    # load file without verification and ignore warning
+    # (only appears for conventions with versions < 1.0)
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore", message="Detected preliminary conventions",
+            category=UserWarning)
+        sofa = sf.read_sofa(file, verify=False)
 
     # check if deprecated and substitute convention exist in sofar
     conventions = sf.utils._get_conventions("name")
@@ -461,7 +475,13 @@ def test_deprecations(file):
         return
 
     # check warnings and errors
-    sofa = sf.Sofa(deprecated, verify=False)
+    # load file without verification and ignore warning
+    # (only appears for conventions with versions < 1.0)
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore", message="Detected preliminary conventions",
+            category=UserWarning)
+        sofa = sf.read_sofa(file, verify=False)
 
     msg = ("Detected deprecations:\n"
            f"- GLOBAL_SOFAConventions is {deprecated}, which is deprecated. ")
@@ -469,8 +489,13 @@ def test_deprecations(file):
     with pytest.warns(UserWarning, match=msg):
         sofa.verify(mode="read")
 
-    with pytest.raises(ValueError, match=msg):
-        sofa.verify(mode="write")
+    # ignore warning for conventions with versions < 1.0 issued by verify
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore", message=r"(?s).*Detected preliminary",
+            category=UserWarning)
+        with pytest.raises(ValueError, match=msg):
+            sofa.verify(mode="write")
 
 
 def test_preliminary_conventions_version():
