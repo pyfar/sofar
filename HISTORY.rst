@@ -2,6 +2,13 @@
 History
 =======
 
+Unreleased
+----------
+
+Fixed
+^^^^^
+- Catch all warnings for preliminary conventions in tests. These warnings can not be avoided when testing all convention versions and are expected (PR #148).
+
 1.3.0 (2026-08-27)
 ------------------
 
