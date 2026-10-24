@@ -2,6 +2,17 @@
 History
 =======
 
+unreleased
+----------
+
+Fixed
+^^^^^
+- SOFA attributes and string variables are not always written as netCDF `char` data as required by the SOFA standard. For backwards compatibility and user friendliness, those data can be read even if they are saved as `string` data (PR #149)
+
+Deprecated
+^^^^^^^^^^
+- Python versions below 3.11 and netCDF4 versions below 1.7.5 (PR #149)
+
 1.3.0 (2026-08-27)
 ------------------
 
