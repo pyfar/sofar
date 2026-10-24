@@ -26,8 +26,8 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-    'netCDF4!=1.7.4',
-    'numpy>=1.14.0,<2.5.0',
+    'netCDF4>=1.7.5',
+    'numpy>=1.14.0',
     'beautifulsoup4',
     'requests',
     'packaging',
