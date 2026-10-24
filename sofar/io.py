@@ -2,7 +2,7 @@
 import contextlib
 import os
 import numpy as np
-from netCDF4 import Dataset, chartostring, stringtochar
+from netCDF4 import Dataset
 import warnings
 import pathlib
 from packaging.version import parse
@@ -126,6 +126,10 @@ def _read_netcdf(filename, verify, verbose, mode):
     # open new NETCDF4 file for reading
     with Dataset(filename, "r", format="NETCDF4") as file:
 
+        # return character variables as raw bytes for decoding in
+        # `_format_value_from_netcdf`
+        file.set_auto_chartostring(False)
+
         if mode == "sofa":
             # get convention name and version
             convention = file.SOFAConventions
@@ -145,7 +149,7 @@ def _read_netcdf(filename, verify, verbose, mode):
         # load global attributes
         for attr in file.ncattrs():
 
-            value = getattr(file, attr)
+            value = _format_value_from_netcdf(getattr(file, attr), attr)
             all_attr.append(f"GLOBAL_{attr}")
 
             if not hasattr(sofa, f"GLOBAL_{attr}"):
@@ -166,8 +170,15 @@ def _read_netcdf(filename, verify, verbose, mode):
                 setattr(sofa, var.replace(".", "_"), value)
             else:
                 dimensions = "".join(list(file[var].dimensions))
-                # SOFA only uses dtypes 'double' and 'S1' but netCDF has more
-                dtype = "string" if file[var].datatype == "S1" else "double"
+                # Translate data type from netCDF to SOFA.
+                # SOFA uses dtypes 'double' (also double in netCDF) and
+                # 'string'. To be user friendly, sofar reads netCDF data of
+                # type 'char' ("S1") and 'string' (str).
+                # (the datatype of 'string' is a VLType but its dtype is str)
+                if file[var].dtype in ["S1", str]:
+                    dtype = "string"
+                else:
+                    dtype = "double"
                 sofa._add_custom_api_entry(var.replace(".", "_"), value, None,
                                            dimensions, dtype)
                 custom.append(var.replace(".", "_"))
@@ -176,7 +187,8 @@ def _read_netcdf(filename, verify, verbose, mode):
             # load variable attributes
             for attr in [a for a in file[var].ncattrs() if a not in skip]:
 
-                value = getattr(file[var], attr)
+                value = _format_value_from_netcdf(
+                    getattr(file[var], attr), attr)
                 all_attr.append(var.replace(".", "_") + "_" + attr)
 
                 if not hasattr(sofa, var.replace(".", "_") + "_" + attr):
@@ -301,7 +313,9 @@ def _write_sofa(filename: str, sofa: sf.Sofa, compression=4, verify=True):
         # write global attributes
         keys = [key for key in all_keys if key.startswith("GLOBAL_")]
         for key in keys:
-            setattr(file, key[7:], str(getattr(sofa, key)))
+            value, _ = _format_value_for_netcdf(
+                getattr(sofa, key), key, "attribute", None, None)
+            setattr(file, key[7:], value)
 
         # write data
         for key in all_keys:
@@ -327,16 +341,14 @@ def _write_sofa(filename: str, sofa: sf.Sofa, compression=4, verify=True):
             tmp_var = file.createVariable(
                 key.replace("Data_", "Data."), dtype, shape,
                 zlib=use_zlib, complevel=compression)
-            if dtype == "f8":
-                tmp_var[:] = value
-            else:
-                tmp_var[:] = stringtochar(value, encoding='utf-8')
+            tmp_var[:] = value
 
             # write variable attributes
             sub_keys = [k for k in all_keys if k.startswith(f"{key}_")]
             for sub_key in sub_keys:
-                setattr(tmp_var, sub_key[len(key)+1:],
-                        str(getattr(sofa, sub_key)))
+                value, _ = _format_value_for_netcdf(
+                    getattr(sofa, sub_key), sub_key, "attribute", None, None)
+                setattr(tmp_var, sub_key[len(key)+1:], value)
 
 
 def _format_value_for_netcdf(value, key, dtype, dimensions, S):
@@ -350,7 +362,7 @@ def _format_value_for_netcdf(value, key, dtype, dimensions, S):
     key : str
         The name of the current attribute. Needed for verbose errors.
     dtype : str
-        The the data type of value
+        The the data type of value. Must be "attribute", "double", or "string".
     dimensions : str
         The intended dimensions from ``sofa.dimensions``
     S : int
@@ -358,8 +370,11 @@ def _format_value_for_netcdf(value, key, dtype, dimensions, S):
 
     Returns
     -------
-    value : str, numpy array
-        The formatted value.
+    value : bytes, numpy array
+        The formatted value. Attributes are returned as UTF-8 encoded bytes and
+        strings as UTF-8 encoded character arrays of dtype ``S1`` with the
+        characters along the last dimension. This makes sure that attributes
+        and string variables are written as the netCDF type ``char``.
     netcdf_dtype : str
         The data type as a string for writing to a NETCDF4 file ('attribute',
         'f8', or 'S1').
@@ -370,14 +385,33 @@ def _format_value_for_netcdf(value, key, dtype, dimensions, S):
 
     # parse data
     if dtype == "attribute":
-        value = str(value)
+        # Format attributes as UTF-8 encoded byte strings, which netCDF4 writes
+        # as 1D `char` arrays (see AES69-2022, 4.5, note 3). Returning a str
+        # would cause netCDF4 to write a `string` if it contains non-ASCII
+        # characters.
+        value = str(value).encode("utf-8")
         netcdf_dtype = "attribute"
     elif dtype == "double":
         value = _atleast_nd(value, len(dimensions))
         netcdf_dtype = "f8"
     elif dtype == "string":
-        value = np.array(value, dtype=f"S{str(S)}")
-        value = _atleast_nd(value, len(dimensions))
+        # Format strings as character arrays of numpy dtype `S1` (one byte per
+        # element), which netCDF4 writes as netCDF type `char` (as required by
+        # AES69-2022, Section 4.4).
+        # First, encode the strings as UTF-8 bytes. This allows to write
+        # non-ASCII characters. Then pad them with null bytes to the length S,
+        # which is the maximum length of the UTF-8 encoded strings in bytes
+        # (see Sofa._get_size_and_shape_of_string_var).
+        value = np.asarray(value)
+        if value.dtype.kind != "S":
+            value = np.char.encode(value.astype("U"), "utf-8")
+        value = value.astype(f"S{str(S)}")
+        value = np.ascontiguousarray(_atleast_nd(value, len(dimensions)))
+        # Second, split the strings of dtype `S{S}` into characters of dtype
+        # `S1` along a new last dimension, which is the dimension S of the
+        # netCDF variable. For example, an array of shape (M, 1) and dtype
+        # `S10` becomes an array of shape (M, 1, 10) and dtype `S1`.
+        value = value.view("S1").reshape(value.shape + (value.itemsize, ))
         netcdf_dtype = 'S1'
     else:
         raise ValueError(f"Unknown type {dtype} for {key}")
@@ -391,8 +425,11 @@ def _format_value_from_netcdf(value, key):
 
     Parameters
     ----------
-    value : np.array of dtype float or S
-        The value to be formatted
+    value : str, np.array of dtype float, int, S, U, or O
+        The value to be formatted. Values that are not numpy arrays, e.g.,
+        attributes returned as str by netCDF4, are returned unchanged.
+        Character arrays of dtype ``S1`` (netCDF type ``char``) are decoded
+        as UTF-8 strings along the last dimension.
     key : str
         The variable name of the current value. Needed for verbose errors.
 
@@ -402,21 +439,37 @@ def _format_value_from_netcdf(value, key):
         The formatted value.
     """
 
+    # No need to format SOFA attributes: attributes can be of netCDF4 types
+    # `char` and `string` and are both already returned as the required str
+    # object. They should be of type `char`, but sofar also ready `str` to be
+    # user friendly.
+    if not isinstance(value, np.ndarray):
+        return value
+
     if "float" in str(value.dtype) or "int" in str(value.dtype):
         if np.ma.is_masked(value):
             warnings.warn(f"Entry {key} contains missing data", stacklevel=3)
         else:
             # Convert to numpy array or scalar
             value = np.asarray(value)
-    elif str(value.dtype)[1] in ["S", "U"]:
-        # string arrays are stored in masked arrays with empty strings '' being
-        # masked. Convert to regular arrays with unmasked empty strings
-        if str(value.dtype)[1] == "S":
-            value = chartostring(value, encoding="ascii")
-        value = np.atleast_1d(value).astype("U")
+    elif value.dtype.kind == "S":
+        # character arrays (netCDF type 'char') are stored in masked arrays
+        # with empty characters being masked. Convert to regular arrays
+        value = np.ascontiguousarray(np.ma.filled(value, b""))
+        # join characters (bytes) along the last dimension
+        if value.dtype.itemsize == 1 and value.ndim > 0:
+            if value.shape[-1] == 0:
+                value = np.zeros(value.shape[:-1], dtype="S1")
+            else:
+                value = value.view(f"S{value.shape[-1]}")[..., 0]
+        value = np.atleast_1d(np.char.decode(value, "utf-8"))
+    elif value.dtype.kind in ["U", "O"]:
+        # string arrays (netCDF type 'string')
+        value = np.atleast_1d(np.asarray(value).astype("U"))
     else:
-        raise TypeError(
-            f"{key}: value.dtype is {value.dtype} but must be float, S or, U")
+        raise TypeError((
+            f"{key}: value.dtype is {value.dtype} but must be float, int, S, "
+            "U, or O"))
 
     # convert arrays to scalars if they do not store data that is usually used
     # as scalar metadata, e.g., the SamplingRate
