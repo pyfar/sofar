@@ -439,7 +439,7 @@ class SofaStream():
             else:
                 # make verbose shape, e.g., '(M=100, R=2, N=128, '
                 shape_verbose = "("
-                for s, d in zip(shape, dimensions):
+                for s, d in zip(shape, dimensions, strict=True):
                     shape_verbose += f"{d}={s}, "
 
                 # add shape information
