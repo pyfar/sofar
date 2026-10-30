@@ -216,6 +216,8 @@ class SofaStream():
                 setattr(sofa, key, value)
             else:
                 dimensions = "".join(list(netcdf_variable.dimensions))
+                if netcdf_variable.dtype is str:
+                    dimensions += "S"
                 sofa._add_custom_api_entry(
                     key, value, None, dimensions, dtype)
                 sofa.protected = False
