@@ -333,6 +333,17 @@ def test_read_netcdf_string():
     assert sofa_r.SourcePosition_Comment == text
     assert sofa_r.CustomStrings == text
     assert sofa_r._convention["CustomStrings"]["type"] == "string"
+    assert sofa_r._convention["CustomStrings"]["dimensions"] == "MS"
+
+    with sf.SofaStream(file) as streamed_sofa:
+        streamed = streamed_sofa._read_open_file_for_verification()
+        assert streamed._convention["CustomStrings"]["dimensions"] == "MS"
+
+    roundtrip_file = os.path.join(temp_dir.name, "roundtrip.sofa")
+    sf.write_sofa(roundtrip_file, sofa_r)
+    sofa_roundtrip = sf.read_sofa(roundtrip_file, verify=False, verbose=False)
+    assert sofa_roundtrip.CustomStrings == text
+    assert sofa_roundtrip._convention["CustomStrings"]["dimensions"] == "MS"
 
 
 def test_format_value_for_netcdf():

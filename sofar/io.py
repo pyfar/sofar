@@ -177,6 +177,8 @@ def _read_netcdf(filename, verify, verbose, mode):
                 # (the datatype of 'string' is a VLType but its dtype is str)
                 if file[var].dtype in ["S1", str]:
                     dtype = "string"
+                    if file[var].dtype is str:
+                        dimensions += "S"
                 else:
                     dtype = "double"
                 sofa._add_custom_api_entry(var.replace(".", "_"), value, None,
