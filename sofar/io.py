@@ -441,7 +441,7 @@ def _format_value_from_netcdf(value, key):
 
     # No need to format SOFA attributes: attributes can be of netCDF4 types
     # `char` and `string` and are both already returned as the required str
-    # object. They should be of type `char`, but sofar also ready `str` to be
+    # object. They should be of type `char`, but sofar also reads `str` to be
     # user friendly.
     if not isinstance(value, np.ndarray):
         return value
