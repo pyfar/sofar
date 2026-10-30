@@ -119,7 +119,7 @@ def _get_conventions(return_type, conventions_path=None):
     elif return_type == "name":
         return conventions
     elif return_type == "name_version":
-        return list(zip(conventions, versions))
+        return list(zip(conventions, versions, strict=True))
     elif return_type == "string":
         return conventions_str
     else:

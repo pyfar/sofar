@@ -371,8 +371,10 @@ class Sofa():
                     shape += (1, )
 
                 # make verbose shape, e.g., '(M=100, R=2, N=128, '
+                # (not strict, because invalid objects can have more
+                # dimensions than defined and inspect should still work)
                 shape_verbose = "("
-                for s, d in zip(shape, dimension):
+                for s, d in zip(shape, dimension, strict=False):
                     shape_verbose += f"{d}={s}, "
 
                 # add shape information
@@ -1409,7 +1411,7 @@ class Sofa():
             return False
 
         # check if units are valid
-        for unit_test, unit_ref in zip(units_test, units_ref):
+        for unit_test, unit_ref in zip(units_test, units_ref, strict=True):
             if unit_test not in unit_aliases \
                     or unit_aliases[unit_test] != unit_ref:
                 return False

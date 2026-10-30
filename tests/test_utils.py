@@ -143,7 +143,7 @@ def test__compile_conventions():
     paths_test = _get_conventions(
         "path", os.path.join(temp_dir.name, "conventions"))
 
-    for path_ref, path_test in zip(paths_ref, paths_test):
+    for path_ref, path_test in zip(paths_ref, paths_test, strict=True):
 
         # load reference conventions
         with open(path_ref, "r") as file:

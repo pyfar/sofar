@@ -440,7 +440,7 @@ def _check_congruency(save_dir=None, branch="master"):
 
             # save diverging files
             if save_dir is not None:
-                for subdir, d in zip(subdirs, data):
+                for subdir, d in zip(subdirs, data, strict=True):
                     filename = os.path.join(save_dir, subdir, convention)
                     with open(filename, "wb") as file:
                         file.write(d)
