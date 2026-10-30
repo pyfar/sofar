@@ -1666,19 +1666,26 @@ class Sofa():
         String variables can be strings, list of strings, or numpy arrays of
         strings. This functions returns the length of the longest string S
         inside the string variable and the shape of the string variable as
-        required by the SOFA definition. Note that the shape is the shape of
-        the array that holds the strings. NETCDF stores all string variables in
-        arrays.
+        required by the SOFA definition. S is the number of bytes of the UTF-8
+        encoded string, because strings are written as UTF-8 encoded character
+        arrays. Note that the shape is the shape of the array that holds the
+        strings. NETCDF stores all string variables in arrays.
         """
 
+        def n_bytes(string):
+            """Return the UTF-8 byte length of a string."""
+            if isinstance(string, bytes):
+                return len(string)
+            return len(str(string).encode("utf-8"))
+
         if isinstance(value, str):
-            S = len(value)
+            S = n_bytes(value)
             shape = (1, 1)
         elif isinstance(value, list):
-            S = len(max(value, key=len))
+            S = max(np.vectorize(n_bytes)(np.array(value)).flatten())
             shape = np.array(value).shape
         elif isinstance(value, np.ndarray):
-            S = max(np.vectorize(len)(value))
+            S = max(np.vectorize(n_bytes)(value).flatten())
             shape = value.shape
         else:
             raise TypeError((f"{key} must be a string, numpy string array, "

@@ -6,11 +6,13 @@ from sofar.utils import (_get_conventions,
 from sofar.io import (_format_value_for_netcdf,
                       _format_value_from_netcdf)
 import os
+import ctypes
 import pathlib
 from tempfile import TemporaryDirectory
 import pytest
 import numpy as np
 import numpy.testing as npt
+import netCDF4
 from netCDF4 import Dataset
 from packaging.version import parse
 
@@ -212,46 +214,181 @@ def test_roundtrip_multidimensional_string_variable():
     assert identical
 
 
+def _netcdf_attribute_type(filename, attribute, variable=None):
+    """
+    Get the netCDF type of an attribute from the netCDF C library that netCDF4
+    is linked against. The netCDF4 Python API does not expose the type of
+    attributes.
+
+    Returns 2 for netCDF type 'char' (NC_CHAR) and 12 for
+    netCDF type 'string' (NC_STRING).
+    """
+
+    # load the C functions through the netCDF4 extension module, which links
+    # the netCDF C library. Skip if this is not possible, e.g., on Windows
+    try:
+        lib = ctypes.CDLL(netCDF4._netCDF4.__file__)
+        nc_open, nc_close = lib.nc_open, lib.nc_close
+        nc_inq_varid, nc_inq_atttype = lib.nc_inq_varid, lib.nc_inq_atttype
+    except (OSError, AttributeError):
+        pytest.skip("netCDF C library can not be accessed via ctypes")
+
+    # open file in read mode (0 = NC_NOWRITE). The C functions return 0 on
+    # success and write their results to the passed pointers
+    ncid, varid, xtype = ctypes.c_int(), ctypes.c_int(-1), ctypes.c_int()
+    assert nc_open(str(filename).encode(), 0, ctypes.byref(ncid)) == 0
+
+    # query the attribute type and make sure the file is closed afterwards
+    try:
+        # get the variable id (varid -1 = NC_GLOBAL for global attributes)
+        if variable is not None:
+            assert nc_inq_varid(
+                ncid, variable.encode(), ctypes.byref(varid)) == 0
+        assert nc_inq_atttype(
+            ncid, varid, attribute.encode(), ctypes.byref(xtype)) == 0
+    finally:
+        nc_close(ncid)
+
+    return xtype.value
+
+
+@pytest.mark.parametrize("text", ["Only ASCII text", "Möre than ASCII text"])
+def test_write_netcdf_char(text):
+    """
+    Test that attributes and string variables are written as netCDF type
+    'char' and UTF-8 encoded.
+    """
+
+    temp_dir = TemporaryDirectory()
+    file = os.path.join(temp_dir.name, "HeadphoneIR.sofa")
+
+    sofa = sf.Sofa("SimpleHeadphoneIR")
+    # add dummy matrix that contains 2 measurements
+    sofa.Data_IR = np.zeros((2, 2, 10))
+
+    # add text to global attribute, variable attribute, and string variable
+    sofa.GLOBAL_Comment = text
+    sofa.add_attribute("SourcePosition_Comment", text)
+    sofa.SourceManufacturer = [[text], ["b"]]
+
+    # remove other string variables for simplicity
+    delattr(sofa, "SourceModel")
+    delattr(sofa, "ReceiverDescriptions")
+    delattr(sofa, "EmitterDescriptions")
+    delattr(sofa, "MeasurementDate")
+    sf.write_sofa(file, sofa)
+
+    # Test that attributes are of netCDF type 'char' (NC_CHAR = 2)
+    # This must checked with netCDF and cannot be checked with sofar.
+    assert _netcdf_attribute_type(file, "Comment") == 2
+    assert _netcdf_attribute_type(file, "Comment", "SourcePosition") == 2
+
+    # Test SOFA string variable
+    with Dataset(file, "r", format="NETCDF4") as nc:
+        # attributes contain the text
+        assert nc.Comment == text
+        assert nc["SourcePosition"].Comment == text
+
+        # string variable is of netCDF type 'char' with S as last dimension
+        assert nc["SourceManufacturer"].datatype == "S1"
+        assert nc["SourceManufacturer"].dimensions[-1] == "S"
+
+        # S is the number of bytes of the longest UTF-8 encoded string
+        n_bytes = len(text.encode("utf-8"))
+        assert nc.dimensions["S"].size == n_bytes
+
+        # characters are the UTF-8 encoded bytes padded with null characters
+        nc.set_auto_chartostring(False)
+        characters = np.ma.filled(nc["SourceManufacturer"][:], b"")
+        assert characters.tobytes() == \
+            text.encode("utf-8") + b"b".ljust(n_bytes, b"\x00")
+
+
+def test_read_netcdf_string():
+    """
+    Test reading attributes and string variables of netCDF type 'string' that
+    are not written by sofar but can be contained in SOFA files written by
+    other applications. Sofar reads those as well to be user friendly, despite
+    they violate the AES69-2022 standard.
+    """
+
+    temp_dir = TemporaryDirectory()
+    file = os.path.join(temp_dir.name, "HeadphoneIR.sofa")
+    text = "Möre than ASCII"
+
+    sofa = sf.Sofa("SimpleHeadphoneIR")
+    sf.write_sofa(file, sofa)
+
+    # add attributes and string variable of netCDF type 'string'
+    with Dataset(file, "a", format="NETCDF4") as nc:
+        nc.setncattr_string("Comment", text)
+        nc["SourcePosition"].setncattr_string("Comment", text)
+        variable = nc.createVariable("CustomStrings", str, ("M", ))
+        variable[0] = text
+
+    assert _netcdf_attribute_type(file, "Comment") == 12
+
+    sofa_r = sf.read_sofa(file, verify=False, verbose=False)
+    assert sofa_r.GLOBAL_Comment == text
+    assert sofa_r.SourcePosition_Comment == text
+    assert sofa_r.CustomStrings == text
+    assert sofa_r._convention["CustomStrings"]["type"] == "string"
+
+
 def test_format_value_for_netcdf():
 
     # string and None dimensions (a.k.a NETCDF attribute)
     value, dtype = _format_value_for_netcdf(
         "string", "test_attr", "attribute", None, 12)
-    assert value == "string"
+    assert value == b"string"
     assert dtype == "attribute"
 
     # int that should be converted to a string
     value, dtype = _format_value_for_netcdf(
         1, "test_attr", "attribute", None, 12)
-    assert value == "1"
+    assert value == b"1"
     assert dtype == "attribute"
 
     # float that should be converted to a string
     value, dtype = _format_value_for_netcdf(
         0.2, "test_attr", "attribute", None, 12)
-    assert value == "0.2"
+    assert value == b"0.2"
+    assert dtype == "attribute"
+
+    # non-ASCII string that should be encoded as UTF-8
+    value, dtype = _format_value_for_netcdf(
+        "Möre than ASCII", "test_attr", "attribute", None, 12)
+    assert value == "Möre than ASCII".encode("utf-8")
     assert dtype == "attribute"
 
     # string and IS dimensions
     value, dtype = _format_value_for_netcdf(
         "string", "TestVar", "string", "IS", 12)
-    assert value == np.array("string", dtype="S12")
+    assert value.view("S12")[..., 0] == np.array("string", dtype="S12")
     assert dtype == "S1"
-    assert value.ndim == 2
+    assert value.shape == (1, 1, 12)
 
     # single entry array and none Dimensions
     value, dtype = _format_value_for_netcdf(
         ["string"], "TestVar", "string", "IS", 12)
-    assert value == np.array(["string"], dtype="S12")
+    assert value.view("S12")[..., 0] == np.array(["string"], dtype="S12")
     assert dtype == "S1"
-    assert value.ndim == 2
+    assert value.shape == (1, 1, 12)
 
     # array of strings
     value, dtype = _format_value_for_netcdf(
         [["a"], ["bc"]], "TestVar", "string", "MS", 12)
-    assert all(value == np.array([["a"], ["bc"]], "S12"))
+    assert all(value.view("S12")[..., 0] == np.array([["a"], ["bc"]], "S12"))
     assert dtype == "S1"
-    assert value.ndim == 2
+    assert value.shape == (2, 1, 12)
+
+    # non-ASCII string that should be encoded as UTF-8 (15 characters but 16
+    # bytes because 'ö' is encoded with 2 bytes)
+    value, dtype = _format_value_for_netcdf(
+        "Möre than ASCII", "TestVar", "string", "IS", 16)
+    assert value.view("S16")[..., 0] == "Möre than ASCII".encode("utf-8")
+    assert dtype == "S1"
+    assert value.shape == (1, 1, 16)
 
     # test with list
     value, dtype = _format_value_for_netcdf(
@@ -284,6 +421,26 @@ def test_format_value_from_netcdf():
                         dtype="S1")
     value = _format_value_from_netcdf(value_in, "Some_Attribute")
     assert all(value == np.array(["str1", "str2"], dtype="U"))
+
+    # non-ASCII string (emulate NetCDF binary format of UTF-8 string)
+    value_in = np.array(list("Möre than ASCII".encode("utf-8")), dtype="u1")
+    value = _format_value_from_netcdf(value_in.view("S1"), "Some_Attribute")
+    assert value == "Möre than ASCII"
+
+    # array of strings with empty characters (emulate masked NetCDF data)
+    value_in = np.ma.masked_equal(
+        np.array([["a", "b"], ["c", ""]], dtype="S1"), b"")
+    value = _format_value_from_netcdf(value_in, "Some_Attribute")
+    assert all(value == np.array(["ab", "c"], dtype="U"))
+
+    # array of strings (emulate NetCDF type string)
+    value_in = np.array(["Möre than ASCII", "str2"], dtype="O")
+    value = _format_value_from_netcdf(value_in, "Some_Attribute")
+    assert all(value == np.array(["Möre than ASCII", "str2"], dtype="U"))
+
+    # attributes are returned unchanged
+    value = _format_value_from_netcdf("Möre than ASCII", "Some_Attribute")
+    assert value == "Möre than ASCII"
 
     # single string (emulate NetCDF ascii encoding)
     value_in = np.array(["str"], dtype="U")

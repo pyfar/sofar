@@ -221,7 +221,7 @@ def equals(sofa_a, sofa_b, verbose=True, exclude=None):
         elif type_a == "string" and type_b == "string":
             try:
                 assert np.all(
-                    np.squeeze(a).astype("S") == np.squeeze(b).astype("S"))
+                    np.squeeze(a).astype("U") == np.squeeze(b).astype("U"))
             except AssertionError:
                 is_identical = _equals_raise_warning(
                     "not identical: different values for {key}", verbose)

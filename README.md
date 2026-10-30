@@ -38,7 +38,7 @@ Use pip to install sofar
 
     pip install sofar
 
-(Requires Python >= 3.8)
+(Requires Python >= 3.11)
 
 If the installation fails, please check out the [help section](https://pyfar-gallery.readthedocs.io/en/latest/help).
 

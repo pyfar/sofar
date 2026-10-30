@@ -182,7 +182,7 @@ class SofaStream():
 
         # load global attributes
         for attr in self._file.ncattrs():
-            value = getattr(self._file, attr)
+            value = _format_value_from_netcdf(getattr(self._file, attr), attr)
             key = f"GLOBAL_{attr}"
             all_attr.append(key)
 
@@ -198,7 +198,13 @@ class SofaStream():
             key = var.replace(".", "_")
             all_attr.append(key)
 
-            if netcdf_variable.datatype == "S1":
+            # SOFA string variables should be saved as `char` arrays in a SOFA
+            # file (see AES69-2022, Section 4.4), which translates to a numpy
+            # array of dtype "S1". To be user friendly, sofar also reads
+            # str, which translates to the netCDF type 'string' (the datatype
+            # of 'string' is a VLType but its dtype is str) in case  other
+            # applications are less strinct than sofar.
+            if netcdf_variable.dtype in ["S1", str]:
                 value = _format_value_from_netcdf(netcdf_variable[:], var)
                 dtype = "string"
             else:
@@ -217,7 +223,8 @@ class SofaStream():
             # load variable attributes
             for attr in [a for a in netcdf_variable.ncattrs()
                          if a not in skip]:
-                value = getattr(netcdf_variable, attr)
+                value = _format_value_from_netcdf(
+                    getattr(netcdf_variable, attr), attr)
                 attr_key = key + "_" + attr
                 all_attr.append(attr_key)
 
