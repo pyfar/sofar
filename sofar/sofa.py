@@ -149,7 +149,10 @@ class Sofa():
                 "only data (e.g., to repair corrupted SOFA data)."))
 
         # convert to numpy array or scalar
-        if not isinstance(value, (str, dict, np.ndarray)) \
+        if isinstance(value, str):
+            if self._convention.get(name, {}).get("type") == "string":
+                value = np.str_(value)
+        elif not isinstance(value, (dict, np.ndarray)) \
                 and name != "protected":
             value = np.atleast_2d(value)
             if value.size == 1:
