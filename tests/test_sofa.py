@@ -169,6 +169,17 @@ def test_inspect(capfd):
     assert out == "".join(text)
 
 
+def test_inspect_scalar_string_variable(capfd):
+    sofa = sf.Sofa("GeneralTF")
+    sofa.add_variable("TestString", "test", "string", "S")
+    sofa.inspect()
+    assert "TestString : test" in capfd.readouterr().out
+
+    sofa.TestString = "updated"
+    sofa.inspect()
+    assert "TestString : updated" in capfd.readouterr().out
+
+
 def test_add_entry():
 
     sofa = sf.Sofa("GeneralTF")
